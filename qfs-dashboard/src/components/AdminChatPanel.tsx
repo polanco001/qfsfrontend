@@ -3,7 +3,7 @@ import { Send, Pencil, Check } from 'lucide-react';
 import io, { Socket } from 'socket.io-client';
 import { useApp } from '../context/AppContext';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
 
 interface Message {
   _id: string;
