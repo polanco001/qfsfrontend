@@ -13,7 +13,7 @@ export default function ForgotPassword() {
     setError('');
     setMessage('');
     try {
-      await axios.post('http://localhost:5001/api/auth/forgot-password', { email });
+      await axios.post('https://qfsbackend-1.onrender.com/api/auth/forgot-password', { email });
       setMessage('Reset link sent to your email');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to send reset link');
