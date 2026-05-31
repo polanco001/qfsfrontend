@@ -8,7 +8,7 @@ import {
   CreditCard, FileText, CheckCircle, Users, Bell, DollarSign, Wallet
 } from 'lucide-react';
 
-const BASE_URL = 'http://localhost:5001';
+const BASE_URL = 'https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
 export function AdminPanel() {
