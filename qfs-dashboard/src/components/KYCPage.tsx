@@ -52,7 +52,7 @@ export function KYCPage() {
     multiForm.append('proofDoc', documents.proofOfResidence);
 
     try {
-      const res = await fetch('http://localhost:5001/api/user/kyc/submit', {
+      const res = await fetch('https://qfsbackend-1.onrender.com/api/user/kyc/submit', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: multiForm,
