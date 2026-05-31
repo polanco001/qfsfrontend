@@ -44,7 +44,7 @@ export function ConnectWalletModal({ onClose }: ConnectWalletModalProps) {
 
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5001/api/user/wallet/connect', {
+      const res = await fetch('https://qfsbackend-1.onrender.com/api/user/wallet/connect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
