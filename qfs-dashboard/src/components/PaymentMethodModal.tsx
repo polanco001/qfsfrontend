@@ -59,7 +59,7 @@ export function PaymentMethodModal({ amount, onClose, onComplete }: PaymentMetho
     formData.append('amount', amount?.toString() || '0');
 
     try {
-      const res = await fetch('http://localhost:5001/api/user/payment/submit', {
+      const res = await fetch('https://qfsbackend-1.onrender.com/api/user/payment/submit', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
