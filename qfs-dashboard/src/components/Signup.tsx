@@ -6,7 +6,6 @@ import axios from 'axios';
 import { useApp } from '../context/AppContext';
 
 const API_URL = 'https://qfsbackend-1.onrender.com';
-
 export default function Signup() {
   const navigate = useNavigate();
   const { login } = useApp();
@@ -20,9 +19,6 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-
   const [agreeTerms, setAgreeTerms] = useState(false);
 
   const [errorMsg, setErrorMsg] = useState('');
@@ -31,18 +27,20 @@ export default function Signup() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [verifyError, setVerifyError] = useState('');
   const [verifyLoading, setVerifyLoading] = useState(false);
-  const [resendMsg, setResendMsg] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
 
+  // store temp credentials safely for login after verify
+  const [tempCred, setTempCred] = useState({ email: '', password: '' });
+
   /* ========================
-     SIGNUP (FIXED)
+     SIGNUP (FIXED + SAFE)
   ======================== */
   const handleSignup = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
     if (!fullName || !email || !password || !country) {
-      setErrorMsg('Please fill in all required fields');
+      setErrorMsg('Fill all required fields');
       return;
     }
 
@@ -64,17 +62,19 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post(
-        `${API_URL}/api/auth/signup`,
-        {
-          email: email.trim().toLowerCase(),
-          password,
-          fullName,
-          phone: phone || '',
-          country
-        },
-        { timeout: 15000 }
-      );
+      await axios.post(`${API_URL}/api/auth/signup`, {
+        email: email.trim().toLowerCase(),
+        password,
+        fullName,
+        phone: phone || '',
+        country
+      }, { timeout: 15000 });
+
+      // IMPORTANT FIX: store credentials for verify step
+      setTempCred({
+        email: email.trim().toLowerCase(),
+        password
+      });
 
       setStep('verify');
 
@@ -101,14 +101,15 @@ export default function Signup() {
     setVerifyLoading(true);
 
     try {
-      const res = await axios.post(
-        `${API_URL}/api/auth/verify-email`,
-        { email, code: fullCode }
-      );
+      const res = await axios.post(`${API_URL}/api/auth/verify-email`, {
+        email,
+        code: fullCode
+      });
 
-      const user = res.data.user;
+      const user = res?.data?.user;
 
-      await login(email, password);
+      // SAFE LOGIN AFTER VERIFY
+      await login(tempCred.email, tempCred.password);
 
       navigate(user?.role === 'admin' ? '/admin' : '/');
 
@@ -120,33 +121,42 @@ export default function Signup() {
   };
 
   /* ========================
-     RESEND CODE (FIXED)
+     RESEND CODE
   ======================== */
   const handleResend = async () => {
-    setResendMsg('');
     setResendLoading(true);
 
     try {
       await axios.post(`${API_URL}/api/auth/resend-code`, {
-        email: email
+        email
       });
 
-      setResendMsg('New code sent!');
-    } catch {
-      setResendMsg('Failed to resend');
+    } catch (err) {
+      console.log(err);
     } finally {
       setResendLoading(false);
     }
   };
 
   /* ========================
-     INPUT HANDLERS (UNCHANGED LOGIC)
+     CODE INPUT
   ======================== */
-  const handleCodeChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+  const handleCodeChange = (i, val) => {
+    if (!/^\d*$/.test(val)) return;
 
     const newCode = [...code];
-    newCode[index] = value.slice(-1);
+    newCode[i] = val.slice(-1);
+    setCode(newCode);
+  };
+
+  const handlePaste = (e) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newCode = [...code];
+
+    pasted.split('').forEach((c, i) => {
+      newCode[i] = c;
+    });
+
     setCode(newCode);
   };
 
@@ -155,22 +165,22 @@ export default function Signup() {
   ======================== */
   if (step === 'verify') {
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
         <div className="w-full max-w-md p-6 bg-white/5 border border-white/10 rounded-xl">
 
-          <h2 className="text-xl mb-4 text-center">Verify Email</h2>
+          <h2 className="text-xl text-center mb-2">Verify Email</h2>
           <p className="text-sm text-center text-white/50 mb-4">
             Code sent to {email}
           </p>
 
-          <div className="flex gap-2 justify-center mb-4">
+          <div className="flex gap-2 justify-center mb-4" onPaste={handlePaste}>
             {code.map((c, i) => (
               <input
                 key={i}
                 maxLength={1}
-                className="w-10 h-12 text-center bg-white/10 border border-white/10"
                 value={c}
                 onChange={(e) => handleCodeChange(i, e.target.value)}
+                className="w-10 h-12 text-center bg-white/10 border border-white/10"
               />
             ))}
           </div>
@@ -190,7 +200,7 @@ export default function Signup() {
           <button
             onClick={handleResend}
             disabled={resendLoading}
-            className="w-full mt-2 text-sm text-blue-400"
+            className="w-full mt-2 text-blue-400 text-sm"
           >
             {resendLoading ? 'Sending...' : 'Resend code'}
           </button>
@@ -200,77 +210,34 @@ export default function Signup() {
   }
 
   /* ========================
-     YOUR ORIGINAL UI (UNCHANGED STRUCTURE)
-     ONLY FIXED FUNCTIONS ABOVE
+     SIGNUP UI (UNCHANGED STRUCTURE)
   ======================== */
-
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] text-white">
+
       <form onSubmit={handleSignup} className="w-full max-w-lg p-6 bg-white/5 border border-white/10 rounded-xl">
 
         <h1 className="text-xl mb-4">Create Account</h1>
 
         {errorMsg && <p className="text-red-400 mb-2">{errorMsg}</p>}
 
-        <input
-          placeholder="Full Name"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-        />
+        <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full Name" className="w-full mb-2 p-2 bg-black/20" />
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className="w-full mb-2 p-2 bg-black/20" />
+        <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone" className="w-full mb-2 p-2 bg-black/20" />
+        <input value={country} onChange={e => setCountry(e.target.value)} placeholder="Country" className="w-full mb-2 p-2 bg-black/20" />
 
-        <input
-          placeholder="Email"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          placeholder="Phone"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-
-        <input
-          placeholder="Country"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          className="w-full mb-2 p-2 bg-black/20"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Password" className="w-full mb-2 p-2 bg-black/20" />
+        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirm Password" className="w-full mb-2 p-2 bg-black/20" />
 
         <label className="text-sm">
-          <input
-            type="checkbox"
-            checked={agreeTerms}
-            onChange={() => setAgreeTerms(!agreeTerms)}
-          />
+          <input type="checkbox" checked={agreeTerms} onChange={() => setAgreeTerms(!agreeTerms)} />
           {' '}I agree to terms
         </label>
 
-        <button
-          disabled={isLoading}
-          className="w-full mt-4 bg-blue-600 py-2"
-        >
+        <button disabled={isLoading} className="w-full mt-4 bg-blue-600 py-2">
           {isLoading ? 'Creating...' : 'Create Account'}
         </button>
+
       </form>
     </div>
   );
