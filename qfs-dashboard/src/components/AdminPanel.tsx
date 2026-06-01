@@ -160,6 +160,30 @@ export function AdminPanel() {
     }
   };
 
+  // ✅ New: Admin‑initiated password reset
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    const newPassword = prompt(`Enter new temporary password for ${userEmail}`);
+    if (!newPassword) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId, newPassword }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ Password for ${userEmail} has been reset. The new password is: ${newPassword}`);
+      } else {
+        alert(data.error || 'Password reset failed.');
+      }
+    } catch (err) {
+      alert('Network error.');
+    }
+  };
+
   if (user === null || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -294,11 +318,12 @@ export function AdminPanel() {
                     <th className="px-4 py-3 text-left">KYC</th>
                     <th className="px-4 py-3 text-left">Verified</th>
                     <th className="px-4 py-3 text-left">Role</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {users.length === 0 ? (
-                    <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-400">No users found</td></tr>
+                    <tr><td colSpan={7} className="px-4 py-6 text-center text-slate-400">No users found</td></tr>
                   ) : users.map(u => (
                     <tr key={u._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                       <td className="px-4 py-3">{u.email}</td>
@@ -312,6 +337,14 @@ export function AdminPanel() {
                             ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                             : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                         }`}>{u.role}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleResetPassword(u._id, u.email)}
+                          className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs font-medium transition"
+                        >
+                          Reset PW
+                        </button>
                       </td>
                     </tr>
                   ))}
