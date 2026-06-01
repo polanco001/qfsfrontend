@@ -32,7 +32,7 @@ export function SettingsPage() {
     setIsLoading(true);
     try {
       await axios.post(
-        'http://localhost:5001/api/auth/change-password',
+        'https://qfsbackend-1.onrender.com/api/auth/change-password',
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
