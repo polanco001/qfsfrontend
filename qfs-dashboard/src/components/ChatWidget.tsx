@@ -15,6 +15,7 @@ interface Message {
 
 export function ChatWidget() {
   const { user, token } = useApp();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -32,6 +33,7 @@ export function ChatWidget() {
     }
   };
 
+  // Fetch history & connect socket – only when user is logged in
   useEffect(() => {
     if (!user || !token) return;
 
@@ -58,17 +60,19 @@ export function ChatWidget() {
     return () => { newSocket.disconnect(); };
   }, [user, token, open]);
 
+  // Auto‑scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Reset unread when opening
   useEffect(() => {
     if (open) setUnread(0);
   }, [open]);
 
-  // Auto welcome on first open
+  // Auto welcome message on first open (only when user is logged in)
   useEffect(() => {
-    if (open && messages.length === 0) {
+    if (open && user && messages.length === 0) {
       const welcomeMsg: Message = {
         _id: 'welcome-' + Date.now(),
         sender: { _id: 'support', fullName: 'QFS Support', email: 'support@qfs.com', role: 'admin' },
@@ -78,7 +82,7 @@ export function ChatWidget() {
       };
       setMessages([welcomeMsg]);
     }
-  }, [open, messages.length]);
+  }, [open, user, messages.length]);
 
   const sendMessage = () => {
     if (!input.trim() || !socket) return;
@@ -106,12 +110,12 @@ export function ChatWidget() {
     if (e.key === 'Enter') sendMessage();
   };
 
-  if (!user) return null;
-
+  // ✅ Show chat button even when not logged in
   return (
     <>
       <audio ref={audioRef} src="/notification.mp3" preload="auto" />
 
+      {/* Floating button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -145,68 +149,89 @@ export function ChatWidget() {
               </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map(msg => (
-                <div key={msg._id} className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-                    msg.sender._id === user._id
-                      ? 'bg-blue-600 text-white rounded-br-none'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
-                  }`}>
-                    {msg.sender._id !== user._id && (
-                      <p className="text-xs font-semibold mb-1">
-                        {msg.sender.role === 'admin' ? 'QFS Support Team' : msg.sender.fullName}
-                      </p>
-                    )}
-                    {editMessageId === msg._id ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          value={editText}
-                          onChange={e => setEditText(e.target.value)}
-                          className="flex-1 bg-white/20 text-white rounded px-2 py-1 text-sm outline-none"
-                        />
-                        <button onClick={saveEdit} className="text-white hover:text-green-200"><Check size={16} /></button>
-                      </div>
-                    ) : (
-                      <p>{msg.text}</p>
-                    )}
-                    <p className="text-xs opacity-70 mt-1">
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                    {msg.sender._id === user._id && editMessageId !== msg._id && (
-                      <button onClick={() => startEdit(msg)} className="text-xs opacity-70 hover:opacity-100 ml-1">
-                        <Pencil size={12} className="inline" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input */}
-            <div className="border-t border-slate-200 dark:border-slate-700 p-3">
-              <div className="flex gap-2">
-                <input
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* If not logged in → login prompt */}
+            {!user ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
+                <MessageCircle size={48} className="text-blue-600" />
+                <p className="text-slate-600 dark:text-slate-300 text-center">
+                  Please log in to use live chat.
+                </p>
                 <button
-                  onClick={sendMessage}
-                  disabled={!input.trim()}
-                  className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate('/login');
+                  }}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
                 >
-                  <Send size={18} />
+                  Go to Login
                 </button>
               </div>
-            </div>
+            ) : (
+              /* Authenticated user – full chat */
+              <>
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {messages.map(msg => (
+                    <div key={msg._id} className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
+                        msg.sender._id === user._id
+                          ? 'bg-blue-600 text-white rounded-br-none'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
+                      }`}>
+                        {msg.sender._id !== user._id && (
+                          <p className="text-xs font-semibold mb-1">
+                            {msg.sender.role === 'admin' ? 'QFS Support Team' : msg.sender.fullName}
+                          </p>
+                        )}
+                        {editMessageId === msg._id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              value={editText}
+                              onChange={e => setEditText(e.target.value)}
+                              className="flex-1 bg-white/20 text-white rounded px-2 py-1 text-sm outline-none"
+                            />
+                            <button onClick={saveEdit} className="text-white hover:text-green-200"><Check size={16} /></button>
+                          </div>
+                        ) : (
+                          <p>{msg.text}</p>
+                        )}
+                        <p className="text-xs opacity-70 mt-1">
+                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        {msg.sender._id === user._id && editMessageId !== msg._id && (
+                          <button onClick={() => startEdit(msg)} className="text-xs opacity-70 hover:opacity-100 ml-1">
+                            <Pencil size={12} className="inline" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                <div className="border-t border-slate-200 dark:border-slate-700 p-3">
+                  <div className="flex gap-2">
+                    <input
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Type your message..."
+                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!input.trim()}
+                      className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg"
+                    >
+                      <Send size={18} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
     </>
   );
+}
 }
