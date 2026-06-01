@@ -1,31 +1,21 @@
 // src/components/SideMenu.tsx
-import { useState, useEffect } from 'react';
-import { 
-  CreditCard, Repeat, Settings, History, ShieldCheck, HeadphonesIcon, 
-  TrendingUp, Wallet, Newspaper, X, Menu, Tag, LayoutDashboard 
+import { useState } from 'react';
+import {
+  CreditCard, Repeat, Settings, History, ShieldCheck, HeadphonesIcon,
+  TrendingUp, Wallet, Newspaper, Tag, LayoutDashboard, Menu, X
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 interface SideMenuProps {
   activeItem: string;
   onItemClick: (item: string) => void;
-  isOpen?: boolean;
-  onClose?: () => void;
+  isOpen?: boolean;      // optionally still usable from parent, but ignored
+  onClose?: () => void;  // ignored
 }
 
-export function SideMenu({ activeItem, onItemClick, isOpen: externalIsOpen, onClose }: SideMenuProps) {
+export function SideMenu({ activeItem, onItemClick }: SideMenuProps) {
   const { user } = useApp();
-  const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const [isOpen, setIsOpen] = useState(false);   // manual toggle, starts closed
 
   const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: TrendingUp, adminOnly: false },
@@ -42,63 +32,40 @@ export function SideMenu({ activeItem, onItemClick, isOpen: externalIsOpen, onCl
     { id: 'admin', label: 'Admin Panel', icon: LayoutDashboard, adminOnly: true },
   ];
 
-  // ✅ Only show admin item to admin users
   const menuItems = allMenuItems.filter(item =>
     !item.adminOnly || user?.role === 'admin'
   );
 
-  const closeMenu = () => {
-    setInternalIsOpen(false);
-    onClose?.();
-  };
-
-  const toggleMenu = () => {
-    if (externalIsOpen !== undefined) {
-      onClose?.();
-    } else {
-      setInternalIsOpen(!internalIsOpen);
-    }
-  };
-
-  const handleItemClick = (itemId: string) => {
-    onItemClick(itemId);
-    if (isMobile) closeMenu();
-  };
-
   return (
     <>
-      {/* Hamburger button (mobile only) */}
+      {/* Floating hamburger – always visible */}
       <button
-        onClick={toggleMenu}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-slate-900 dark:bg-slate-950 text-white hover:bg-slate-800 transition-colors md:hidden"
+        onClick={() => setIsOpen(true)}
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-slate-900 dark:bg-slate-950 text-white hover:bg-slate-800 transition-colors"
       >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
+        <Menu size={20} />
       </button>
 
-      {/* Overlay */}
-      {isOpen && isMobile && (
-        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={closeMenu} />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        fixed top-0 left-0 z-50 h-full bg-slate-900 dark:bg-slate-950 
-        border-r border-slate-800 dark:border-slate-700 
-        transition-transform duration-300 ease-in-out
-        ${isOpen || !isMobile ? 'translate-x-0' : '-translate-x-full'}
-        md:relative md:translate-x-0 md:w-64 w-64
-      `}>
+      {/* Sidebar – slides in from left, pushes content */}
+      <div
+        className={`fixed top-0 left-0 z-40 h-full bg-slate-900 dark:bg-slate-950 border-r border-slate-800 dark:border-slate-700 transition-all duration-300 ${
+          isOpen ? 'w-64' : 'w-0 overflow-hidden'
+        }`}
+      >
         <div className="flex flex-col h-full p-4">
-          {isMobile && (
-            <button onClick={closeMenu}
-              className="absolute top-4 right-4 p-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 md:hidden">
-              <X size={20} />
-            </button>
-          )}
-          <div className="mb-8 mt-12 md:mt-8">
+          {/* Close button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="self-end p-1 rounded-lg hover:bg-slate-800 text-white"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="mb-8 mt-12">
             <h1 className="text-white text-xl sm:text-2xl font-bold whitespace-nowrap">QFS WORLD VAULT</h1>
             <p className="text-slate-400 text-xs sm:text-sm mt-1 whitespace-nowrap">Quantum Financial System</p>
           </div>
+
           <nav className="flex-1 space-y-1 overflow-y-auto">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -106,7 +73,10 @@ export function SideMenu({ activeItem, onItemClick, isOpen: externalIsOpen, onCl
               return (
                 <button
                   key={item.id}
-                  onClick={() => handleItemClick(item.id)}
+                  onClick={() => {
+                    onItemClick(item.id);
+                    setIsOpen(false);   // close on item click (optional)
+                  }}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors w-full ${
                     activeItem === item.id
                       ? 'bg-blue-600 text-white'
@@ -128,6 +98,9 @@ export function SideMenu({ activeItem, onItemClick, isOpen: externalIsOpen, onCl
           </nav>
         </div>
       </div>
+
+      {/* Spacer that pushes content when sidebar is open */}
+      <div className={`transition-all duration-300 ${isOpen ? 'w-64' : 'w-0'}`} />
     </>
   );
 }
