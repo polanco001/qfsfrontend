@@ -4,7 +4,7 @@ import { Eye, EyeOff, User, Mail, Lock, Phone, Globe, ChevronDown } from 'lucide
 import axios from 'axios';
 import { useApp } from '../context/AppContext';
 
-const API_URL = 'https://qfsbackend-1.onrender.com';
+const API_URL = 'https://qfsbackend-1.onrender.com/api';
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Andorra","Angola","Argentina","Armenia","Australia",
