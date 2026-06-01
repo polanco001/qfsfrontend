@@ -36,64 +36,96 @@ export function Header({
 
   return (
     <>
-      {/* Container background set to white/dark mode slate */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-8 py-4">
+      {/* Header container – dark banking background */}
+      <div className="bg-[#0B1120] border-b border-slate-700/50 px-4 sm:px-8 py-4 relative">
         <div className="flex items-center justify-between gap-4">
           
-          {/* Left side – Balance (Hamburger removed) */}
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-8">
+          {/* Left – Balance Card (shifted right to clear hamburger) */}
+          <div className="ml-10">
+            <div className="bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-xl px-5 py-3 flex items-center gap-4">
               <div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs">Total Balance</p>
+                <p className="text-slate-400 text-[10px] uppercase tracking-wider font-medium mb-1">
+                  Portfolio Value
+                </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-slate-900 dark:text-white text-2xl sm:text-3xl font-bold">
+                  <span className="text-white text-2xl md:text-3xl font-bold tracking-tight">
                     {balanceVisible ? `$${user?.balance?.toFixed(2) ?? '0.00'}` : '••••••'}
-                  </p>
+                  </span>
                   <button
                     onClick={() => setBalanceVisible(!balanceVisible)}
-                    className="p-1 text-slate-400 hover:text-slate-600"
+                    className="p-1 text-slate-400 hover:text-white transition-colors"
                   >
                     {balanceVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
+                <p className="text-slate-400 text-xs mt-0.5">+0.0% today</p>
               </div>
             </div>
           </div>
 
-          {/* Right side – action buttons */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={toggleDarkMode} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200">
-              {isDarkMode ? <Sun className="text-yellow-500" size={20} /> : <Moon className="text-slate-700" size={20} />}
+          {/* Right – Action Buttons */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Dark mode toggle */}
+            <button 
+              onClick={toggleDarkMode} 
+              className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600 transition-all"
+            >
+              {isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
             </button>
-            <button onClick={handleNotificationClick} className="relative p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200">
-              <Bell className="text-slate-700 dark:text-slate-300" size={20} />
+
+            {/* Notifications */}
+            <button 
+              onClick={handleNotificationClick} 
+              className="relative p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600 transition-all"
+            >
+              <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
                   {unreadCount}
                 </span>
               )}
             </button>
-            <button onClick={() => setShowProfileModal(true)} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200">
-              <User className="text-slate-700 dark:text-slate-300" size={20} />
+
+            {/* Profile */}
+            <button 
+              onClick={() => setShowProfileModal(true)} 
+              className="p-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600 transition-all"
+            >
+              <User size={18} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Notifications Panel */}
+      {/* Notifications Panel – matching dark style */}
       {showNotificationsPanel && (
-        <div className="absolute right-4 top-16 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-96 overflow-y-auto z-50">
-          <div className="p-3 border-b border-slate-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white">Notifications</div>
+        <div className="absolute right-4 top-16 w-80 bg-[#0B1120] border border-slate-700/50 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 backdrop-blur-xl">
+          <div className="p-4 border-b border-slate-700/50">
+            <h3 className="text-white font-semibold">Notifications</h3>
+          </div>
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-slate-500">No notifications</div>
+            <div className="p-6 text-center text-slate-400 text-sm">No new notifications</div>
           ) : (
             notifications.map(n => (
-              <div key={n._id} className={`p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 ${!n.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
-                <p className="text-sm text-slate-800 dark:text-slate-200">{n.message}</p>
-                <span className="text-xs text-slate-400">{new Date(n.createdAt).toLocaleString()}</span>
+              <div 
+                key={n._id} 
+                className={`p-4 border-b border-slate-700/30 hover:bg-slate-800/50 transition-colors ${
+                  !n.read ? 'bg-blue-900/20 border-l-2 border-blue-500' : ''
+                }`}
+              >
+                <p className="text-sm text-slate-200">{n.message}</p>
+                <span className="text-xs text-slate-500 mt-1 block">
+                  {new Date(n.createdAt).toLocaleString()}
+                </span>
               </div>
             ))
           )}
+          <button 
+            onClick={fetchNotifications} 
+            className="w-full p-3 text-sm text-blue-400 hover:bg-slate-800/50 transition-colors font-medium"
+          >
+            Refresh
+          </button>
         </div>
       )}
 
