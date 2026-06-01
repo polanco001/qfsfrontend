@@ -81,7 +81,7 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      await axios.post(`${API_URL}/auth/signup`, { email, password, fullName, phone, country });
+      await axios.post(`${API_URL}api/auth/signup`, { email, password, fullName, phone, country });
       setStep('verify');
     } catch (err: any) {
       setErrorMsg(err.response?.data?.error || 'Signup failed. Try again.');
@@ -121,7 +121,7 @@ export default function Signup() {
     if (fullCode.length < 6) { setVerifyError('Enter the full 6-digit code'); return; }
     setVerifyLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/auth/verify-email`, { email, code: fullCode });
+      const res = await axios.post(`${API_URL}api/auth/verify-email`, { email, code: fullCode });
       const { user } = res.data;
       await login(email, password);
       navigate(user.role === 'admin' ? '/admin' : '/');
@@ -136,7 +136,7 @@ export default function Signup() {
     setResendMsg('');
     setResendLoading(true);
     try {
-      await axios.post(`${API_URL}/auth/resend-code`, { email });
+      await axios.post(`${API_URL}api/auth/resend-code`, { email });
       setResendMsg('New code sent!');
     } catch {
       setResendMsg('Failed to resend. Try again.');
