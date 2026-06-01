@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, AlertTriangle, Menu } from 'lucide-react';
 import { ChatWidget } from './ChatWidget';
-import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
 export default function MarketingPage() {
