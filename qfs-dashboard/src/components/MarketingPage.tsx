@@ -289,77 +289,39 @@ export default function MarketingPage() {
         .step-c a:hover{background:rgba(200,169,110,0.08)}
 
         /* BANKING */
-        #banking{background:var(--bg3)}
-        .bank-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;margin-top:3.5rem}
-        .bank-visual{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--surface)}
-        .bank-video-thumb{
-          width:100%;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;
-          justify-content:center;background:linear-gradient(135deg,#0a0e18,#131b2e);
-          cursor:pointer;position:relative;overflow:hidden;
-        }
-        .bank-video-thumb::before{
-          content:"";position:absolute;inset:0;
-          background:url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&q=80") center/cover no-repeat;
-          opacity:0.25;
-        }
-        .play-btn{
-          width:64px;height:64px;border-radius:50%;background:rgba(200,169,110,0.9);
-          display:flex;align-items:center;justify-content:center;font-size:1.4rem;
-          position:relative;z-index:1;box-shadow:0 0 40px rgba(200,169,110,0.4);cursor:pointer;transition:transform 0.2s;
-        }
-        .play-btn:hover{transform:scale(1.08)}
-        .video-label{font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:0.75rem;position:relative;z-index:1;text-align:center;padding-bottom:1rem}
-        .bank-news{display:flex;flex-direction:column;gap:0.75rem}
-        .news-item{
-          padding:1rem 1.25rem;border:1px solid var(--border2);border-radius:10px;background:var(--surface);
-          display:flex;gap:1rem;align-items:flex-start;transition:all 0.2s;
-        }
-        .news-item:hover{border-color:var(--border)}
-        .news-icon{width:36px;height:36px;border-radius:8px;flex-shrink:0;background:rgba(248,113,113,0.1);display:flex;align-items:center;justify-content:center;font-size:1rem}
-        .news-item h5{font-size:0.85rem;font-weight:700;margin-bottom:0.25rem;line-height:1.35}
-        .news-item p{font-size:0.78rem;color:var(--muted);line-height:1.55}
-        .news-date{font-size:0.7rem;color:var(--gold);margin-top:0.3rem}
-        .bank-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.85rem;margin-top:1.75rem}
-        .bstat{padding:1rem;border:1px solid var(--border2);border-radius:10px;background:var(--surface)}
-        .bstat h3{font-size:1.4rem;font-weight:800;color:var(--gold)}
-        .bstat p{font-size:0.75rem;color:var(--muted)}
-        .bank-cta-box{margin-top:2rem;padding:1.5rem;border:1px solid var(--border);border-radius:12px;background:rgba(200,169,110,0.04)}
-        .bank-cta-box h4{font-size:1.05rem;font-weight:700;margin-bottom:0.5rem}
-        .bank-cta-box p{font-size:0.85rem;color:var(--muted);margin-bottom:1rem}
+       /* --- BANKING & MEDBED RESPONSIVE FIX --- */
 
-        /* MEDBED */
-        #medbed{background:var(--bg2)}
-        .medbed-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;margin-top:3.5rem}
-        .medbed-visual{
-          border-radius:16px;overflow:hidden;border:1px solid var(--border);
-          background:linear-gradient(135deg,#0d1220,#1a2035);
-          aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;position:relative;
-        }
-        .medbed-visual::before{
-          content:"";position:absolute;inset:0;
-          background:radial-gradient(circle at 40% 50%,rgba(200,169,110,0.12) 0%,transparent 70%);
-        }
-        .medbed-icon-ring{
-          width:140px;height:140px;border-radius:50%;border:2px solid rgba(200,169,110,0.3);
-          display:flex;align-items:center;justify-content:center;position:relative;z-index:1;
-        }
-        .medbed-icon-ring::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(200,169,110,0.12)}
-        .medbed-icon-ring::after{
-          content:"";position:absolute;inset:-24px;border-radius:50%;
-          border:1px dashed rgba(200,169,110,0.08);animation:spin 20s linear infinite;
-        }
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .medbed-emoji{font-size:3.5rem;position:relative;z-index:1}
-        .medbed-features{display:flex;flex-direction:column;gap:0.85rem;margin-top:2rem}
-        .mf-item{
-          display:flex;gap:0.9rem;padding:1rem 1.25rem;border:1px solid var(--border2);
-          border-radius:10px;background:var(--surface);transition:all 0.2s;
-        }
-        .mf-item:hover{border-color:var(--border)}
-        .mf-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:0.45rem}
-        .mf-item h5{font-size:0.88rem;font-weight:700;margin-bottom:0.2rem}
-        .mf-item p{font-size:0.8rem;color:var(--muted);line-height:1.65}
+/* Mobile-First Layout for Grid Sections */
+.bank-grid, 
+.medbed-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Default for Desktop */
+    gap: 4rem;
+    align-items: start;
+    margin-top: 3.5rem;
+}
 
+/* Force Vertical Stack on Mobile */
+@media (max-width: 768px) {
+    .bank-grid, 
+    .medbed-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2rem !important;
+        margin-top: 2rem !important;
+    }
+
+    /* Stack stats 1 per row on mobile to prevent squishing */
+    .bank-stats {
+        grid-template-columns: 1fr !important; 
+    }
+
+    /* Ensure visual boxes don't get cut off */
+    .bank-visual, 
+    .medbed-visual {
+        min-height: 250px !important;
+    }
+}
         /* TESTIMONIALS */
         .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-top:3.5rem}
         .testi-card{padding:1.75rem;border:1px solid var(--border2);border-radius:14px;background:var(--surface)}
@@ -606,21 +568,21 @@ export default function MarketingPage() {
       </section>
 
       {/* BANKING CRISIS */}
-      <section id="banking">
-        <div className="sec-inner">
-          <div className="sec-tag">Why QFS Matters Now</div>
-          <h2 className="sec-title">The Global Banking System Is Under Pressure</h2>
-          <p className="sec-sub">
-            Millions of people worldwide have experienced lost savings, frozen accounts, and bank failures. QFS was built for exactly this moment — to give individuals full control over their wealth, outside of traditional banking.
-          </p>
-          <div className="bank-grid">
-            <div>
-              <div className="bank-visual">
-                <div className="bank-video-thumb" onClick={openVideo}>
-                  <div className="play-btn">▶</div>
-                  <div className="video-label">Watch: Why People Are Moving Away from Traditional Banks</div>
-                </div>
-              </div>
+          <section id="banking">
+  <div className="sec-inner">
+    <div className="sec-tag">Why QFS Matters Now</div>
+    <h2 className="sec-title">The Global Banking System Is Under Pressure</h2>
+    <p className="sec-sub">Millions of people worldwide have experienced lost savings...</p>
+    
+    {/* The grid will automatically stack thanks to the CSS above */}
+    <div className="bank-grid">
+      <div>
+        <div className="bank-visual">
+          <div className="bank-video-thumb" onClick={openVideo}>
+            <div className="play-btn">▶</div>
+            <div className="video-label">Watch: Why People Are Moving Away</div>
+          </div>
+        </div>
               <div className="bank-stats">
                 <div className="bstat"><h3>563</h3><p>US Bank Failures since 2000</p></div>
                 <div className="bstat"><h3>$19T</h3><p>Global banking losses 2007–2023</p></div>
