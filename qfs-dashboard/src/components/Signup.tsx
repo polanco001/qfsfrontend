@@ -81,7 +81,13 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      await axios.post(`${API_URL}/api/auth/signup`, { email, password, fullName, phone, country });
+      await axios.post(`${API_URL}/api/auth/signup`, {
+  email: email.trim().toLowerCase(),
+  password: password.trim(),
+  fullName: fullName.trim(),
+  phone: phone?.trim() || '',
+  country: country || ''
+});
       setStep('verify');
     } catch (err: any) {
       setErrorMsg(err.response?.data?.error || 'Signup failed. Try again.');
