@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = 'https://qfsbackend-1.onrender.com/api';
 
 export default function Login() {
   const navigate = useNavigate();
