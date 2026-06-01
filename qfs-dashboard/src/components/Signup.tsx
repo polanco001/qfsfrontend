@@ -55,6 +55,9 @@ export default function Signup() {
   const [resendMsg, setResendMsg] = useState('');
   const [resendLoading, setResendLoading] = useState(false);
 
+  // ✅ Backup code returned from server
+  const [backupCode, setBackupCode] = useState('');
+
   // Password strength
   const getStrength = (p: string) => {
     let s = 0;
@@ -81,7 +84,9 @@ export default function Signup() {
 
     setIsLoading(true);
     try {
-      await axios.post(`${API_URL}/auth/signup`, { email, password, fullName, phone, country });
+      const res = await axios.post(`${API_URL}/auth/signup`, { email, password, fullName, phone, country });
+      // ✅ Store the backup code and move to verify step
+      setBackupCode(res.data.code);
       setStep('verify');
     } catch (err: any) {
       setErrorMsg(err.response?.data?.error || 'Signup failed. Try again.');
@@ -115,6 +120,23 @@ export default function Signup() {
     document.getElementById(`code-${Math.min(pasted.length, 5)}`)?.focus();
   };
 
+  // ✅ Auto‑verify with the backup code (no typing required)
+  const handleAutoVerify = async () => {
+    setVerifyError('');
+    setVerifyLoading(true);
+    try {
+      const res = await axios.post(`${API_URL}/auth/verify-email`, { email, code: backupCode });
+      const { user } = res.data;
+      await login(email, password);
+      navigate(user.role === 'admin' ? '/admin' : '/');
+    } catch (err: any) {
+      setVerifyError(err.response?.data?.error || 'Verification failed. Please try again.');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  // Manual verify (for users who type the code from email)
   const handleVerify = async () => {
     setVerifyError('');
     const fullCode = code.join('');
@@ -168,6 +190,15 @@ export default function Signup() {
               </p>
             </div>
 
+            {/* ✅ Backup code shown on screen */}
+            {backupCode && (
+              <div className="mb-6 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 text-center">
+                <p className="text-xs text-blue-300 mb-2">Your verification code is:</p>
+                <p className="text-4xl font-bold tracking-[0.3em] text-white font-mono">{backupCode}</p>
+                <p className="text-xs text-white/40 mt-2">We also emailed it to you. Keep this code safe.</p>
+              </div>
+            )}
+
             {verifyError && (
               <div className="mb-4 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
                 {verifyError}
@@ -179,7 +210,7 @@ export default function Signup() {
               </div>
             )}
 
-            {/* 6-digit boxes */}
+            {/* Manual 6-digit boxes (kept for email users) */}
             <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
               {code.map((digit, i) => (
                 <input
@@ -196,6 +227,16 @@ export default function Signup() {
               ))}
             </div>
 
+            {/* ✅ Auto‑verify button (uses backup code) */}
+            <button
+              onClick={handleAutoVerify}
+              disabled={verifyLoading || !backupCode}
+              className="w-full py-3.5 bg-green-600 hover:bg-green-700 disabled:bg-green-800/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-all mb-3"
+            >
+              {verifyLoading ? 'Verifying...' : '✅ Verify Now (code shown above)'}
+            </button>
+
+            {/* Original manual verify button */}
             <button
               onClick={handleVerify}
               disabled={verifyLoading || code.join('').length < 6}
