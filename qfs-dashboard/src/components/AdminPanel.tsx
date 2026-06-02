@@ -30,6 +30,15 @@ export function AdminPanel() {
   const [error, setError] = useState('');
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
+  // Track last seen counts for each tab (badge disappears when tab is clicked)
+  const [lastSeenCounts, setLastSeenCounts] = useState({
+    payments: 0,
+    giftCards: 0,
+    kycDocs: 0,
+    wallets: 0,
+    chat: 0
+  });
+
   useEffect(() => {
     if (user === null) return;
     if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) {
@@ -80,6 +89,33 @@ export function AdminPanel() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate new items since last seen
+  const getNewCount = (type: string) => {
+    const current = 
+      type === 'payments' ? dashData.payments.filter((p: any) => p.status === 'pending').length :
+      type === 'giftCards' ? dashData.giftCards.filter((g: any) => g.status === 'pending').length :
+      type === 'kycDocs' ? dashData.kycDocs.filter((k: any) => k.status === 'pending').length :
+      type === 'wallets' ? dashData.walletConnections.length :
+      type === 'chat' ? unreadChatCount : 0;
+    
+    const lastSeen = lastSeenCounts[type as keyof typeof lastSeenCounts] || 0;
+    const newCount = current - lastSeen;
+    return newCount > 0 ? newCount : 0;
+  };
+
+  // Mark tab as seen when clicked
+  const handleTabClick = (tab: string) => {
+    setLastSeenCounts(prev => ({
+      ...prev,
+      payments: dashData.payments.filter((p: any) => p.status === 'pending').length,
+      giftCards: dashData.giftCards.filter((g: any) => g.status === 'pending').length,
+      kycDocs: dashData.kycDocs.filter((k: any) => k.status === 'pending').length,
+      wallets: dashData.walletConnections.length,
+      chat: unreadChatCount
+    }));
+    setActiveTab(tab as any);
   };
 
   const handleTopup = async () => {
@@ -233,31 +269,96 @@ export function AdminPanel() {
 
       {error && <div className="bg-red-500/10 text-red-500 p-3 rounded-lg text-sm">{error}</div>}
 
-      {/* Tabs — scrollable on mobile */}
+      {/* Tabs — scrollable on mobile with "new" badges */}
       <div className="flex border-b border-slate-200 dark:border-slate-700 gap-1 overflow-x-auto">
-        {[
-          { id: 'users', label: 'Users', icon: <Users size={16} /> },
-          { id: 'payments', label: 'Payments', icon: <CreditCard size={16} /> },
-          { id: 'giftcards', label: 'Gift Cards', icon: <FileText size={16} /> },
-          { id: 'kyc', label: 'KYC Docs', icon: <ShieldCheck size={16} /> },
-          { id: 'wallets', label: 'Wallets', icon: <Wallet size={16} /> },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-          >
-            {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
-          </button>
-        ))}
-
-        {/* Chat tab with badge */}
+        {/* Users Tab */}
         <button
-          onClick={() => setActiveTab('chat')}
+          onClick={() => setActiveTab('users')}
+          className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+            activeTab === 'users'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Users size={16} />
+          <span className="hidden sm:inline">Users ({users.length})</span>
+        </button>
+
+        {/* Payments Tab */}
+        <button
+          onClick={() => handleTabClick('payments')}
+          className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all relative whitespace-nowrap ${
+            activeTab === 'payments'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <CreditCard size={16} />
+          <span className="hidden sm:inline">Payments</span>
+          {getNewCount('payments') > 0 && (
+            <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
+              {getNewCount('payments') > 99 ? '99+' : getNewCount('payments')}
+            </span>
+          )}
+        </button>
+
+        {/* Gift Cards Tab */}
+        <button
+          onClick={() => handleTabClick('giftCards')}
+          className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all relative whitespace-nowrap ${
+            activeTab === 'giftcards'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <FileText size={16} />
+          <span className="hidden sm:inline">Gift Cards</span>
+          {getNewCount('giftCards') > 0 && (
+            <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
+              {getNewCount('giftCards') > 99 ? '99+' : getNewCount('giftCards')}
+            </span>
+          )}
+        </button>
+
+        {/* KYC Tab */}
+        <button
+          onClick={() => handleTabClick('kycDocs')}
+          className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all relative whitespace-nowrap ${
+            activeTab === 'kyc'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <ShieldCheck size={16} />
+          <span className="hidden sm:inline">KYC Docs</span>
+          {getNewCount('kycDocs') > 0 && (
+            <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
+              {getNewCount('kycDocs') > 99 ? '99+' : getNewCount('kycDocs')}
+            </span>
+          )}
+        </button>
+
+        {/* Wallets Tab */}
+        <button
+          onClick={() => handleTabClick('wallets')}
+          className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all relative whitespace-nowrap ${
+            activeTab === 'wallets'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <Wallet size={16} />
+          <span className="hidden sm:inline">Wallets</span>
+          {getNewCount('wallets') > 0 && (
+            <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
+              {getNewCount('wallets') > 99 ? '99+' : getNewCount('wallets')}
+            </span>
+          )}
+        </button>
+
+        {/* Chat Tab */}
+        <button
+          onClick={() => handleTabClick('chat')}
           className={`flex items-center gap-1 sm:gap-2 pb-2 sm:pb-3 pt-2 px-2 sm:px-3 text-xs sm:text-sm font-medium border-b-2 transition-all relative whitespace-nowrap ${
             activeTab === 'chat'
               ? 'border-blue-600 text-blue-600'
@@ -266,9 +367,9 @@ export function AdminPanel() {
         >
           <MessageCircle size={16} />
           <span className="hidden sm:inline">Chat</span>
-          {unreadChatCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
-              {unreadChatCount > 99 ? '99+' : unreadChatCount}
+          {getNewCount('chat') > 0 && (
+            <span className="w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold animate-pulse">
+              {getNewCount('chat') > 99 ? '99+' : getNewCount('chat')}
             </span>
           )}
         </button>
@@ -384,7 +485,7 @@ export function AdminPanel() {
         </div>
       )}
 
-      {/* All other tabs — wrap in overflow-x-auto for mobile */}
+      {/* Payments Tab */}
       {activeTab === 'payments' && (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
           <table className="w-full text-left text-sm min-w-[600px]">
@@ -423,6 +524,7 @@ export function AdminPanel() {
         </div>
       )}
 
+      {/* Gift Cards Tab */}
       {activeTab === 'giftcards' && (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
           <table className="w-full text-left text-sm min-w-[600px]">
@@ -456,6 +558,7 @@ export function AdminPanel() {
         </div>
       )}
 
+      {/* KYC Tab */}
       {activeTab === 'kyc' && (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
           <table className="w-full text-left text-sm min-w-[600px]">
@@ -494,6 +597,7 @@ export function AdminPanel() {
         </div>
       )}
 
+      {/* Wallets Tab */}
       {activeTab === 'wallets' && (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
           <table className="w-full text-left text-sm min-w-[500px]">
@@ -518,6 +622,7 @@ export function AdminPanel() {
         </div>
       )}
 
+      {/* Chat Tab */}
       {activeTab === 'chat' && <AdminChatPanel />}
     </div>
   );
