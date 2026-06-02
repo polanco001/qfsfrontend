@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider, useApp } from './context/AppContext';  // ✅ correct relative path
+import { AppProvider, useApp } from './context/AppContext';
+import { useState } from 'react';
 import Intro from './components/Intro';
 import MarketingPage from './components/MarketingPage';
 import Login from './components/Login';
@@ -8,11 +9,27 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import { MainLayout } from './components/MainLayout';
 import { AdminPanel } from './components/AdminPanel';
+import { SupportPage } from './components/SupportPage';
+import { PasscodeModal } from './components/PasscodeModal';
+
+function PasscodeGate({ children }: { children: React.ReactNode }) {
+  const { user, hasPasscode, passcodeVerified } = useApp();
+
+  if (!user || !hasPasscode() || passcodeVerified) {
+    return <>{children}</>;
+  }
+
+  return (
+    <PasscodeModal
+      mode="verify"
+      onSuccess={() => {}}
+    />
+  );
+}
 
 function AppContent() {
   const { user, token } = useApp();
 
-  // Loading state while token exists but user hasn't been fetched yet
   if (token && !user) {
     return (
       <div className="flex h-screen items-center justify-center bg-black text-white">
@@ -42,6 +59,9 @@ function AppContent() {
       } />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/support" element={
+        isAuthenticated ? <PasscodeGate><SupportPage /></PasscodeGate> : <Navigate to="/login" replace />
+      } />
       <Route path="/admin" element={
         isAdmin
           ? <AdminPanel />
@@ -50,7 +70,7 @@ function AppContent() {
           : <Navigate to="/login" replace />
       } />
       <Route path="/" element={
-        isAuthenticated ? <MainLayout /> : <Navigate to="/intro" replace />
+        isAuthenticated ? <PasscodeGate><MainLayout /></PasscodeGate> : <Navigate to="/intro" replace />
       } />
       <Route path="*" element={
         <Navigate to={isAuthenticated ? '/' : '/intro'} replace />
