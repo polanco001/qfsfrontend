@@ -73,7 +73,7 @@ export function Header({
               {/* Balance */}
               <div>
                 <p className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium mb-0.5 sm:mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Portfolio Value
+                  Wallet Balance
                 </p>
                 <div className="flex items-center gap-1 sm:gap-2">
                   <span className={`text-lg sm:text-2xl md:text-3xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
