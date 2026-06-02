@@ -50,7 +50,23 @@ export function AdminChatPanel() {   // ✅ named export
       .catch(console.error);
   }, [token]);
 
-  useEffect(() => {
+useEffect(() => {
+  fetch(`${API_URL}/api/admin/messages`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(data => setMessages(Array.isArray(data) ? data : []))
+    .catch(console.error);
+
+  const newSocket = io(API_URL, { auth: { token } });
+  setSocket(newSocket);
+
+  newSocket.on('connect', () => {
+    console.log('✅ Admin socket connected');
+  });
+
+  newSocket.on('newMessage', (msg: Message) => {
+    // ✅ Re-fetch messages when a new one arrives
     fetch(`${API_URL}/api/admin/messages`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -58,32 +74,26 @@ export function AdminChatPanel() {   // ✅ named export
       .then(data => setMessages(Array.isArray(data) ? data : []))
       .catch(console.error);
 
-    const newSocket = io(API_URL, { auth: { token } });
-    setSocket(newSocket);
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
+    if (msg.sender._id !== user._id && document.hidden) {
+      try {
+        new Notification('New message from QFS Chat', {
+          body: `${msg.sender.fullName}: ${msg.text}`,
+          icon: '/favicon.ico'
+        });
+      } catch (e) { /* ignore */ }
+    }
+  });
 
-    newSocket.on('newMessage', (msg: Message) => {
-      setMessages(prev => [...prev, msg]);
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play().catch(() => {});
-      }
-      // Desktop notification if message from user and tab not focused
-      if (msg.sender._id !== user._id && document.hidden) {
-        try {
-          new Notification('New message from QFS Chat', {
-            body: `${msg.sender.fullName}: ${msg.text}`,
-            icon: '/favicon.ico'
-          });
-        } catch (e) { /* ignore */ }
-      }
-    });
+  newSocket.on('messageEdited', (updatedMsg: Message) => {
+    setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
+  });
 
-    newSocket.on('messageEdited', (updatedMsg: Message) => {
-      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
-    });
-
-    return () => { newSocket.disconnect(); };
-  }, [token]);
+  return () => { newSocket.disconnect(); };
+}, [token]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
