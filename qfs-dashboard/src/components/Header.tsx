@@ -45,8 +45,7 @@ export function Header({
             <div className="bg-slate-800/60 backdrop-blur-md border border-slate-700/50 rounded-xl px-5 py-3 flex items-center gap-4">
               <div>
                 <p className="text-slate-400 text-[10px] uppercase tracking-wider font-medium mb-1">
-                  Portfolio Value
-                </p>
+                  Total Balance                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-white text-2xl md:text-3xl font-bold tracking-tight">
                     {balanceVisible ? `$${user?.balance?.toFixed(2) ?? '0.00'}` : '••••••'}
