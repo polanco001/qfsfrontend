@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext';
-import { useState } from 'react';
 import Intro from './components/Intro';
 import MarketingPage from './components/MarketingPage';
 import Login from './components/Login';
@@ -70,10 +69,10 @@ function AppContent() {
           : <Navigate to="/login" replace />
       } />
       <Route path="/" element={
-        isAuthenticated ? <PasscodeGate><MainLayout /></PasscodeGate> : <Navigate to="/intro" replace />
+        isAuthenticated ? <PasscodeGate><MainLayout /></PasscodeGate> : <Navigate to="/login" replace />
       } />
       <Route path="*" element={
-        <Navigate to={isAuthenticated ? '/' : '/intro'} replace />
+        <Navigate to={isAuthenticated ? '/' : '/login'} replace />
       } />
     </Routes>
   );
