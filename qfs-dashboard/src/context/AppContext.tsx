@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import axios from 'axios';
 
 const API_URL = 'https://qfsbackend-1.onrender.com/api';
+
+const PASSCODE_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+
 interface User {
   _id: string;
   email: string;
@@ -9,7 +12,7 @@ interface User {
   role: string;
   balance: number;
   kycCompleted: boolean;
-  hasPasscode?: boolean; 
+  hasPasscode?: boolean;
 }
 
 interface Transaction {
@@ -33,6 +36,8 @@ interface AppContextType {
   token: string | null;
   transactions: Transaction[];
   notifications: Notification[];
+  passcodeVerified: boolean;
+  setPasscodeVerified: (v: boolean) => void;
   login: (email: string, password: string) => Promise<User | null>;
   signup: (email: string, password: string, fullName: string) => Promise<boolean>;
   logout: () => void;
@@ -55,6 +60,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [passcodeVerified, setPasscodeVerified] = useState(false);
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
   useEffect(() => {
     if (token) {
@@ -64,11 +71,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [token]);
 
+  // Track user activity
+  useEffect(() => {
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+    const updateActivity = () => setLastActivity(Date.now());
+    events.forEach(e => window.addEventListener(e, updateActivity));
+    return () => events.forEach(e => window.removeEventListener(e, updateActivity));
+  }, []);
+
+  // Reset passcode verification if timeout exceeded
+  useEffect(() => {
+    if (!user?.hasPasscode) return;
+    const interval = setInterval(() => {
+      if (Date.now() - lastActivity > PASSCODE_TIMEOUT) {
+        setPasscodeVerified(false);
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [user?.hasPasscode, lastActivity]);
+
   const fetchUser = async () => {
     if (!token) return;
     try {
       const res = await axios.get(`${API_URL}/user/me`);
       setUser(res.data);
+      if (!res.data.hasPasscode) {
+        setPasscodeVerified(true); // no passcode needed
+      }
     } catch (err) {
       console.error('fetchUser failed:', err);
       logout();
@@ -125,6 +154,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const userRes = await axios.get(`${API_URL}/user/me`);
       const loggedInUser: User = userRes.data;
       setUser(loggedInUser);
+      if (!loggedInUser.hasPasscode) {
+        setPasscodeVerified(true);
+      } else {
+        setPasscodeVerified(false);
+      }
+      setLastActivity(Date.now());
       fetchTransactions();
       fetchNotifications();
       return loggedInUser;
@@ -142,6 +177,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('token', newToken);
       axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
       setToken(newToken);
+      setPasscodeVerified(true);
+      setLastActivity(Date.now());
       await fetchUser();
       return true;
     } catch (err: any) {
@@ -156,8 +193,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setTransactions([]);
     setNotifications([]);
+    setPasscodeVerified(false);
     delete axios.defaults.headers.common['Authorization'];
-    // Force redirect to login page
     window.location.href = '/login';
   };
 
@@ -165,6 +202,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       await axios.post(`${API_URL}/auth/passcode`, { passcode });
       if (user) setUser({ ...user, hasPasscode: true });
+      setPasscodeVerified(true);
+      setLastActivity(Date.now());
       return true;
     } catch (err) {
       console.error('setPasscode failed:', err);
@@ -175,7 +214,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const verifyPasscode = async (passcode: string): Promise<boolean> => {
     try {
       const res = await axios.post(`${API_URL}/auth/verify-passcode`, { passcode });
-      return res.data.verified === true;
+      if (res.data.verified) {
+        setPasscodeVerified(true);
+        setLastActivity(Date.now());
+        return true;
+      }
+      return false;
     } catch (err) {
       console.error('verifyPasscode failed:', err);
       return false;
@@ -218,6 +262,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     token,
     transactions,
     notifications,
+    passcodeVerified,
+    setPasscodeVerified,
     login,
     signup,
     logout,
