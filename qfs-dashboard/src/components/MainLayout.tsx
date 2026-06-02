@@ -26,7 +26,13 @@ interface Notification {
 export function MainLayout() {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState('dashboard');
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // ✅ Light mode by default, remembers user choice
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark'; // only dark if explicitly saved
+  });
+  
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showCardModal, setShowCardModal] = useState(false);
@@ -34,6 +40,15 @@ export function MainLayout() {
   const [showGiftCardModal, setShowGiftCardModal] = useState(false);
   const [previousPrices, setPreviousPrices] = useState<Record<string, number>>({});
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ✅ Toggle dark mode + save to localStorage
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (isDarkMode) document.documentElement.classList.add('dark');
@@ -85,7 +100,6 @@ export function MainLayout() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
-      {/* Sidebar – handles its own mobile toggle internally */}
       <SideMenu
         activeItem={activeView}
         onItemClick={handleMenuItemClick}
@@ -95,7 +109,7 @@ export function MainLayout() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           isDarkMode={isDarkMode}
-          toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+          toggleDarkMode={toggleDarkMode}
           notificationCount={notifications.length}
           onNotificationClick={() => setShowNotifications(!showNotifications)}
           isMobileMenuOpen={isMobileMenuOpen}
@@ -108,13 +122,11 @@ export function MainLayout() {
             onClearAll={() => setNotifications([])}
           />
         )}
-        {/* Main content area with scroll */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {renderView()}
         </div>
       </div>
 
-      {/* Modals */}
       <Modal isOpen={showCardModal} onClose={() => setShowCardModal(false)} title="Card Purchase">
         <CardTopupModal onClose={() => setShowCardModal(false)} />
       </Modal>
@@ -125,7 +137,6 @@ export function MainLayout() {
         <GiftCardRedeemModal onClose={() => setShowGiftCardModal(false)} />
       </Modal>
 
-      {/* Chat widget (always visible, bottom-left) */}
       <ChatWidget />
     </div>
   );
