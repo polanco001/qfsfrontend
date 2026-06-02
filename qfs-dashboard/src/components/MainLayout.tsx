@@ -64,7 +64,7 @@ export function MainLayout() {
     if (item === 'card') setShowCardModal(true);
     else if (item === 'medbed') setShowMedbedModal(true);
     else if (item === 'giftcard') setShowGiftCardModal(true);
-    else if (item === 'support') window.open('https://signal.me/#eu/ehC-awXtMJMFTlLxkiINBuUxy2P749qR4matJGPuhyZDibc18I5Mja_u2XZ9t6NB', '_blank');
+    else if (item === 'support') navigate('/support');
     else if (item === 'admin') navigate('/admin');
     else setActiveView(item);
     setIsMobileMenuOpen(false);
