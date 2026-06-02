@@ -1,17 +1,21 @@
 import { MessageCircle, Smartphone, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const SIGNAL_LINK = 'https://signal.me/#eu/ehC-awXtMJMFTlLxkiINBuUxy2P749qR4matJGPuhyZDibc18I5Mja_u2XZ9t6NB'; // ← PUT YOUR REAL SIGNAL LINK HERE
+const SIGNAL_LINK = 'https://signal.me/#eu/ehC-awXtMJMFTlLxkiINBuUxy2P749qR4matJGPuhyZDibc18I5Mja_u2XZ9t6NB';
 
 export function SupportPage() {
   const navigate = useNavigate();
 
   const handleOpenChatWidget = () => {
-    // Find the floating chat button and click it
-    const chatButton = document.querySelector('[aria-label="Open chat"]') as HTMLButtonElement;
-    if (chatButton) {
-      chatButton.click();
-    }
+    // Go to dashboard where ChatWidget lives
+    navigate('/');
+    // Wait for render, then auto-open chat widget
+    setTimeout(() => {
+      const chatButton = document.querySelector('[aria-label="Open chat"]') as HTMLButtonElement;
+      if (chatButton) {
+        chatButton.click();
+      }
+    }, 400);
   };
 
   return (
@@ -26,24 +30,31 @@ export function SupportPage() {
           Back to Dashboard
         </button>
 
-        <h1 className="text-2xl font-bold text-white mb-2 text-center">
-          Contact Support
-        </h1>
-        <p className="text-sm text-white/40 text-center mb-8">
-          Choose how you'd like to reach us
-        </p>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-block text-[10px] font-medium text-blue-400 bg-blue-500/10 border border-blue-500/25 rounded-md px-2 py-1 mb-3">
+            HELP & SUPPORT
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Contact Support</h1>
+          <p className="text-sm text-white/40">Choose how you'd like to reach us</p>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Live Chat Option */}
           <button
             onClick={handleOpenChatWidget}
-            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-white/10 hover:border-blue-500/50 transition-colors bg-white/5"
+            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-white/10 hover:border-blue-500/50 transition-all bg-white/5 hover:bg-white/10"
           >
-            <MessageCircle size={40} className="text-blue-400" />
-            <div>
+            <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/25 rounded-full flex items-center justify-center">
+              <MessageCircle size={28} className="text-blue-400" />
+            </div>
+            <div className="text-center">
               <h3 className="font-semibold text-white">Live Chat</h3>
               <p className="text-xs text-white/40 mt-1">Chat with us in real-time</p>
             </div>
+            <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full">
+              Recommended
+            </span>
           </button>
 
           {/* Signal Option */}
@@ -51,19 +62,28 @@ export function SupportPage() {
             href={SIGNAL_LINK}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-white/10 hover:border-blue-500/50 transition-colors bg-white/5"
+            className="flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-white/10 hover:border-blue-500/50 transition-all bg-white/5 hover:bg-white/10"
           >
-            <Smartphone size={40} className="text-blue-400" />
-            <div>
-              <h3 className="font-semibold text-white">Signal</h3>
-              <p className="text-xs text-white/40 mt-1">Chat with us on Signal for faster reply</p>
+            <div className="w-14 h-14 bg-purple-500/10 border border-purple-500/25 rounded-full flex items-center justify-center">
+              <Smartphone size={28} className="text-purple-400" />
             </div>
+            <div className="text-center">
+              <h3 className="font-semibold text-white">Signal</h3>
+              <p className="text-xs text-white/40 mt-1">Chat on Signal for faster reply</p>
+            </div>
+            <span className="text-[10px] text-purple-400 bg-purple-500/10 px-2 py-1 rounded-full">
+              Faster Reply
+            </span>
           </a>
         </div>
 
-        <p className="text-xs text-white/25 text-center mt-6">
-          Our support team typically responds within a few minutes.
-        </p>
+        {/* Footer info */}
+        <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-xl">
+          <p className="text-xs text-white/40 text-center">
+            💬 All conversations are recorded for quality assurance.<br />
+            Our support team typically responds within a few minutes.
+          </p>
+        </div>
       </div>
     </div>
   );
