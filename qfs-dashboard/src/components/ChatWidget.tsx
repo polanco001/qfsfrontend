@@ -135,29 +135,15 @@ export function ChatWidget() {
             {!user ? (
               <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
                 <MessageCircle size={48} className="text-blue-600" />
-                <p className="text-slate-600 dark:text-slate-300 text-center">
-                  Please log in to use live chat.
-                </p>
-                <button
-                  onClick={() => {
-                    setOpen(false);
-                    navigate('/login');
-                  }}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition"
-                >
-                  Go to Login
-                </button>
+                <p className="text-slate-600 dark:text-slate-300 text-center">Please log in to use live chat.</p>
+                <button onClick={() => { setOpen(false); navigate('/login'); }} className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">Go to Login</button>
               </div>
             ) : (
               <>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.map(msg => (
                     <div key={msg._id} className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-                        msg.sender._id === user._id
-                          ? 'bg-blue-600 text-white rounded-br-none'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
-                      }`}>
+                      <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${msg.sender._id === user._id ? 'bg-blue-600 text-white rounded-br-none' : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'}`}>
                         {msg.sender._id !== user._id && (
                           <p className="text-xs font-semibold mb-1">
                             {msg.sender.role === 'admin' ? 'QFS Support Team' : msg.sender.fullName}
@@ -165,11 +151,7 @@ export function ChatWidget() {
                         )}
                         {editMessageId === msg._id ? (
                           <div className="flex items-center gap-1">
-                            <input
-                              value={editText}
-                              onChange={e => setEditText(e.target.value)}
-                              className="flex-1 bg-white/20 text-white rounded px-2 py-1 text-sm outline-none"
-                            />
+                            <input value={editText} onChange={e => setEditText(e.target.value)} className="flex-1 bg-white/20 text-white rounded px-2 py-1 text-sm outline-none" />
                             <button onClick={saveEdit} className="text-white hover:text-green-200"><Check size={16} /></button>
                           </div>
                         ) : (
@@ -191,18 +173,8 @@ export function ChatWidget() {
 
                 <div className="border-t border-slate-200 dark:border-slate-700 p-3">
                   <div className="flex gap-2">
-                    <input
-                      value={input}
-                      onChange={e => setInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Type your message..."
-                      className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={sendMessage}
-                      disabled={!input.trim()}
-                      className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg"
-                    >
+                    <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <button onClick={sendMessage} disabled={!input.trim()} className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg">
                       <Send size={18} />
                     </button>
                   </div>
