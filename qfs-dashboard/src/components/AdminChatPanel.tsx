@@ -1,193 +1,473 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, Pencil, Check } from 'lucide-react';
-import io, { Socket } from 'socket.io-client';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AdminChatPanel } from './AdminChatPanel';
 import { useApp } from '../context/AppContext';
+import {
+  ShieldCheck, XCircle, Image as ImageIcon,
+  CreditCard, FileText, CheckCircle, Users, Bell,
+  DollarSign, Wallet, X, MessageCircle, ChevronRight,
+  TrendingUp, AlertCircle, Clock, ArrowUpRight, Menu
+} from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
+const BASE_URL = 'https://qfsbackend-1.onrender.com';
+const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
-interface Message {
-  _id: string;
-  sender: { _id: string; fullName: string; email: string; role: string };
-  text: string;
-  createdAt: string;
-  edited?: boolean;
-  receiver?: string | null;
-}
+type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat';
 
-interface User {
-  _id: string;
-  fullName: string;
-  email: string;
-}
-
-export function AdminChatPanel() {   // ✅ named export
-  const { user, token } = useApp();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedReceiverId, setSelectedReceiverId] = useState('');
-  const [editMessageId, setEditMessageId] = useState<string | null>(null);
-  const [editText, setEditText] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  // Request notification permission
-  useEffect(() => {
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/admin/users`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) setUsers(data.filter((u: any) => u.role !== 'admin'));
-      })
-      .catch(console.error);
-  }, [token]);
-
-useEffect(() => {
-  fetch(`${API_URL}/api/admin/messages`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-    .then(res => res.json())
-    .then(data => setMessages(Array.isArray(data) ? data : []))
-    .catch(console.error);
-
-  const newSocket = io(API_URL, { auth: { token } });
-  setSocket(newSocket);
-
-  newSocket.on('connect', () => {
-    console.log('✅ Admin socket connected');
-  });
-
-  newSocket.on('newMessage', (msg: Message) => {
-    // ✅ Re-fetch messages when a new one arrives
-    fetch(`${API_URL}/api/admin/messages`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(data => setMessages(Array.isArray(data) ? data : []))
-      .catch(console.error);
-
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
-    if (msg.sender._id !== user._id && document.hidden) {
-      try {
-        new Notification('New message from QFS Chat', {
-          body: `${msg.sender.fullName}: ${msg.text}`,
-          icon: '/favicon.ico'
-        });
-      } catch (e) { /* ignore */ }
-    }
-  });
-
-  newSocket.on('messageEdited', (updatedMsg: Message) => {
-    setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
-  });
-
-  return () => { newSocket.disconnect(); };
-}, [token]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const sendMessage = () => {
-    if (!input.trim() || !socket || !selectedReceiverId) {
-      alert('Please select a user.');
-      return;
-    }
-    socket.emit('sendMessage', { text: input.trim(), receiverId: selectedReceiverId }, (res: any) => {
-      if (!res.success) console.error(res.error);
-    });
-    setInput('');
-  };
-
-  const startEdit = (msg: Message) => {
-    setEditMessageId(msg._id);
-    setEditText(msg.text);
-  };
-
-  const saveEdit = () => {
-    if (!socket || !editMessageId || !editText.trim()) return;
-    socket.emit('editMessage', { messageId: editMessageId, newText: editText.trim() }, (res: any) => {
-      if (!res.success) console.error(res.error);
-    });
-    setEditMessageId(null);
-    setEditText('');
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') sendMessage();
-  };
-
+// ─── Notification Banner ───────────────────────────────────────────────────────
+function NotifBanner({
+  items,
+  onDismiss,
+  onDismissAll,
+}: {
+  items: { id: string; message: string; time: string; icon: React.ReactNode }[];
+  onDismiss: (id: string) => void;
+  onDismissAll: () => void;
+}) {
+  if (items.length === 0) return null;
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col" style={{ height: '650px' }}>
-      <audio ref={audioRef} src="/notification.mp3" preload="auto" />
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.length === 0 && <p className="text-center text-slate-400 text-sm">No messages yet.</p>}
-        {messages.map(msg => (
-          <div key={msg._id} className={`flex ${msg.sender._id === user._id ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
-              msg.sender._id === user._id
-                ? 'bg-blue-600 text-white rounded-br-none'
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-none'
-            }`}>
-              <p className="text-xs font-semibold">
-                {msg.sender.role === 'admin' ? 'QFS Support Team' : msg.sender.fullName}
+    <div className="mb-4 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/30 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-amber-200 dark:border-amber-800/50">
+        <div className="flex items-center gap-2">
+          <AlertCircle size={14} className="text-amber-600 dark:text-amber-400" />
+          <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+            {items.length} pending submission{items.length > 1 ? 's' : ''}
+          </span>
+        </div>
+        <button onClick={onDismissAll} className="text-[11px] text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium transition">
+          Dismiss all
+        </button>
+      </div>
+      <div className="divide-y divide-amber-100 dark:divide-amber-900/40">
+        {items.map((n) => (
+          <div key={n.id} className="flex items-start gap-3 px-4 py-3">
+            <div className="shrink-0 mt-0.5">{n.icon}</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-amber-900 dark:text-amber-200 leading-snug">{n.message}</p>
+              <p className="text-[10px] text-amber-500 mt-0.5 flex items-center gap-1">
+                <Clock size={9} /> {n.time}
               </p>
-              <p className="text-[10px] opacity-70 mb-1">{msg.sender.email}</p>
-              {editMessageId === msg._id ? (
-                <div className="flex items-center gap-1">
-                  <input value={editText} onChange={e => setEditText(e.target.value)}
-                    className="flex-1 bg-white/20 text-white rounded px-2 py-1 text-sm outline-none" />
-                  <button onClick={saveEdit} className="text-white hover:text-green-200"><Check size={16} /></button>
-                </div>
-              ) : (
-                <p>{msg.text}</p>
-              )}
-              <p className="text-xs opacity-70 mt-1">
-                {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-              {msg.sender._id === user._id && editMessageId !== msg._id && (
-                <button onClick={() => startEdit(msg)} className="text-xs opacity-70 hover:opacity-100 ml-1">
-                  <Pencil size={12} className="inline" />
-                </button>
-              )}
             </div>
+            <button onClick={() => onDismiss(n.id)} className="shrink-0 p-1 rounded-full hover:bg-amber-200 dark:hover:bg-amber-800 transition">
+              <X size={11} className="text-amber-600 dark:text-amber-400" />
+            </button>
           </div>
         ))}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="border-t border-slate-200 dark:border-slate-700 p-3">
-        <div className="flex gap-2 mb-2">
-          <select value={selectedReceiverId} onChange={e => setSelectedReceiverId(e.target.value)}
-            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">Select user to reply...</option>
-            {users.map(u => (
-              <option key={u._id} value={u._id}>{u.fullName} ({u.email})</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown}
-            placeholder="Type your reply..."
-            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <button onClick={sendMessage} disabled={!input.trim() || !selectedReceiverId}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-lg flex items-center gap-1">
-            <Send size={18} /> Reply
-          </button>
-        </div>
       </div>
     </div>
   );
 }
+
+// ─── Action Card ──────────────────────────────────────────────────────────────
+function ActionCard({
+  title, count, pending, icon, color, onClick,
+}: {
+  title: string; count: number; pending: number;
+  icon: React.ReactNode; color: string; onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors group"
+      style={{ WebkitTapHighlightColor: 'transparent' }}
+    >
+      {pending > 0 && (
+        <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+          {pending > 99 ? '99+' : pending}
+        </span>
+      )}
+      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-3`}>
+        {icon}
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{title}</p>
+      <p className="text-2xl font-bold text-slate-900 dark:text-white">{count}</p>
+      {pending > 0 ? (
+        <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1 font-medium flex items-center gap-1">
+          <ArrowUpRight size={11} /> {pending} need review
+        </p>
+      ) : (
+        <p className="text-[11px] text-slate-400 mt-1">No pending items</p>
+      )}
+      <ChevronRight size={14} className="absolute bottom-4 right-4 text-slate-300 dark:text-slate-600 group-hover:text-slate-500 transition" />
+    </button>
+  );
+}
+
+// ─── Stat Badge ───────────────────────────────────────────────────────────────
+function StatBadge({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3">
+      <p className="text-[11px] text-slate-400 mb-1">{label}</p>
+      <p className="text-xl font-bold text-slate-900 dark:text-white leading-none">{value}</p>
+      {sub && <p className="text-[10px] text-slate-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+// ─── Status Pill ──────────────────────────────────────────────────────────────
+function StatusPill({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    completed: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    approved:  'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
+    failed:    'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    rejected:  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+    pending:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
+  };
+  return (
+    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${map[status] ?? map.pending}`}>
+      {status}
+    </span>
+  );
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+function SectionHeader({ title, sub }: { title: string; sub?: string }) {
+  return (
+    <div className="mb-4">
+      <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+// ─── Card Shell ───────────────────────────────────────────────────────────────
+function CardShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden w-full">
+      {children}
+    </div>
+  );
+}
+
+// ─── Scrollable Table Wrapper ─────────────────────────────────────────────────
+function TableWrap({ children, minW }: { children: React.ReactNode; minW: number }) {
+  return (
+    <div style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' }}>
+      <table style={{ width: '100%', minWidth: minW, fontSize: 12, borderCollapse: 'collapse' }}>
+        {children}
+      </table>
+    </div>
+  );
+}
+
+const TH = ({ children, right }: { children: React.ReactNode; right?: boolean }) => (
+  <th style={{ padding: '10px 16px', textAlign: right ? 'right' : 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', background: 'transparent', whiteSpace: 'nowrap' }}>
+    {children}
+  </th>
+);
+
+const TD = ({ children, right, mono }: { children: React.ReactNode; right?: boolean; mono?: boolean }) => (
+  <td style={{ padding: '12px 16px', textAlign: right ? 'right' : 'left', fontFamily: mono ? 'monospace' : undefined, verticalAlign: 'middle' }}>
+    {children}
+  </td>
+);
+
+// ─── Main AdminPanel ───────────────────────────────────────────────────────────
+export function AdminPanel() {
+  const { user, token } = useApp();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false); // closed by default
+  const [dashData, setDashData] = useState<{
+    payments: any[]; giftCards: any[]; kycDocs: any[]; walletConnections: any[];
+  }>({ payments: [], giftCards: [], kycDocs: [], walletConnections: [] });
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [topupAmount, setTopupAmount] = useState('');
+  const [deductAmount, setDeductAmount] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [dismissedIds, setDismissedIds] = useState<Record<string, Set<string>>>({
+    payments: new Set(), giftCards: new Set(), kycDocs: new Set(), wallets: new Set(),
+  });
+
+  useEffect(() => {
+    if (user === null) return;
+    if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) { navigate('/'); return; }
+    fetchAll();
+  }, [user]);
+
+  useEffect(() => {
+    if (!token) return;
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/admin/messages`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        if (Array.isArray(data))
+          setUnreadChatCount(data.filter((m: any) => m.sender?.role !== 'admin' && m.receiver === null).length);
+      } catch {}
+    };
+    fetchUnread();
+    const iv = setInterval(fetchUnread, 10000);
+    return () => clearInterval(iv);
+  }, [token]);
+
+  const fetchAll = async () => {
+    setLoading(true);
+    try {
+      const [uRes, dRes] = await Promise.all([
+        fetch(`${BASE_URL}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${BASE_URL}/api/admin/dashboard-data`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      if (uRes.ok) {
+        const u = await uRes.json();
+        setUsers([...u].sort((a, b) => (a._id < b._id ? 1 : -1)));
+      }
+      if (dRes.ok) setDashData(await dRes.json());
+      setError('');
+    } catch { setError('Failed to load data.'); }
+    finally { setLoading(false); }
+  };
+
+  const notifyUser = async (userId: string, message: string) => {
+    try {
+      await fetch(`${BASE_URL}/api/admin/notify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ userId, message }),
+      });
+    } catch {}
+  };
+
+  const handleUpdateStatus = async (endpoint: string, id: string, newStatus: string) => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/${endpoint}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) { alert('Failed to update status.'); return; }
+
+      const itemUserId =
+        endpoint === 'payment'  ? dashData.payments.find((p: any)  => p._id === id)?.user?._id :
+        endpoint === 'giftcard' ? dashData.giftCards.find((g: any) => g._id === id)?.user?._id :
+        endpoint === 'kyc'      ? dashData.kycDocs.find((k: any)   => k._id === id)?.user?._id : null;
+
+      const msgMap: Record<string, Record<string, string>> = {
+        payment: { completed: '✅ Your payment has been approved and your account balance has been updated.', failed: '❌ Your payment could not be approved. Please contact support for assistance.' },
+        giftcard: { approved: '✅ Your gift card submission has been approved successfully.', rejected: '❌ Your gift card submission was rejected. Please ensure the card details are correct and resubmit.' },
+        kyc: { approved: '✅ Your KYC verification has been approved. Your account is now fully verified.', rejected: '❌ Your KYC documents were rejected. Please resubmit with clear and valid documents.' },
+      };
+      const msg = msgMap[endpoint]?.[newStatus];
+      if (itemUserId && msg) await notifyUser(itemUserId, msg);
+
+      const typeMap: Record<string, 'payments' | 'giftCards' | 'kycDocs'> = { payment: 'payments', giftcard: 'giftCards', kyc: 'kycDocs' };
+      const t = typeMap[endpoint];
+      if (t) setDismissedIds(prev => ({ ...prev, [t]: new Set([...prev[t], id]) }));
+
+      fetchAll();
+    } catch { alert('Network error.'); }
+  };
+
+  const buildNotifs = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets') => {
+    const dismissed = dismissedIds[type] ?? new Set();
+    const iconMap = {
+      payments: <CreditCard size={13} className="text-amber-600" />,
+      giftCards: <FileText size={13} className="text-blue-500" />,
+      kycDocs: <ShieldCheck size={13} className="text-purple-500" />,
+      wallets: <Wallet size={13} className="text-green-500" />,
+    };
+    if (type === 'payments')
+      return dashData.payments.filter((p: any) => p.status === 'pending' && !dismissed.has(p._id)).map((p: any) => ({ id: p._id, icon: iconMap.payments, message: `${p.user?.fullName || p.user?.email || 'A user'} submitted a $${p.amount?.toLocaleString()} ${p.method?.toUpperCase()} payment.`, time: p.createdAt ? new Date(p.createdAt).toLocaleString() : 'Just now' }));
+    if (type === 'giftCards')
+      return dashData.giftCards.filter((g: any) => g.status === 'pending' && !dismissed.has(g._id)).map((g: any) => ({ id: g._id, icon: iconMap.giftCards, message: `${g.user?.fullName || g.user?.email || 'A user'} submitted a ${g.cardType} gift card.`, time: g.createdAt ? new Date(g.createdAt).toLocaleString() : 'Just now' }));
+    if (type === 'kycDocs')
+      return dashData.kycDocs.filter((k: any) => k.status === 'pending' && !dismissed.has(k._id)).map((k: any) => ({ id: k._id, icon: iconMap.kycDocs, message: `${k.fullName || k.email || 'A user'} submitted KYC documents from ${k.country || 'unknown'}.`, time: k.createdAt ? new Date(k.createdAt).toLocaleString() : 'Just now' }));
+    return dashData.walletConnections.filter((w: any) => !dismissed.has(w._id)).map((w: any) => ({ id: w._id, icon: iconMap.wallets, message: `${w.user?.fullName || w.user?.email || 'A user'} connected a ${w.walletName} wallet.`, time: w.createdAt ? new Date(w.createdAt).toLocaleString() : 'Just now' }));
+  };
+
+  const handleDismiss = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets', id: string) =>
+    setDismissedIds(prev => ({ ...prev, [type]: new Set([...prev[type], id]) }));
+
+  const handleDismissAll = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets') => {
+    const ids = buildNotifs(type).map(n => n.id);
+    setDismissedIds(prev => ({ ...prev, [type]: new Set([...prev[type], ...ids]) }));
+  };
+
+  const handleTopup = async () => {
+    if (!selectedUserId || !topupAmount) { alert('Select a user and enter an amount.'); return; }
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/topup`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId: selectedUserId, amount: parseFloat(topupAmount) }) });
+      const data = await res.json();
+      if (res.ok) { await notifyUser(selectedUserId, `✅ Your account has been credited with $${parseFloat(topupAmount).toFixed(2)}. New balance: $${data.newBalance?.toFixed(2)}.`); alert(`✅ Top-up successful! New balance: $${data.newBalance?.toFixed(2)}`); setTopupAmount(''); fetchAll(); }
+      else alert(data.error || 'Top-up failed.');
+    } catch { alert('Network error.'); }
+  };
+
+  const handleDeduct = async () => {
+    if (!selectedUserId || !deductAmount) { alert('Select a user and enter an amount.'); return; }
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/deduct`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId: selectedUserId, amount: parseFloat(deductAmount) }) });
+      const data = await res.json();
+      if (res.ok) { await notifyUser(selectedUserId, `⚠️ $${parseFloat(deductAmount).toFixed(2)} has been deducted from your account. New balance: $${data.newBalance?.toFixed(2)}.`); alert(`✅ Deduction successful! New balance: $${data.newBalance?.toFixed(2)}`); setDeductAmount(''); fetchAll(); }
+      else alert(data.error || 'Deduction failed.');
+    } catch { alert('Network error.'); }
+  };
+
+  const handleNotify = async () => {
+    if (!selectedUserId || !notificationMessage) { alert('Select a user and enter a message.'); return; }
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId: selectedUserId, message: notificationMessage }) });
+      if (res.ok) { alert('Notification sent!'); setNotificationMessage(''); }
+      else alert('Failed to send notification.');
+    } catch { alert('Network error.'); }
+  };
+
+  const handleResetPassword = async (userId: string, userEmail: string) => {
+    const newPassword = prompt(`Enter new temporary password for ${userEmail}`);
+    if (!newPassword) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/admin/reset-password`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ userId, newPassword }) });
+      const data = await res.json();
+      if (res.ok) { await notifyUser(userId, `🔑 Your password has been reset by admin. Please log in with your new temporary password and change it immediately.`); alert(`✅ Password reset for ${userEmail}`); }
+      else alert(data.error || 'Password reset failed.');
+    } catch { alert('Network error.'); }
+  };
+
+  if (user === null || loading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 32, height: 32, border: '2px solid #2563eb', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+          <p style={{ color: '#94a3b8', fontSize: 13 }}>Loading admin panel…</p>
+        </div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+  if (user.role !== 'admin' || user.email !== ADMIN_EMAIL)
+    return <div style={{ padding: 32, textAlign: 'center', color: '#ef4444' }}>Access denied.</div>;
+
+  const pendingPayments  = dashData.payments.filter((p: any) => p.status === 'pending').length;
+  const pendingGiftCards = dashData.giftCards.filter((g: any) => g.status === 'pending').length;
+  const pendingKYC       = dashData.kycDocs.filter((k: any) => k.status === 'pending').length;
+  const totalPending     = pendingPayments + pendingGiftCards + pendingKYC;
+
+  const tabs: { id: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
+    { id: 'overview',   label: 'Overview',   icon: <TrendingUp size={16} /> },
+    { id: 'users',      label: 'Users',      icon: <Users size={16} /> },
+    { id: 'payments',   label: 'Payments',   icon: <CreditCard size={16} />,  badge: pendingPayments },
+    { id: 'giftcards',  label: 'Gift Cards', icon: <FileText size={16} />,    badge: pendingGiftCards },
+    { id: 'kyc',        label: 'KYC',        icon: <ShieldCheck size={16} />, badge: pendingKYC },
+    { id: 'wallets',    label: 'Wallets',    icon: <Wallet size={16} /> },
+    { id: 'chat',       label: 'Chat',       icon: <MessageCircle size={16} />, badge: unreadChatCount },
+  ];
+
+  const inputCls = "w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const theadCls = "bg-slate-50 dark:bg-slate-900/40";
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden', background: 'var(--bg-page, #f8fafc)' }} className="text-slate-900 dark:text-white">
+
+      {/* ── Header ── */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.2)' }} className="bg-white dark:bg-slate-800">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button onClick={() => setSidebarOpen(v => !v)} style={{ padding: 8, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex' }} className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Toggle sidebar">
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+          <div>
+            <p style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>Admin Dashboard</p>
+            <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.2 }}>{user.email}</p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {totalPending > 0 && (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 10px', borderRadius: 999, fontWeight: 600 }} className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
+              <AlertCircle size={11} /> {totalPending} pending
+            </span>
+          )}
+          <button onClick={fetchAll} style={{ padding: 9, borderRadius: 12, border: 'none', cursor: 'pointer', display: 'flex', background: '#2563eb' }} className="text-white hover:bg-blue-700" aria-label="Refresh">
+            <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" /></svg>
+          </button>
+        </div>
+      </header>
+
+      {/* ── Body ── */}
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+
+        {/* Overlay (closes sidebar on mobile) */}
+        {sidebarOpen && (
+          <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.4)', top: 57 }} className="sm:hidden" />
+        )}
+
+        {/* Sidebar */}
+        <aside
+          style={{
+            position: 'fixed',
+            top: 57,
+            left: 0,
+            zIndex: 40,
+            width: sidebarOpen ? 200 : 0,
+            height: 'calc(100vh - 57px)',
+            padding: sidebarOpen ? 12 : 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: sidebarOpen ? 4 : 0,
+            overflowY: sidebarOpen ? 'auto' : 'hidden',
+            overflowX: 'hidden',
+            borderRight: sidebarOpen ? '1px solid rgba(148,163,184,0.2)' : 'none',
+            transition: 'width 0.3s ease, padding 0.3s ease',
+            background: 'white',
+          }}
+          className="dark:bg-slate-800"
+        >
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left', position: 'relative', whiteSpace: 'nowrap' }} className={activeTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}>
+              {t.icon}<span style={{ flex: 1 }}>{t.label}</span>
+              {(t.badge ?? 0) > 0 && <span style={{ minWidth: 18, height: 18, padding: '0 4px', fontSize: 10, fontWeight: 700, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeTab === t.id ? 'rgba(255,255,255,0.3)' : '#ef4444', color: '#fff' }}>{(t.badge ?? 0) > 99 ? '99+' : t.badge}</span>}
+            </button>
+          ))}
+        </aside>
+
+        {/* Main content */}
+        <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '16px 16px 32px', WebkitOverflowScrolling: 'touch' }}>
+          {error && (
+            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>
+          )}
+
+          {/* ══ OVERVIEW ══ */}
+          {activeTab === 'overview' && (
+            <div>
+              <SectionHeader title="Overview" sub="Everything at a glance" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20 }}>
+                <StatBadge label="Total users" value={String(users.length)} sub="registered" />
+                <StatBadge label="Payments" value={String(dashData.payments.length)} sub={`${pendingPayments} pending`} />
+                <StatBadge label="Gift cards" value={String(dashData.giftCards.length)} sub={`${pendingGiftCards} pending`} />
+                <StatBadge label="KYC docs" value={String(dashData.kycDocs.length)} sub={`${pendingKYC} pending`} />
+              </div>
+              <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#94a3b8', marginBottom: 10 }}>Action Required</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 24 }}>
+                <ActionCard title="Payments" count={dashData.payments.length} pending={pendingPayments} icon={<CreditCard size={20} className="text-amber-600" />} color="bg-amber-50 dark:bg-amber-950/40" onClick={() => setActiveTab('payments')} />
+                <ActionCard title="Gift Cards" count={dashData.giftCards.length} pending={pendingGiftCards} icon={<FileText size={20} className="text-blue-600" />} color="bg-blue-50 dark:bg-blue-950/40" onClick={() => setActiveTab('giftcards')} />
+                <ActionCard title="KYC Docs" count={dashData.kycDocs.length} pending={pendingKYC} icon={<ShieldCheck size={20} className="text-purple-600" />} color="bg-purple-50 dark:bg-purple-950/40" onClick={() => setActiveTab('kyc')} />
+                <ActionCard title="Wallets" count={dashData.walletConnections.length} pending={0} icon={<Wallet size={20} className="text-green-600" />} color="bg-green-50 dark:bg-green-950/40" onClick={() => setActiveTab('wallets')} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: '#94a3b8' }}>Recent Users</p>
+                <button onClick={() => setActiveTab('users')} style={{ fontSize: 12, fontWeight: 600, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer' }}>View all</button>
+              </div>
+              <CardShell>
+                {users.slice(0, 5).map((u, i) => (
+                  <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderTop: i > 0 ? '1px solid rgba(148,163,184,0.15)' : undefined }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }} className="bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">{(u.fullName || u.email || '?')[0].toUpperCase()}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: 13, fontWeight: 600 }}>{u.fullName || 'No name'}</p>
+                      <p style={{ fontSize: 11, color: '#94a3b8' }}>{u.email}</p>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 700, flexShrink: 0 }}>${(u.balance || 0).toFixed(2)}</span>
+                  </div>
+                ))}
+              </CardShell>
+            </div>
+          )}
+
+          {/* ══ USERS ══ */}
+          {activeTab === 'users' && (
+            <div>
+              <SectionHeader title="Users" sub={`${users.length} registered · newest first`} />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 12, marginBottom: 20 }} className="sm:grid-cols-3">
+                {[
+                  { title: 'Top-up', icon: <DollarSign size={14} className="text-green-600" />, colorCls: 'bg-green-50 dark:bg-green-950/30', input: <input type="number" placeholder="Amount ($)" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} />, btn: 'Add Funds', btnColor: '#16a34a', action: handleTopup },
+                  { title: 'Deduct', icon: <DollarSign size={14} className="text-red-500" />, colorCls: 'bg-red-50 dark:bg-red-950/30', input: <input type="number"
