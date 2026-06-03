@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Send } from 'lucide-react';
+import io, { Socket } from 'socket.io-client';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
 
@@ -11,8 +12,27 @@ export function AdminChatPanel() {
   const [input, setInput] = useState('');
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState('');
+  const [socket, setSocket] = useState<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Connect to Socket.io
+  useEffect(() => {
+    if (!token) return;
+    const newSocket = io(API_URL, { auth: { token } });
+    setSocket(newSocket);
+    newSocket.on('newMessage', (msg: any) => {
+      setMessages(prev => {
+        if (prev.find(m => m._id === msg._id)) return prev;
+        return [...prev, msg];
+      });
+    });
+    newSocket.on('messageEdited', (updatedMsg: any) => {
+      setMessages(prev => prev.map(m => m._id === updatedMsg._id ? updatedMsg : m));
+    });
+    return () => { newSocket.disconnect(); };
+  }, [token]);
+
+  // Fetch message history
   useEffect(() => {
     if (!token) return;
     fetch(`${API_URL}/api/admin/messages/${selectedUser}`, {
@@ -23,6 +43,7 @@ export function AdminChatPanel() {
       .catch(() => setMessages([]));
   }, [token, selectedUser]);
 
+  // Fetch users list
   useEffect(() => {
     if (!token) return;
     fetch(`${API_URL}/api/admin/users`, {
@@ -33,12 +54,30 @@ export function AdminChatPanel() {
       .catch(() => {});
   }, [token]);
 
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Send message
+  const sendMessage = () => {
+    if (!input.trim() || !socket) return;
+    socket.emit('sendMessage', {
+      text: input.trim(),
+      receiverId: selectedUser || null
+    }, (res: any) => {
+      if (!res.success) console.error(res.error);
+    });
+    setInput('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') sendMessage();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* User selector */}
       <div style={{ padding: 12, borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
         <select
           value={selectedUser}
@@ -52,12 +91,13 @@ export function AdminChatPanel() {
         </select>
       </div>
 
+      {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
         {messages.map((msg: any) => (
-          <div key={msg._id} style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 12, background: 'rgba(148,163,184,0.08)' }}>
+          <div key={msg._id} style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 12, background: msg.sender?._id === user?._id ? 'rgba(37,99,235,0.1)' : 'rgba(148,163,184,0.08)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#6366f1' }}>
-                {msg.sender?.fullName || msg.sender?.email || 'Unknown'}
+              <span style={{ fontSize: 11, fontWeight: 600, color: msg.sender?._id === user?._id ? '#2563eb' : '#6366f1' }}>
+                {msg.sender?._id === user?._id ? 'QFS Support Team' : msg.sender?.fullName || msg.sender?.email || 'Unknown'}
               </span>
               <span style={{ fontSize: 10, color: '#94a3b8' }}>
                 {new Date(msg.createdAt).toLocaleString()}
@@ -69,17 +109,19 @@ export function AdminChatPanel() {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Input */}
       <div style={{ padding: 12, borderTop: '1px solid rgba(148,163,184,0.2)', display: 'flex', gap: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Type a reply..."
+          onKeyDown={handleKeyDown}
+          placeholder={selectedUser ? `Reply to ${users.find(u => u._id === selectedUser)?.email || 'user'}...` : 'Type a public message...'}
           style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'transparent', color: 'inherit', fontSize: 13 }}
-          onKeyDown={e => { if (e.key === 'Enter') { setInput(''); } }}
         />
         <button
-          onClick={() => { setInput(''); }}
-          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer' }}
+          onClick={sendMessage}
+          disabled={!input.trim()}
+          style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: input.trim() ? '#2563eb' : '#94a3b8', color: '#fff', cursor: input.trim() ? 'pointer' : 'not-allowed' }}
         >
           <Send size={16} />
         </button>
