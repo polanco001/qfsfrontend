@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AdminChatPanel } from './AdminChatPanel';
+import AdminChatPanel from './AdminChatPanel';
 import { useApp } from '../context/AppContext';
 import {
   ShieldCheck, XCircle, Image as ImageIcon,
@@ -414,7 +414,6 @@ export function AdminPanel() {
       style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden', background: 'var(--bg-page, #f8fafc)' }}
       className="text-slate-900 dark:text-white"
     >
-      {/* ── Sticky top header ───────────────────────────────────────────────── */}
       <header
         style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.2)' }}
         className="bg-white dark:bg-slate-800"
@@ -453,10 +452,7 @@ export function AdminPanel() {
         </div>
       </header>
 
-      {/* ── Body: sidebar + main ─────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-
-        {/* Desktop sidebar – toggled ONLY by hamburger */}
         <aside
           style={{
             width: sidebarOpen ? 200 : 0,
@@ -503,7 +499,6 @@ export function AdminPanel() {
           ))}
         </aside>
 
-        {/* ── Main scroll area ───────────────────────────────────────────────── */}
         <main
           style={{
             flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden',
@@ -516,7 +511,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ OVERVIEW ══════════════════════════════════════════════════════ */}
           {activeTab === 'overview' && (
             <div>
               <SectionHeader title="Overview" sub="Everything at a glance" />
@@ -554,7 +548,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ USERS ═════════════════════════════════════════════════════════ */}
           {activeTab === 'users' && (
             <div>
               <SectionHeader title="Users" sub={`${users.length} registered · newest first`} />
@@ -623,7 +616,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ PAYMENTS ══════════════════════════════════════════════════════ */}
           {activeTab === 'payments' && (
             <div>
               <SectionHeader title="Payments" sub={`${dashData.payments.length} total · ${pendingPayments} pending`} />
@@ -667,7 +659,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ GIFT CARDS ════════════════════════════════════════════════════ */}
           {activeTab === 'giftcards' && (
             <div>
               <SectionHeader title="Gift Cards" sub={`${dashData.giftCards.length} total · ${pendingGiftCards} pending`} />
@@ -715,7 +706,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ KYC ═══════════════════════════════════════════════════════════ */}
           {activeTab === 'kyc' && (
             <div>
               <SectionHeader title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} />
@@ -769,7 +759,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ WALLETS ═══════════════════════════════════════════════════════ */}
           {activeTab === 'wallets' && (
             <div>
               <SectionHeader title="Wallet Connections" sub={`${dashData.walletConnections.length} total`} />
@@ -804,7 +793,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ CHAT ══════════════════════════════════════════════════════════ */}
           {activeTab === 'chat' && (
             <div>
               <SectionHeader title="Support Chat" />
