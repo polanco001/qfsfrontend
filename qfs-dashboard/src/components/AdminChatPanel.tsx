@@ -39,7 +39,6 @@ export function AdminChatPanel() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* User selector */}
       <div style={{ padding: 12, borderBottom: '1px solid rgba(148,163,184,0.2)' }}>
         <select
           value={selectedUser}
@@ -53,7 +52,6 @@ export function AdminChatPanel() {
         </select>
       </div>
 
-      {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
         {messages.map((msg: any) => (
           <div key={msg._id} style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 12, background: 'rgba(148,163,184,0.08)' }}>
@@ -71,17 +69,16 @@ export function AdminChatPanel() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       <div style={{ padding: 12, borderTop: '1px solid rgba(148,163,184,0.2)', display: 'flex', gap: 8 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Type a reply..."
           style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'transparent', color: 'inherit', fontSize: 13 }}
-          onKeyDown={e => { if (e.key === 'Enter') { /* send logic */ setInput(''); } }}
+          onKeyDown={e => { if (e.key === 'Enter') { setInput(''); } }}
         />
         <button
-          onClick={() => { /* send logic */ setInput(''); }}
+          onClick={() => { setInput(''); }}
           style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer' }}
         >
           <Send size={16} />
@@ -90,3 +87,5 @@ export function AdminChatPanel() {
     </div>
   );
 }
+
+export default AdminChatPanel;
