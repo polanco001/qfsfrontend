@@ -167,7 +167,7 @@ export function AdminPanel() {
   const { user, token } = useApp();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
-  const [sidebarOpen, setSidebarOpen] = useState(false); // closed by default
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dashData, setDashData] = useState<{
     payments: any[]; giftCards: any[]; kycDocs: any[]; walletConnections: any[];
   }>({ payments: [], giftCards: [], kycDocs: [], walletConnections: [] });
@@ -387,7 +387,7 @@ export function AdminPanel() {
       {/* ── Body ── */}
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
 
-        {/* Overlay (closes sidebar on mobile) */}
+        {/* Overlay */}
         {sidebarOpen && (
           <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(0,0,0,0.4)', top: 57 }} className="sm:hidden" />
         )}
@@ -395,17 +395,10 @@ export function AdminPanel() {
         {/* Sidebar */}
         <aside
           style={{
-            position: 'fixed',
-            top: 57,
-            left: 0,
-            zIndex: 40,
-            width: sidebarOpen ? 200 : 0,
-            height: 'calc(100vh - 57px)',
-            padding: sidebarOpen ? 12 : 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: sidebarOpen ? 4 : 0,
-            overflowY: sidebarOpen ? 'auto' : 'hidden',
+            position: 'fixed', top: 57, left: 0, zIndex: 40,
+            width: sidebarOpen ? 200 : 0, height: 'calc(100vh - 57px)',
+            padding: sidebarOpen ? 12 : 0, display: 'flex', flexDirection: 'column',
+            gap: sidebarOpen ? 4 : 0, overflowY: sidebarOpen ? 'auto' : 'hidden',
             overflowX: 'hidden',
             borderRight: sidebarOpen ? '1px solid rgba(148,163,184,0.2)' : 'none',
             transition: 'width 0.3s ease, padding 0.3s ease',
@@ -421,13 +414,11 @@ export function AdminPanel() {
           ))}
         </aside>
 
-        {/* Main content */}
+        {/* Main */}
         <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '16px 16px 32px', WebkitOverflowScrolling: 'touch' }}>
-          {error && (
-            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>
-          )}
+          {error && <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>}
 
-          {/* ══ OVERVIEW ══ */}
+          {/* OVERVIEW */}
           {activeTab === 'overview' && (
             <div>
               <SectionHeader title="Overview" sub="Everything at a glance" />
@@ -463,15 +454,30 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ USERS ══ */}
+          {/* USERS */}
           {activeTab === 'users' && (
             <div>
               <SectionHeader title="Users" sub={`${users.length} registered · newest first`} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 12, marginBottom: 20 }} className="sm:grid-cols-3">
                 {[
-                  { title: 'Top-up', icon: <DollarSign size={14} className="text-green-600" />, colorCls: 'bg-green-50 dark:bg-green-950/30', input: <input type="number" placeholder="Amount ($)" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} />, btn: 'Add Funds', btnColor: '#16a34a', action: handleTopup },
-                  { title: 'Deduct', icon: <DollarSign size={14} className="text-red-500" />, colorCls: 'bg-red-50 dark:bg-red-950/30', input: <input type="number" placeholder="Amount ($)" value={deductAmount} onChange={e => setDeductAmount(e.target.value)} min="0" className={inputCls} />, btn: 'Deduct Funds', btnColor: '#dc2626', action: handleDeduct },
-                  { title: 'Notify', icon: <Bell size={14} className="text-blue-600" />, colorCls: 'bg-blue-50 dark:bg-blue-950/30', input: <textarea placeholder="Message…" value={notificationMessage} onChange={e => setNotificationMessage(e.target.value)} rows={2} className={`${inputCls} resize-none`} />, btn: 'Send', btnColor: '#2563eb', action: handleNotify },
+                  {
+                    title: 'Top-up', icon: <DollarSign size={14} className="text-green-600" />,
+                    colorCls: 'bg-green-50 dark:bg-green-950/30',
+                    input: <input type="number" placeholder="Amount ($)" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} />,
+                    btn: 'Add Funds', btnColor: '#16a34a', action: handleTopup,
+                  },
+                  {
+                    title: 'Deduct', icon: <DollarSign size={14} className="text-red-500" />,
+                    colorCls: 'bg-red-50 dark:bg-red-950/30',
+                    input: <input type="number" placeholder="Amount ($)" value={deductAmount} onChange={e => setDeductAmount(e.target.value)} min="0" className={inputCls} />,
+                    btn: 'Deduct Funds', btnColor: '#dc2626', action: handleDeduct,
+                  },
+                  {
+                    title: 'Notify', icon: <Bell size={14} className="text-blue-600" />,
+                    colorCls: 'bg-blue-50 dark:bg-blue-950/30',
+                    input: <textarea placeholder="Message…" value={notificationMessage} onChange={e => setNotificationMessage(e.target.value)} rows={2} className={`${inputCls} resize-none`} />,
+                    btn: 'Send', btnColor: '#2563eb', action: handleNotify,
+                  },
                 ].map(c => (
                   <div key={c.title} className="bg-white dark:bg-slate-800" style={{ borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', padding: 16 }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 10, marginBottom: 12, fontSize: 12, fontWeight: 600 }} className={c.colorCls}>{c.icon} {c.title}</div>
@@ -492,9 +498,7 @@ export function AdminPanel() {
                         <TD><span style={{ fontSize: 12 }}>{u.fullName || '—'}</span></TD>
                         <TD><span style={{ fontWeight: 700 }}>${(u.balance || 0).toFixed(2)}</span></TD>
                         <TD>{u.kycCompleted ? '✅' : '❌'}</TD>
-                        <TD right>
-                          <button onClick={() => handleResetPassword(u._id, u.email)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Reset PW</button>
-                        </TD>
+                        <TD right><button onClick={() => handleResetPassword(u._id, u.email)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Reset PW</button></TD>
                       </tr>
                     ))}
                   </tbody>
@@ -503,7 +507,7 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ PAYMENTS ══ */}
+          {/* PAYMENTS */}
           {activeTab === 'payments' && (
             <div>
               <SectionHeader title="Payments" sub={`${dashData.payments.length} total · ${pendingPayments} pending`} />
@@ -528,7 +532,7 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ GIFT CARDS ══ */}
+          {/* GIFT CARDS */}
           {activeTab === 'giftcards' && (
             <div>
               <SectionHeader title="Gift Cards" sub={`${dashData.giftCards.length} total · ${pendingGiftCards} pending`} />
@@ -553,7 +557,7 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ KYC ══ */}
+          {/* KYC */}
           {activeTab === 'kyc' && (
             <div>
               <SectionHeader title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} />
@@ -585,7 +589,7 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ WALLETS ══ */}
+          {/* WALLETS */}
           {activeTab === 'wallets' && (
             <div>
               <SectionHeader title="Wallet Connections" sub={`${dashData.walletConnections.length} total`} />
@@ -608,7 +612,7 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ══ CHAT ══ */}
+          {/* CHAT */}
           {activeTab === 'chat' && (
             <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', minHeight: 400 }}>
               <SectionHeader title="Support Chat" />
