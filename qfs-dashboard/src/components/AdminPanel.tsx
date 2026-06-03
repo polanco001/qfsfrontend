@@ -507,7 +507,7 @@ export function AdminPanel() {
         <main
           style={{
             flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden',
-            padding: '16px 16px 96px', WebkitOverflowScrolling: 'touch',
+            padding: '16px 16px 32px', WebkitOverflowScrolling: 'touch',
           }}
         >
           {error && (
@@ -821,51 +821,6 @@ export function AdminPanel() {
           )}
         </main>
       </div>
-
-      {/* ── Bottom nav (mobile only) – FIXED, won't move on scroll ── */}
-      <nav
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          display: 'flex',
-          borderTop: '1px solid rgba(148,163,184,0.2)',
-          transform: 'translateZ(0)',
-          willChange: 'transform',
-          WebkitTransform: 'translateZ(0)',
-        }}
-        className="sm:hidden bg-white dark:bg-slate-800"
-      >
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            style={{
-              flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', padding: '8px 2px', gap: 2,
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              position: 'relative', fontSize: 9, fontWeight: 600,
-            }}
-            className={activeTab === t.id ? 'text-blue-600' : 'text-slate-400'}
-          >
-            {t.icon}
-            <span style={{ lineHeight: 1 }}>{t.label}</span>
-            {(t.badge ?? 0) > 0 && (
-              <span style={{
-                position: 'absolute', top: 4, right: '18%',
-                minWidth: 14, height: 14, padding: '0 2px',
-                background: '#ef4444', color: '#fff',
-                fontSize: 8, fontWeight: 700, borderRadius: 999,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {(t.badge ?? 0) > 9 ? '9+' : t.badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }
