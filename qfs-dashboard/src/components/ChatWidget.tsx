@@ -25,16 +25,7 @@ export function ChatWidget() {
   const [editMessageId, setEditMessageId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const playSound = () => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
-  };
-
-  // Fetch history & connect socket – only when user is logged in
   useEffect(() => {
     if (!user || !token) return;
 
@@ -50,7 +41,6 @@ export function ChatWidget() {
 
     newSocket.on('newMessage', (msg: Message) => {
       setMessages(prev => [...prev, msg]);
-      playSound();
       if (!open) setUnread(prev => prev + 1);
     });
 
@@ -61,17 +51,14 @@ export function ChatWidget() {
     return () => { newSocket.disconnect(); };
   }, [user, token, open]);
 
-  // Auto‑scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Reset unread when opening
   useEffect(() => {
     if (open) setUnread(0);
   }, [open]);
 
-  // Auto welcome message on first open (only when user is logged in)
   useEffect(() => {
     if (open && user && messages.length === 0) {
       const welcomeMsg: Message = {
@@ -111,12 +98,8 @@ export function ChatWidget() {
     if (e.key === 'Enter') sendMessage();
   };
 
-  // ✅ Show chat button even when not logged in
   return (
     <>
-      <audio ref={audioRef} src="/notification.mp3" preload="auto" />
-
-      {/* Floating button */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -136,7 +119,6 @@ export function ChatWidget() {
         <>
           <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="fixed top-0 left-0 z-50 h-full w-full max-w-md bg-white dark:bg-slate-800 shadow-2xl border-r border-slate-200 dark:border-slate-700 flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-blue-600 text-white">
               <div>
                 <h3 className="font-semibold text-sm">QFS Support</h3>
@@ -150,7 +132,6 @@ export function ChatWidget() {
               </button>
             </div>
 
-            {/* If not logged in → login prompt */}
             {!user ? (
               <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
                 <MessageCircle size={48} className="text-blue-600" />
@@ -168,7 +149,6 @@ export function ChatWidget() {
                 </button>
               </div>
             ) : (
-              /* Authenticated user – full chat */
               <>
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {messages.map(msg => (
@@ -235,4 +215,3 @@ export function ChatWidget() {
     </>
   );
 }
-
