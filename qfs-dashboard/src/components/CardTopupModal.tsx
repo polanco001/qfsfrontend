@@ -1,269 +1,522 @@
-import { CreditCard, ArrowLeft, Crown, Zap, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import PaymentMethodModal  from './PaymentMethodModal';
+import { ArrowLeft, Crown, Zap, Sparkles, CreditCard, Check } from 'lucide-react';
+import PaymentMethodModal from './PaymentMethodModal';
 
-interface CardTopupModalProps {
-  onClose: () => void;
-}
+interface CardTopupModalProps { onClose: () => void; }
 
 interface CardProduct {
   id: string;
   name: string;
+  tag: string;
   description: string;
-  gradient: string;
-  icon: React.ReactNode;
-  cardPreview: (holderName: string) => React.ReactNode;
+  front: (name: string) => React.ReactNode;
+  back: () => React.ReactNode;
 }
 
+/* ─── shared card shell ────────────────────────────────────────────────────── */
+const CARD_W = '100%';
+const CARD_H = 200;
+
+function CardShell({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      width: CARD_W, height: CARD_H, borderRadius: 18, position: 'relative',
+      overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
+
+/* ─── QFS Silver ────────────────────────────────────────────────────────────── */
+function SilverFront({ name }: { name: string }) {
+  return (
+    <CardShell style={{ background: 'linear-gradient(135deg,#c0c0c0 0%,#e8e8e8 30%,#a8a8a8 60%,#d4d4d4 100%)' }}>
+      {/* shimmer */}
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.55) 50%,transparent 60%)', pointerEvents:'none' }} />
+      {/* chip */}
+      <div style={{ position:'absolute', top:24, left:24, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#d4af37,#f5e27a,#c9a227)', boxShadow:'0 2px 8px rgba(0,0,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <div style={{ width:28, height:20, border:'1.5px solid rgba(139,100,20,0.6)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
+          {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,20,0.4)' }} />)}
+        </div>
+      </div>
+      {/* wave lines */}
+      <svg style={{ position:'absolute', right:0, top:0, height:'100%', opacity:0.12 }} viewBox="0 0 120 200" preserveAspectRatio="none">
+        {[0,20,40,60,80,100].map(x=>(
+          <path key={x} d={`M${x} 0 Q${x+30} 100 ${x} 200`} stroke="#fff" strokeWidth="18" fill="none"/>
+        ))}
+      </svg>
+      {/* number */}
+      <div style={{ position:'absolute', bottom:54, left:24, right:24 }}>
+        <p style={{ fontFamily:'monospace', fontSize:17, letterSpacing:'0.2em', color:'#2a2a2a', fontWeight:700, textShadow:'0 1px 0 rgba(255,255,255,0.6)' }}>
+          •••• •••• •••• 4582
+        </p>
+      </div>
+      {/* name + expiry */}
+      <div style={{ position:'absolute', bottom:18, left:24, right:24, display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+        <div>
+          <p style={{ fontSize:9, color:'#555', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2 }}>Card holder</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#1a1a1a', textTransform:'uppercase', letterSpacing:'0.05em', minHeight:16 }}>
+            {name || 'YOUR NAME'}
+          </p>
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <p style={{ fontSize:9, color:'#555', letterSpacing:'0.1em', marginBottom:2 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#1a1a1a' }}>12/28</p>
+        </div>
+      </div>
+      {/* QFS badge */}
+      <div style={{ position:'absolute', top:22, right:20, display:'flex', alignItems:'center', gap:4 }}>
+        <Sparkles size={14} color="#555" />
+        <span style={{ fontSize:12, fontWeight:900, color:'#333', letterSpacing:'0.12em' }}>QFS SILVER</span>
+      </div>
+      {/* visa */}
+      <div style={{ position:'absolute', bottom:18, right:24 }}>
+        <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:22, color:'#1a1a6e', letterSpacing:'-1px' }}>VISA</span>
+      </div>
+    </CardShell>
+  );
+}
+
+function SilverBack() {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#a0a0a0 0%,#d0d0d0 50%,#909090 100%)' }}>
+      <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#1a1a1a' }} />
+      <div style={{ position:'absolute', top:90, left:16, right:16 }}>
+        <div style={{ background:'linear-gradient(90deg,#f0f0f0,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#1a1a1a', fontWeight:700 }}>•••  7 2 4</span>
+        </div>
+        <p style={{ fontSize:9, color:'#555', marginTop:4, textAlign:'right' }}>CVV</p>
+      </div>
+      <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <p style={{ fontSize:9, color:'#777', maxWidth:180, lineHeight:1.4 }}>This card is property of QFS. If found, please return to nearest bank.</p>
+        <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:18, color:'#1a1a6e' }}>VISA</span>
+      </div>
+    </CardShell>
+  );
+}
+
+/* ─── QFS Gold ────────────────────────────────────────────────────────────── */
+function GoldFront({ name }: { name: string }) {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#b8860b 0%,#ffd700 30%,#daa520 60%,#f5c842 85%,#b8860b 100%)' }}>
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.5) 50%,transparent 65%)', pointerEvents:'none' }} />
+      {/* embossed texture */}
+      <div style={{ position:'absolute', inset:0, backgroundImage:'repeating-linear-gradient(45deg,rgba(0,0,0,0.03) 0px,rgba(0,0,0,0.03) 1px,transparent 1px,transparent 8px)', pointerEvents:'none' }} />
+      {/* chip */}
+      <div style={{ position:'absolute', top:24, left:24, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#8B6914,#f5d060,#8B6914)', boxShadow:'0 3px 10px rgba(0,0,0,0.4)' }}>
+        <div style={{ position:'absolute', inset:4, border:'1px solid rgba(139,100,20,0.5)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
+          {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,20,0.3)' }} />)}
+        </div>
+      </div>
+      {/* crown */}
+      <div style={{ position:'absolute', top:20, right:20, display:'flex', alignItems:'center', gap:5 }}>
+        <Crown size={16} color="#7a5200" />
+        <span style={{ fontSize:12, fontWeight:900, color:'#7a5200', letterSpacing:'0.12em' }}>QFS GOLD</span>
+      </div>
+      {/* hologram circle */}
+      <div style={{ position:'absolute', bottom:22, right:70, width:36, height:36, borderRadius:'50%', background:'conic-gradient(#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)', opacity:0.7, boxShadow:'0 0 10px rgba(255,200,0,0.6)' }} />
+      <div style={{ position:'absolute', bottom:30, left:24, right:24 }}>
+        <p style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.2em', color:'#3d2800', fontWeight:800, textShadow:'0 1px 0 rgba(255,255,200,0.8)' }}>•••• •••• •••• 8793</p>
+      </div>
+      <div style={{ position:'absolute', bottom:10, left:24, right:24, display:'flex', justifyContent:'space-between' }}>
+        <div>
+          <p style={{ fontSize:9, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <p style={{ fontSize:9, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800' }}>12/30</p>
+        </div>
+      </div>
+      <div style={{ position:'absolute', bottom:12, right:20 }}>
+        <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:22, color:'#3d2800' }}>GOLD</span>
+      </div>
+    </CardShell>
+  );
+}
+
+function GoldBack() {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#b8860b,#daa520,#b8860b)' }}>
+      <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#1a1a1a' }} />
+      <div style={{ position:'absolute', top:90, left:16, right:16 }}>
+        <div style={{ background:'linear-gradient(90deg,#fffde7,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#3d2800', fontWeight:700 }}>•••  5 8 1</span>
+        </div>
+        <p style={{ fontSize:9, color:'#7a5200', marginTop:4, textAlign:'right' }}>CVV</p>
+      </div>
+      <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <p style={{ fontSize:9, color:'#7a5200', maxWidth:180, lineHeight:1.4 }}>QFS Gold — premium membership card. Property of QFS Financial.</p>
+        <div style={{ width:36, height:36, borderRadius:'50%', background:'conic-gradient(#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)', opacity:0.7 }} />
+      </div>
+    </CardShell>
+  );
+}
+
+/* ─── Trump Gold ──────────────────────────────────────────────────────────── */
+function TrumpFront({ name }: { name: string }) {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#c9970c 0%,#f7d060 25%,#e8a800 50%,#fbe89a 70%,#c9970c 100%)' }}>
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(110deg,transparent 30%,rgba(255,255,255,0.6) 50%,transparent 70%)', pointerEvents:'none' }} />
+      {/* diagonal stripes subtle */}
+      <div style={{ position:'absolute', inset:0, backgroundImage:'repeating-linear-gradient(-45deg,rgba(255,255,255,0.04) 0px,rgba(255,255,255,0.04) 2px,transparent 2px,transparent 12px)', pointerEvents:'none' }} />
+      {/* eagle watermark */}
+      <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', opacity:0.08, fontSize:90, lineHeight:1 }}>🦅</div>
+      {/* top bar */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:6, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
+      {/* chip */}
+      <div style={{ position:'absolute', top:22, left:22, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#a07000,#f5e27a,#a07000)', boxShadow:'0 3px 12px rgba(0,0,0,0.5)' }}>
+        <div style={{ position:'absolute', inset:4, border:'1px solid rgba(139,100,0,0.5)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
+          {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,0,0.3)' }} />)}
+        </div>
+      </div>
+      {/* TRUMP branding */}
+      <div style={{ position:'absolute', top:18, right:16, textAlign:'right' }}>
+        <p style={{ fontFamily:'Georgia,serif', fontSize:22, fontWeight:900, color:'#3d2800', letterSpacing:'0.15em', lineHeight:1, textShadow:'0 1px 0 rgba(255,255,200,0.8)' }}>TRUMP</p>
+        <p style={{ fontFamily:'Georgia,serif', fontSize:9, fontWeight:700, color:'#7a5200', letterSpacing:'0.35em' }}>GOLD CARD</p>
+        <Zap size={12} color="#7a5200" style={{ marginLeft:'auto', marginTop:2 }} />
+      </div>
+      {/* number */}
+      <div style={{ position:'absolute', bottom:46, left:22 }}>
+        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#3d2800', fontWeight:800, textShadow:'0 1px 0 rgba(255,255,200,0.9)' }}>•••• •••• •••• 4501</p>
+      </div>
+      {/* name + expiry */}
+      <div style={{ position:'absolute', bottom:12, left:22, right:22, display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
+        <div>
+          <p style={{ fontSize:8, color:'#7a5200', letterSpacing:'0.15em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <p style={{ fontSize:8, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800' }}>01/29</p>
+        </div>
+      </div>
+      {/* USA bottom label */}
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:5, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
+    </CardShell>
+  );
+}
+
+function TrumpBack() {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#c9970c,#f7d060,#c9970c)' }}>
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:5, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
+      <div style={{ position:'absolute', top:30, left:0, right:0, height:44, background:'#1a1a1a' }} />
+      <div style={{ position:'absolute', top:92, left:16, right:16 }}>
+        <div style={{ background:'linear-gradient(90deg,#fffde7,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#3d2800', fontWeight:700 }}>•••  3 1 7</span>
+        </div>
+        <p style={{ fontSize:9, color:'#7a5200', marginTop:4, textAlign:'right' }}>CVV</p>
+      </div>
+      <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <p style={{ fontSize:9, color:'#7a5200', maxWidth:180, lineHeight:1.4 }}>Trump Gold — Exclusive limited edition card. Authorized use only.</p>
+        <div style={{ fontSize:28, opacity:0.6 }}>🦅</div>
+      </div>
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:5, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
+    </CardShell>
+  );
+}
+
+/* ─── Medbed ─────────────────────────────────────────────────────────────── */
+function MedbedFront({ name }: { name: string }) {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#1a0533 0%,#4a1060 30%,#7b2d8b 60%,#9b59b6 100%)' }}>
+      <div style={{ position:'absolute', inset:0, background:'linear-gradient(110deg,transparent 30%,rgba(200,100,255,0.25) 50%,transparent 70%)', pointerEvents:'none' }} />
+      {/* glow dots */}
+      {[[0.15,0.2],[0.7,0.6],[0.4,0.85],[0.85,0.3]].map(([x,y],i)=>(
+        <div key={i} style={{ position:'absolute', left:`${x*100}%`, top:`${y*100}%`, width:60, height:60, borderRadius:'50%', background:'radial-gradient(circle,rgba(180,100,255,0.4),transparent 70%)', transform:'translate(-50%,-50%)', pointerEvents:'none' }} />
+      ))}
+      {/* chip */}
+      <div style={{ position:'absolute', top:22, left:22, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#8b00d4,#cc88ff,#8b00d4)', boxShadow:'0 0 15px rgba(150,0,255,0.6)' }}>
+        <div style={{ position:'absolute', inset:4, border:'1px solid rgba(200,100,255,0.4)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
+          {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(200,100,255,0.3)' }} />)}
+        </div>
+      </div>
+      {/* top-right */}
+      <div style={{ position:'absolute', top:20, right:18, textAlign:'right' }}>
+        <p style={{ fontSize:12, fontWeight:900, color:'#e8aaff', letterSpacing:'0.14em' }}>MEDBED</p>
+        <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.2em' }}>HEALING CARD</p>
+      </div>
+      {/* pulse icon */}
+      <div style={{ position:'absolute', right:18, bottom:44, opacity:0.9 }}>
+        <svg width="44" height="22" viewBox="0 0 44 22">
+          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#c084fc" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </div>
+      {/* number */}
+      <div style={{ position:'absolute', bottom:46, left:22 }}>
+        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#f0d0ff', fontWeight:700 }}>•••• •••• •••• 2024</p>
+      </div>
+      {/* name + expiry */}
+      <div style={{ position:'absolute', bottom:12, left:22, right:22, display:'flex', justifyContent:'space-between' }}>
+        <div>
+          <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.12em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#f5e6ff', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#f5e6ff' }}>01/30</p>
+        </div>
+      </div>
+    </CardShell>
+  );
+}
+
+function MedbedBack() {
+  return (
+    <CardShell style={{ background:'linear-gradient(135deg,#1a0533,#4a1060,#1a0533)' }}>
+      <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#0a0a0a' }} />
+      <div style={{ position:'absolute', top:90, left:16, right:16 }}>
+        <div style={{ background:'linear-gradient(90deg,#2d0050,#4a0080)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12, border:'1px solid rgba(192,132,252,0.3)' }}>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#e8aaff', fontWeight:700 }}>•••  9 4 2</span>
+        </div>
+        <p style={{ fontSize:9, color:'#c084fc', marginTop:4, textAlign:'right' }}>CVV</p>
+      </div>
+      <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <p style={{ fontSize:9, color:'#c084fc', maxWidth:200, lineHeight:1.4 }}>Medbed Healing Card. Authorized sessions only. Property of MedBed Corp.</p>
+        <svg width="32" height="16" viewBox="0 0 44 22">
+          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#c084fc" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </div>
+    </CardShell>
+  );
+}
+
+/* ─── 3D Flip Card ──────────────────────────────────────────────────────────── */
+function FlipCard({ front, back, flipped, onClick }: {
+  front: React.ReactNode; back: React.ReactNode; flipped: boolean; onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{ width:'100%', height:CARD_H, cursor:'pointer', perspective:1200, WebkitPerspective:1200 }}
+    >
+      <div style={{
+        width:'100%', height:'100%', position:'relative',
+        transformStyle:'preserve-3d', WebkitTransformStyle:'preserve-3d',
+        transition:'transform 0.7s cubic-bezier(0.4,0.2,0.2,1)',
+        transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+      }}>
+        {/* Front */}
+        <div style={{ position:'absolute', inset:0, backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden' }}>
+          {front}
+        </div>
+        {/* Back */}
+        <div style={{ position:'absolute', inset:0, backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden', transform:'rotateY(180deg)' }}>
+          {back}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Main Component ──────────────────────────────────────────────────────── */
 export function CardTopupModal({ onClose }: CardTopupModalProps) {
-  const [selectedCardType, setSelectedCardType] = useState<'qfs' | 'medbed' | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<CardProduct | null>(null);
+  const [step, setStep] = useState<'pick-type' | 'pick-card' | 'detail' | 'payment'>('pick-type');
+  const [cardType, setCardType] = useState<'qfs' | 'medbed' | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [flippedId, setFlippedId] = useState<string | null>(null);
   const [cardholderName, setCardholderName] = useState('');
-  const [showPayment, setShowPayment] = useState(false);
 
-  // ─── Card previews (unchanged, but rendered inside glass cards) ───
-  const qfsSilverPreview = (name: string) => (
-    <div className="w-full h-40 bg-gradient-to-br from-gray-400 to-gray-600 rounded-xl p-4 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl" />
-      <div className="flex justify-between items-start">
-        <span className="text-xs font-mono opacity-80">QFS SILVER</span>
-        <Sparkles size={18} className="opacity-80" />
-      </div>
-      <div>
-        <p className="text-sm font-bold tracking-wider">•••• •••• •••• 4582</p>
-        <p className="text-[10px] mt-1">VALID THRU 12/28</p>
-        {name && <p className="text-xs font-semibold mt-2 uppercase">{name}</p>}
-      </div>
-      <div className="flex justify-between items-end">
-        <span className="text-xs font-bold">SILVER MEMBER</span>
-        <span className="text-xs font-mono">VISA</span>
-      </div>
-    </div>
-  );
-
-  const qfsGoldPreview = (name: string) => (
-    <div className="w-full h-40 bg-gradient-to-br from-amber-500 to-yellow-700 rounded-xl p-4 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-xl" />
-      <div className="flex justify-between items-start">
-        <span className="text-xs font-mono opacity-80">QFS GOLD</span>
-        <Crown size={18} className="opacity-80" />
-      </div>
-      <div>
-        <p className="text-sm font-bold tracking-wider">•••• •••• •••• 8793</p>
-        <p className="text-[10px] mt-1">VALID THRU 12/30</p>
-        {name && <p className="text-xs font-semibold mt-2 uppercase">{name}</p>}
-      </div>
-      <div className="flex justify-between items-end">
-        <span className="text-xs font-bold">GOLD MEMBER</span>
-        <span className="text-xs font-mono">GOLD</span>
-      </div>
-    </div>
-  );
-
-  const trumpGoldPreview = (name: string) => (
-    <div className="w-full h-40 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-600 rounded-xl p-4 text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
-      <div className="flex justify-between items-start relative z-10">
-        <span className="text-[10px] font-bold tracking-wider">UNITED STATES OF AMERICA</span>
-        <Zap size={18} className="opacity-80" />
-      </div>
-      <div className="relative z-10 text-center">
-        <p className="text-2xl font-black tracking-widest">TRUMP</p>
-        <p className="text-xs font-bold tracking-[0.3em] mt-1">GOLDCARD</p>
-        {name && <p className="text-[10px] font-semibold uppercase mt-1 opacity-90">{name}</p>}
-      </div>
-      <div className="flex justify-end relative z-10">
-        <span className="text-[10px] font-mono">EXCLUSIVE</span>
-      </div>
-    </div>
-  );
-
-  const cardProducts: CardProduct[] = [
-    {
-      id: 'qfs_silver',
-      name: 'QFS Silver Card',
-      description: 'Entry‑level QFS card with essential benefits',
-      gradient: 'from-gray-500 to-gray-700',
-      icon: <Sparkles size={24} />,
-      cardPreview: qfsSilverPreview,
-    },
-    {
-      id: 'qfs_gold',
-      name: 'QFS Gold Card',
-      description: 'Premium gold card with priority support and lower fees',
-      gradient: 'from-amber-500 to-yellow-600',
-      icon: <Crown size={24} />,
-      cardPreview: qfsGoldPreview,
-    },
-    {
-      id: 'trump_gold',
-      name: 'Trump Gold Card',
-      description: 'Limited edition Trump‑branded gold card – exclusive access',
-      gradient: 'from-yellow-400 to-orange-500',
-      icon: <Zap size={24} />,
-      cardPreview: trumpGoldPreview,
-    },
+  const qfsCards: CardProduct[] = [
+    { id:'qfs_silver', name:'QFS Silver Card', tag:'Silver · VISA', description:'Entry-level QFS card with essential benefits and worldwide acceptance.', front:(n)=><SilverFront name={n} />, back:()=><SilverBack /> },
+    { id:'qfs_gold',   name:'QFS Gold Card',   tag:'Gold · Priority', description:'Premium gold card with priority support, lower fees, and exclusive perks.', front:(n)=><GoldFront name={n} />,   back:()=><GoldBack /> },
+    { id:'trump_gold', name:'Trump Gold Card', tag:'Limited Edition', description:'Exclusive Trump-branded gold card with prestige access and unique privileges.', front:(n)=><TrumpFront name={n} />, back:()=><TrumpBack /> },
   ];
 
-  const handlePurchase = () => {
-    if (!cardholderName.trim()) {
-      alert('Please enter the cardholder name');
-      return;
-    }
-    setShowPayment(true);
+  const medbedCard: CardProduct = {
+    id:'medbed', name:'Medbed Card', tag:'Healing · Credits', description:'Access Medbed healing sessions at authorized centers worldwide.',
+    front:(n)=><MedbedFront name={n} />, back:()=><MedbedBack />,
   };
 
-  const handlePaymentComplete = () => {
-    alert(`${selectedProduct?.name} purchase submitted successfully for ${cardholderName}!`);
-    onClose();
+  const allCards = step === 'pick-card' && cardType === 'qfs' ? qfsCards : [medbedCard];
+  const selected = [...qfsCards, medbedCard].find(c => c.id === selectedId);
+
+  const handleSelectCard = (id: string) => {
+    if (flippedId === id) { setFlippedId(null); return; }
+    setSelectedId(id);
+    setStep('detail');
   };
 
-  const handleBack = () => {
-    if (selectedProduct) {
-      setSelectedProduct(null);
-      setCardholderName('');
-    } else if (selectedCardType) {
-      setSelectedCardType(null);
-    }
-  };
-
-  if (showPayment && selectedProduct) {
-    return <PaymentMethodModal onClose={onClose} onComplete={handlePaymentComplete} />;
+  if (step === 'payment') {
+    return <PaymentMethodModal onClose={onClose} onComplete={() => { alert(`${selected?.name} purchase submitted for ${cardholderName}!`); onClose(); }} />;
   }
 
-  // ── Step 2: QFS card product selection (gallery) ──
-  if (selectedCardType === 'qfs' && !selectedProduct) {
-    return (
-      <div className="space-y-5 animate-in fade-in duration-300">
-        <button onClick={handleBack} className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft size={16} /> Back
-        </button>
-        <p className="text-slate-300 text-center text-sm tracking-wide">CHOOSE YOUR QFS CARD</p>
-        <div className="grid grid-cols-1 gap-4">
-          {cardProducts.map((product) => (
-            <div
-              key={product.id}
-              onClick={() => setSelectedProduct(product)}
-              className="cursor-pointer rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 hover:border-white/20 transition-all p-5 group"
-            >
-              <div className="flex gap-4">
-                <div className="w-32 flex-shrink-0">{product.cardPreview('')}</div>
-                <div className="flex-1">
-                  <h3 className="text-white font-bold text-lg group-hover:text-blue-400 transition-colors">{product.name}</h3>
-                  <p className="text-slate-400 text-xs mt-1">{product.description}</p>
-                </div>
-                <CreditCard className="text-slate-500 group-hover:text-white transition-colors" size={20} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:0, width:'100%' }}>
 
-  // ── Step 3: Selected product details + cardholder name ──
-  if (selectedProduct && !showPayment) {
-    return (
-      <div className="space-y-5 animate-in fade-in duration-300">
-        <button onClick={handleBack} className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors">
+      {/* ── Back button ────────────────────────────────────────── */}
+      {step !== 'pick-type' && (
+        <button
+          onClick={() => {
+            if (step === 'detail') { setSelectedId(null); setFlippedId(null); setCardholderName(''); setStep(cardType === 'medbed' ? 'pick-type' : 'pick-card'); }
+            else if (step === 'pick-card') { setCardType(null); setStep('pick-type'); }
+          }}
+          style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', color:'rgba(255,255,255,0.6)', fontSize:14, cursor:'pointer', padding:'0 0 16px', fontWeight:500 }}
+        >
           <ArrowLeft size={16} /> Back
         </button>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-          <div className="flex flex-col gap-6">
-            <div className="w-full max-w-xs mx-auto">{selectedProduct.cardPreview(cardholderName)}</div>
-            <div>
-              <h3 className="text-white text-xl font-bold">{selectedProduct.name}</h3>
-              <p className="text-slate-400 text-sm mt-1">{selectedProduct.description}</p>
-              <div className="mt-5">
-                <label className="block text-slate-300 text-sm font-medium mb-1">Cardholder Name</label>
-                <input
-                  type="text"
-                  value={cardholderName}
-                  onChange={(e) => setCardholderName(e.target.value.toUpperCase())}
-                  placeholder="JOHN DOE"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase tracking-wider transition-all"
-                />
-              </div>
+      )}
+
+      {/* ══ STEP 1: Pick type ═══════════════════════════════════════════════ */}
+      {step === 'pick-type' && (
+        <div>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:20, textTransform:'uppercase' }}>Select a Card Type</p>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            {[
+              { id:'qfs',    label:'QFS Card',    sub:'Silver / Gold / Trump', color:'#2563eb', bg:'rgba(37,99,235,0.12)', border:'rgba(37,99,235,0.35)', icon:<CreditCard size={28} color="#60a5fa" /> },
+              { id:'medbed', label:'Medbed Card',  sub:'Healing session credits', color:'#9333ea', bg:'rgba(147,51,234,0.12)', border:'rgba(147,51,234,0.35)', icon:<CreditCard size={28} color="#c084fc" /> },
+            ].map(t => (
               <button
-                onClick={handlePurchase}
-                disabled={!cardholderName.trim()}
-                className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold transition-all active:scale-[0.98] shadow-lg shadow-blue-600/20"
+                key={t.id}
+                onClick={() => { setCardType(t.id as any); setStep(t.id === 'medbed' ? 'pick-card' : 'pick-card'); }}
+                style={{
+                  padding:'24px 12px', borderRadius:20, border:`1.5px solid ${t.border}`,
+                  background:t.bg, cursor:'pointer', textAlign:'center',
+                  backdropFilter:'blur(12px)', transition:'all 0.2s',
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:10,
+                }}
               >
-                Purchase Now
+                <div style={{ width:56, height:56, borderRadius:'50%', background:`rgba(${t.id==='qfs'?'37,99,235':'147,51,234'},0.15)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  {t.icon}
+                </div>
+                <div>
+                  <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{t.label}</p>
+                  <p style={{ color:'rgba(255,255,255,0.45)', fontSize:11 }}>{t.sub}</p>
+                </div>
               </button>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  // ── Step 1: Card type selection (QFS or Medbed) ──
-  if (!selectedCardType) {
-    return (
-      <div className="space-y-5 animate-in fade-in duration-300">
-        <p className="text-slate-300 text-center text-sm tracking-wide">SELECT A CARD</p>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => setSelectedCardType('qfs')}
-            className="p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 hover:border-blue-500/50 transition-all group text-center"
-          >
-            <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-all">
-              <CreditCard className="text-blue-400" size={28} />
-            </div>
-            <p className="text-white font-semibold">QFS Card</p>
-            <p className="text-slate-400 text-xs mt-1">Silver / Gold / Trump</p>
-          </button>
-          <button
-            onClick={() => setSelectedCardType('medbed')}
-            className="p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 hover:border-purple-500/50 transition-all group text-center"
-          >
-            <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-all">
-              <CreditCard className="text-purple-400" size={28} />
-            </div>
-            <p className="text-white font-semibold">Medbed Card</p>
-            <p className="text-slate-400 text-xs mt-1">Healing session credits</p>
-          </button>
-        </div>
-      </div>
-    );
-  }
+      {/* ══ STEP 2: Pick card (gallery) ═════════════════════════════════════ */}
+      {step === 'pick-card' && (
+        <div>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:4, textTransform:'uppercase' }}>
+            {cardType === 'qfs' ? 'Choose your QFS Card' : 'Medbed Card'}
+          </p>
+          <p style={{ textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:20 }}>Tap a card to flip · tap again to select</p>
 
-  // ── Step 4: Medbed card ──
-  if (selectedCardType === 'medbed' && !showPayment) {
-    return (
-      <div className="space-y-4 animate-in fade-in duration-300">
-        <button onClick={handleBack} className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors">
-          <ArrowLeft size={16} /> Back
-        </button>
-        <div className="bg-purple-500/5 backdrop-blur-md border border-purple-500/20 rounded-2xl p-6 text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-500/10 flex items-center justify-center">
-            <CreditCard className="text-purple-400" size={32} />
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {(cardType === 'qfs' ? qfsCards : [medbedCard]).map(card => (
+              <div key={card.id} style={{ borderRadius:22, border: selectedId===card.id ? '1.5px solid rgba(255,255,255,0.4)' : '1.5px solid rgba(255,255,255,0.08)', overflow:'hidden', background:'rgba(255,255,255,0.04)', backdropFilter:'blur(12px)', transition:'border 0.2s' }}>
+                {/* Card flip area */}
+                <div style={{ padding:'16px 16px 0' }}>
+                  <FlipCard
+                    front={card.front('')}
+                    back={card.back()}
+                    flipped={flippedId === card.id}
+                    onClick={() => setFlippedId(prev => prev === card.id ? null : card.id)}
+                  />
+                </div>
+                {/* Info + select */}
+                <div style={{ padding:'12px 16px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+                  <div style={{ minWidth:0 }}>
+                    <p style={{ color:'#fff', fontWeight:700, fontSize:14, marginBottom:2 }}>{card.name}</p>
+                    <p style={{ color:'rgba(255,255,255,0.4)', fontSize:11 }}>{card.tag}</p>
+                  </div>
+                  <button
+                    onClick={() => { setSelectedId(card.id); setStep('detail'); setCardholderName(''); }}
+                    style={{
+                      flexShrink:0, padding:'8px 16px', borderRadius:12,
+                      border:'none', cursor:'pointer', fontWeight:700, fontSize:13,
+                      background:'rgba(255,255,255,0.12)', color:'#fff',
+                      backdropFilter:'blur(8px)', transition:'all 0.2s',
+                      display:'flex', alignItems:'center', gap:6,
+                    }}
+                  >
+                    Select <ArrowLeft size={13} style={{ transform:'rotate(180deg)' }} />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
-          <h3 className="text-white font-bold text-lg">Medbed Card</h3>
-          <p className="text-slate-400 text-sm mt-1">Access Medbed healing sessions worldwide</p>
-          <div className="mt-5 text-left">
-            <label className="block text-slate-300 text-sm font-medium mb-1">Cardholder Name</label>
+        </div>
+      )}
+
+      {/* ══ STEP 3: Detail + cardholder name ════════════════════════════════ */}
+      {step === 'detail' && selected && (
+        <div>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:20, textTransform:'uppercase' }}>Personalize your Card</p>
+
+          {/* Live card preview with flip */}
+          <div style={{ marginBottom:20 }}>
+            <FlipCard
+              front={selected.front(cardholderName)}
+              back={selected.back()}
+              flipped={flippedId === selected.id}
+              onClick={() => setFlippedId(prev => prev === selected.id ? null : selected.id)}
+            />
+            <p style={{ textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:8 }}>Tap card to flip</p>
+          </div>
+
+          {/* Card info */}
+          <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, padding:'14px 16px', marginBottom:16 }}>
+            <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{selected.name}</p>
+            <p style={{ color:'rgba(255,255,255,0.45)', fontSize:12, lineHeight:1.5 }}>{selected.description}</p>
+          </div>
+
+          {/* Benefits */}
+          <div style={{ marginBottom:20, display:'flex', flexDirection:'column', gap:6 }}>
+            {['Worldwide acceptance', 'Instant activation', 'Secure encrypted chip', '24/7 support access'].map(b => (
+              <div key={b} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:18, height:18, borderRadius:'50%', background:'rgba(34,197,94,0.15)', border:'1px solid rgba(34,197,94,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Check size={10} color="#4ade80" />
+                </div>
+                <span style={{ color:'rgba(255,255,255,0.6)', fontSize:12 }}>{b}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Name input */}
+          <div style={{ marginBottom:16 }}>
+            <label style={{ display:'block', color:'rgba(255,255,255,0.7)', fontSize:12, fontWeight:600, marginBottom:6, letterSpacing:'0.08em', textTransform:'uppercase' }}>
+              Cardholder Name
+            </label>
             <input
               type="text"
               value={cardholderName}
-              onChange={(e) => setCardholderName(e.target.value.toUpperCase())}
+              onChange={e => setCardholderName(e.target.value.toUpperCase())}
               placeholder="JOHN DOE"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase tracking-wider transition-all"
+              style={{
+                width:'100%', padding:'13px 16px', borderRadius:14,
+                background:'rgba(255,255,255,0.07)', border:'1.5px solid rgba(255,255,255,0.15)',
+                color:'#fff', fontSize:15, fontWeight:600, letterSpacing:'0.15em',
+                outline:'none', boxSizing:'border-box', caretColor:'#fff',
+                transition:'border 0.2s',
+              }}
+              onFocus={e => (e.target.style.borderColor='rgba(255,255,255,0.4)')}
+              onBlur={e => (e.target.style.borderColor='rgba(255,255,255,0.15)')}
             />
+            <p style={{ color:'rgba(255,255,255,0.3)', fontSize:11, marginTop:5 }}>This name will appear on your card</p>
           </div>
+
+          {/* Purchase button */}
           <button
-            onClick={handlePurchase}
+            onClick={() => {
+              if (!cardholderName.trim()) { alert('Please enter the cardholder name'); return; }
+              setStep('payment');
+            }}
             disabled={!cardholderName.trim()}
-            className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold transition-all active:scale-[0.98] shadow-lg shadow-purple-600/20"
+            style={{
+              width:'100%', padding:'15px 0', borderRadius:16, border:'none',
+              cursor: cardholderName.trim() ? 'pointer' : 'not-allowed',
+              fontWeight:800, fontSize:16, letterSpacing:'0.04em',
+              background: cardholderName.trim()
+                ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
+                : 'rgba(255,255,255,0.08)',
+              color: cardholderName.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+              boxShadow: cardholderName.trim() ? '0 8px 24px rgba(37,99,235,0.4)' : 'none',
+              transition:'all 0.3s',
+            }}
           >
             Purchase Now
           </button>
         </div>
-      </div>
-    );
-  }
-
-  return null;
+      )}
+    </div>
+  );
 }
