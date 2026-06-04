@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { Upload, Camera, AlertCircle, Sparkles } from 'lucide-react';
+import { Upload, Camera, AlertCircle, Sparkles, ArrowLeft } from 'lucide-react';
 
 interface GiftCardRedeemModalProps {
   onClose: () => void;
 }
 
 const giftCards = [
-  { id: 'itunes',    name: 'iTunes',        icon: '🎵', color: '#fc3c44', bgGradient: 'linear-gradient(135deg, #fc3c44, #c8002f)' },
-  { id: 'ebay',      name: 'eBay',          icon: '🛒', color: '#e53238', bgGradient: 'linear-gradient(135deg, #e53238, #0064d2)' },
-  { id: 'razer',     name: 'Razer',         icon: '🎮', color: '#00ff00', bgGradient: 'linear-gradient(135deg, #00ff00, #008800)' },
-  { id: 'amazon',    name: 'Amazon',        icon: '📦', color: '#ff9900', bgGradient: 'linear-gradient(135deg, #ff9900, #146eb4)' },
-  { id: 'google',    name: 'Google Play',   icon: '▶️', color: '#4285f4', bgGradient: 'linear-gradient(135deg, #4285f4, #34a853)' },
-  { id: 'steam',     name: 'Steam',         icon: '🎯', color: '#171a21', bgGradient: 'linear-gradient(135deg, #171a21, #2a475e)' },
+  { id: 'itunes',  name: 'iTunes',       icon: '🎵', color: '#fc3c44', bgGradient: 'linear-gradient(135deg, #fc3c44, #c8002f)' },
+  { id: 'ebay',    name: 'eBay',         icon: '🛒', color: '#e53238', bgGradient: 'linear-gradient(135deg, #e53238, #0064d2)' },
+  { id: 'razer',   name: 'Razer',        icon: '🎮', color: '#00ff00', bgGradient: 'linear-gradient(135deg, #00ff00, #008800)' },
+  { id: 'amazon',  name: 'Amazon',       icon: '📦', color: '#ff9900', bgGradient: 'linear-gradient(135deg, #ff9900, #146eb4)' },
+  { id: 'google',  name: 'Google Play',  icon: '▶️',  color: '#4285f4', bgGradient: 'linear-gradient(135deg, #4285f4, #34a853)' },
+  { id: 'steam',   name: 'Steam',        icon: '🎯', color: '#171a21', bgGradient: 'linear-gradient(135deg, #171a21, #2a475e)' },
 ];
 
 export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
@@ -79,156 +79,286 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
 
   return (
     <>
-      {/* ---- CSS Animations ---- */}
+      {/* ---- CSS Animations & Realistic Card Styles ---- */}
       <style>{`
         @keyframes threeDSpin {
           0% { transform: rotateY(0deg); }
           100% { transform: rotateY(360deg); }
         }
+        @keyframes shine {
+          0% { transform: translateX(-100%) rotate(45deg); }
+          100% { transform: translateX(100%) rotate(45deg); }
+        }
         .gift-card-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
+          gap: 0.75rem;
         }
-        .gift-card-item {
-          aspect-ratio: 1.6 / 1;
-          border-radius: 16px;
-          cursor: pointer;
+        @media (max-width: 380px) {
+          .gift-card-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+          }
+        }
+
+        /* Realistic physical card styles */
+        .real-card {
           position: relative;
+          border-radius: 14px;
           overflow: hidden;
-          transition: all 0.3s;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-          border: 2px solid rgba(255,255,255,0.1);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.15);
+          background-size: cover;
+          font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+          user-select: none;
         }
-        .gift-card-item:hover {
-          transform: scale(1.03);
-          border-color: rgba(255,255,255,0.3);
+
+        /* Card texture (micro‑dots) */
+        .real-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+          background-size: 10px 10px;
+          pointer-events: none;
+          z-index: 2;
         }
-        .gift-card-item.selected {
-          border-color: white;
-          box-shadow: 0 0 30px rgba(255,255,255,0.2);
-        }
-        .card-icon {
-          font-size: 2.5rem;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-        .card-brand {
-          font-weight: 700;
-          font-size: 1rem;
-          color: white;
-          text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-          margin-top: 4px;
-        }
-        .card-label {
-          font-size: 0.65rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: rgba(255,255,255,0.9);
-          margin-top: 2px;
-        }
-        .selected-card-display {
-          display: flex;
-          justify-content: center;
-          animation: threeDSpin 0.8s ease-out;
-        }
-        .selected-card-inner {
-          width: 280px;
-          aspect-ratio: 1.6 / 1;
-          border-radius: 20px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-          position: relative;
-          overflow: hidden;
-          border: 2px solid rgba(255,255,255,0.2);
-        }
-        .shine-overlay {
+
+        /* Plastic shine overlay */
+        .real-card .plastic-shine {
           position: absolute;
           top: -50%;
           left: -50%;
           width: 200%;
           height: 200%;
-          background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
-          animation: shine 3s infinite;
+          background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+          animation: shine 4s infinite;
+          z-index: 3;
+          pointer-events: none;
         }
-        @keyframes shine {
-          0% { transform: translateX(-100%) rotate(45deg); }
-          100% { transform: translateX(100%) rotate(45deg); }
+
+        .card-logo-area {
+          position: relative;
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 10px 14px 0;
         }
-        .selected-card-inner .card-icon {
-          font-size: 3.5rem;
-          margin-bottom: 6px;
+        .card-logo-icon {
+          font-size: 1.4rem;
+          filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
         }
-        .selected-card-inner .card-brand {
-          font-size: 1.5rem;
-        }
-        .selected-card-inner .card-label {
-          font-size: 0.75rem;
-        }
-        .fake-code {
-          background: rgba(0,0,0,0.3);
-          padding: 4px 12px;
-          border-radius: 8px;
-          font-family: monospace;
-          color: rgba(255,255,255,0.9);
-          letter-spacing: 0.2em;
-          margin-top: 10px;
-        }
-        .back-button {
-          margin-top: 12px;
-          background: transparent;
-          border: 1px solid rgba(255,255,255,0.3);
+        .card-logo-text {
+          font-weight: 700;
+          font-size: 1rem;
           color: white;
-          padding: 6px 16px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          cursor: pointer;
-          transition: 0.2s;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
-        .back-button:hover {
-          background: rgba(255,255,255,0.1);
+        .card-number-box {
+          position: relative;
+          z-index: 5;
+          margin: 8px 14px 0;
+          background: rgba(255,255,255,0.25);
+          backdrop-filter: blur(4px);
+          border-radius: 8px;
+          padding: 6px 10px;
+          font-family: 'SF Mono', 'Menlo', monospace;
+          font-size: 0.9rem;
+          letter-spacing: 0.12em;
+          color: #111;
+          font-weight: 500;
+          text-align: center;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .card-valid-thru {
+          position: relative;
+          z-index: 5;
+          margin: 4px 14px 0;
+          font-size: 0.6rem;
+          color: rgba(255,255,255,0.9);
+          text-align: right;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        .barcode-strip {
+          position: relative;
+          z-index: 5;
+          margin: 6px 10px 10px;
+          height: 18px;
+          background: repeating-linear-gradient(
+            90deg,
+            #000 0px, #000 2px,
+            #fff 2px, #fff 4px
+          );
+          border-radius: 4px;
+          opacity: 0.8;
+          box-shadow: inset 0 0 3px rgba(0,0,0,0.4);
+        }
+
+        /* Grid card simplified realism */
+        .gift-card-item.real-card {
+          aspect-ratio: 1.6/1;
+          width: 100%;
+          cursor: pointer;
+          transition: transform 0.25s, box-shadow 0.25s;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+        .gift-card-item.real-card:hover {
+          transform: scale(1.03);
+        }
+        .gift-card-item.real-card.selected {
+          box-shadow: 0 0 25px rgba(255,255,255,0.3);
+        }
+        .grid-card-logo {
+          position: relative;
+          z-index: 5;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 8px 0;
+        }
+        .grid-card-logo .card-logo-icon {
+          font-size: 1.2rem;
+        }
+        .grid-card-logo .card-logo-text {
+          font-size: 0.7rem;
+        }
+        .grid-card-number {
+          position: relative;
+          z-index: 5;
+          background: rgba(255,255,255,0.2);
+          backdrop-filter: blur(4px);
+          margin: 0 8px;
+          border-radius: 5px;
+          padding: 2px 6px;
+          font-size: 0.55rem;
+          font-family: monospace;
+          color: #111;
+          text-align: center;
+        }
+        .grid-barcode {
+          position: relative;
+          z-index: 5;
+          margin: 4px 8px 6px;
+          height: 10px;
+          background: repeating-linear-gradient(90deg, #000 0px, #000 1.5px, #fff 1.5px, #fff 3px);
+          border-radius: 2px;
+          opacity: 0.7;
+        }
+
+        /* Selected card detailed realism */
+        .selected-card-display {
+          display: flex;
+          justify-content: center;
+          animation: threeDSpin 0.8s ease-out;
+        }
+        .selected-real-card {
+          width: 100%;
+          max-width: 300px;
+          aspect-ratio: 1.6/1;
+          border-radius: 18px;
+          position: relative;
+          overflow: hidden;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.2);
+          margin: 0 auto;
+        }
+        .selected-real-card .card-logo-area {
+          padding: 12px 16px 0;
+        }
+        .selected-real-card .card-logo-icon {
+          font-size: 1.8rem;
+        }
+        .selected-real-card .card-logo-text {
+          font-size: 1.2rem;
+        }
+        .selected-real-card .card-number-box {
+          margin: 12px 16px 0;
+          font-size: 1.1rem;
+          padding: 8px 14px;
+        }
+        .selected-real-card .card-valid-thru {
+          margin: 6px 16px 0;
+          font-size: 0.7rem;
+        }
+        .selected-real-card .barcode-strip {
+          margin: 8px 12px 12px;
+          height: 22px;
+        }
+
+        .back-arrow-btn {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          background: rgba(255,255,255,0.15);
+          backdrop-filter: blur(6px);
+          border: none;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: white;
+          z-index: 10;
+          transition: background 0.2s;
+        }
+        .back-arrow-btn:hover {
+          background: rgba(255,255,255,0.25);
         }
       `}</style>
 
-      <div className="space-y-6 p-1 text-white">
-        {/* Heading */}
+      {/* ---- Main container ---- */}
+      <div className="space-y-5 p-1 text-white max-h-[75vh] overflow-y-auto relative">
         <p className="text-center text-slate-300 text-sm">
           Choose a gift card brand
         </p>
 
-        {/* ---- Step 1: Card selection grid (hidden when a card is selected) ---- */}
+        {/* ---- Step 1: Realistic card grid ---- */}
         {!selectedType && (
           <div className="gift-card-grid">
             {giftCards.map((card) => (
               <div
                 key={card.id}
-                className="gift-card-item"
+                className={`real-card gift-card-item ${selectedType === card.id ? 'selected' : ''}`}
                 style={{ background: card.bgGradient }}
                 onClick={() => setSelectedType(card.id)}
               >
-                <span className="card-icon">{card.icon}</span>
-                <span className="card-brand">{card.name}</span>
-                <span className="card-label">GIFT CARD</span>
+                <div className="plastic-shine" />
+                <div className="grid-card-logo">
+                  <span className="card-logo-icon">{card.icon}</span>
+                  <span className="card-logo-text">{card.name}</span>
+                </div>
+                <div className="grid-card-number">•••• 1234</div>
+                <div className="grid-barcode" />
               </div>
             ))}
           </div>
         )}
 
-        {/* ---- Step 2: Selected card display with 3D spin ---- */}
+        {/* ---- Step 2: Selected card (detailed & spinning) ---- */}
         {selectedCard && (
-          <div className="selected-card-display">
-            <div className="selected-card-inner" style={{ background: selectedCard.bgGradient }}>
-              <div className="shine-overlay" />
-              <span className="card-icon">{selectedCard.icon}</span>
-              <span className="card-brand">{selectedCard.name}</span>
-              <span className="card-label">GIFT CARD</span>
-              <div className="fake-code">•••• •••• •••• ••••</div>
+          <div className="relative">
+            <button
+              onClick={() => setSelectedType('')}
+              className="back-arrow-btn"
+              aria-label="Go back to card selection"
+            >
+              <ArrowLeft size={18} />
+            </button>
+
+            <div className="selected-card-display mt-2">
+              <div className="real-card selected-real-card" style={{ background: selectedCard.bgGradient }}>
+                <div className="plastic-shine" />
+                <div className="card-logo-area">
+                  <span className="card-logo-icon">{selectedCard.icon}</span>
+                  <span className="card-logo-text">{selectedCard.name}</span>
+                </div>
+                <div className="card-number-box">•••• •••• •••• 1234</div>
+                <div className="card-valid-thru">VALID THRU 12/28</div>
+                <div className="barcode-strip" />
+              </div>
             </div>
           </div>
         )}
@@ -236,15 +366,6 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
         {/* ---- After card selection: input method & form ---- */}
         {selectedCard && (
           <>
-            {/* Change card button */}
-            <button
-              onClick={() => setSelectedType('')}
-              className="back-button mx-auto block"
-            >
-              ← Choose different card
-            </button>
-
-            {/* Input method toggle */}
             <div className="flex gap-2">
               <button
                 type="button"
@@ -255,7 +376,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                     : 'bg-slate-800/60 text-slate-300 hover:bg-slate-700/80 border border-slate-700/50'
                 }`}
               >
-                <Camera size={16} /> Upload Image
+                <Camera size={16} /> Upload
               </button>
               <button
                 type="button"
@@ -266,24 +387,23 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                     : 'bg-slate-800/60 text-slate-300 hover:bg-slate-700/80 border border-slate-700/50'
                 }`}
               >
-                <Sparkles size={16} /> Manual Code
+                <Sparkles size={16} /> Manual
               </button>
             </div>
 
-            {/* Image upload area */}
             {inputMethod === 'image' && (
               <div>
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4 flex items-start gap-2">
                   <AlertCircle size={16} className="text-amber-400 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-300">
-                    Make sure the card is scratched and the entire code is clearly visible before taking a picture.
+                    Scratch the card, then take a clear photo of the code.
                   </p>
                 </div>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-blue-500 transition-all bg-slate-800/40 backdrop-blur-sm">
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-blue-500 transition-all bg-slate-800/40 backdrop-blur-sm">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="text-slate-400 mb-2" size={32} />
-                    <p className="text-sm text-slate-300">
-                      {image ? image.name : 'Click to upload scratched card image'}
+                    <Upload className="text-slate-400 mb-2" size={28} />
+                    <p className="text-xs text-slate-300 text-center px-2">
+                      {image ? image.name : 'Tap to upload scratched card'}
                     </p>
                   </div>
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -291,7 +411,6 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
               </div>
             )}
 
-            {/* Manual code entry */}
             {inputMethod === 'code' && (
               <div>
                 <label className="block text-slate-200 text-sm font-medium mb-2">
@@ -307,18 +426,16 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
               </div>
             )}
 
-            {/* Error message */}
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
+                <p className="text-red-400 text-xs">{error}</p>
               </div>
             )}
 
-            {/* Submit button */}
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 disabled:from-slate-600 disabled:to-slate-700 text-white font-bold text-lg transition-all active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 disabled:from-slate-600 disabled:to-slate-700 text-white font-bold text-base transition-all active:scale-[0.98] shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
