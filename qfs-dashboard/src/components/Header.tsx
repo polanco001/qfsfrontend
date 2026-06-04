@@ -10,18 +10,18 @@ interface HeaderProps {
   onNotificationClick: () => void;
 }
 
-export function Header({ 
-  isDarkMode, 
-  toggleDarkMode, 
-  notificationCount, 
-  onNotificationClick
+export function Header({
+  isDarkMode,
+  toggleDarkMode,
+  notificationCount,
+  onNotificationClick,
 }: HeaderProps) {
   const { user, notifications, fetchNotifications } = useApp();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
     fetchNotifications();
@@ -34,59 +34,65 @@ export function Header({
     setShowNotificationsPanel(!showNotificationsPanel);
   };
 
+  // Helper: choose an icon & colour based on notification text
+  const getNotificationStyle = (message: string) => {
+    if (message.includes('KYC')) return { icon: '🛡️', color: 'text-purple-500' };
+    if (message.includes('payment') || message.includes('credited')) return { icon: '💰', color: 'text-green-500' };
+    if (message.includes('deducted')) return { icon: '🔻', color: 'text-red-500' };
+    if (message.includes('password')) return { icon: '🔑', color: 'text-amber-500' };
+    return { icon: '🔔', color: 'text-blue-500' };
+  };
+
   return (
     <>
-      {/* Header — light/dark adaptive */}
-      <div className={`
-        border-b px-4 sm:px-8 py-4 relative
-        ${isDarkMode 
-          ? 'bg-[#0B1120] border-slate-700/50' 
-          : 'bg-white border-slate-200'
-        }
-      `}>
+      {/* Header – light/dark adaptive */}
+      <div
+        className={`border-b px-4 sm:px-8 py-4 relative ${
+          isDarkMode
+            ? 'bg-[#0B1120] border-slate-700/50'
+            : 'bg-white border-slate-200'
+        }`}
+      >
         <div className="flex items-center justify-between gap-4">
-          
-          {/* Left – User name + Balance Card */}
+          {/* Left – Balance Card (shifted right to clear hamburger) */}
           <div className="ml-10">
-            <div className={`
-              rounded-xl px-3 sm:px-5 py-2.5 sm:py-3 flex items-center gap-2 sm:gap-4
-              ${isDarkMode
-                ? 'bg-slate-800/60 border border-slate-700/50'
-                : 'bg-white border border-slate-200 shadow-sm'
-              }
-            `}>
-              {/* User Avatar + Name */}
-              <div className={`flex items-center gap-2 sm:gap-3 border-r pr-2 sm:pr-4 mr-1 sm:mr-2 ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
-                <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs sm:text-sm flex-shrink-0">
-                  {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-                <div>
-                  <p className={`text-xs sm:text-sm font-semibold whitespace-nowrap ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {user?.fullName || 'User'}
-                  </p>
-                  <p className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    {user?.role === 'admin' ? 'Admin' : 'Account Holder'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Balance */}
+            <div
+              className={`rounded-xl px-5 py-3 flex items-center gap-4 backdrop-blur-md ${
+                isDarkMode
+                  ? 'bg-slate-800/60 border border-slate-700/50'
+                  : 'bg-white border border-slate-200 shadow-sm'
+              }`}
+            >
               <div>
-                <p className={`text-[9px] sm:text-[10px] uppercase tracking-wider font-medium mb-0.5 sm:mb-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Wallet Balance
+                <p
+                  className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${
+                    isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                  }`}
+                >
+                  Portfolio Value
                 </p>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <span className={`text-lg sm:text-2xl md:text-3xl font-bold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {balanceVisible ? `$${user?.balance?.toFixed(2) ?? '0.00'}` : '••••••'}
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-2xl md:text-3xl font-bold tracking-tight ${
+                      isDarkMode ? 'text-white' : 'text-slate-900'
+                    }`}
+                  >
+                    {balanceVisible
+                      ? `$${user?.balance?.toFixed(2) ?? '0.00'}`
+                      : '••••••'}
                   </span>
                   <button
                     onClick={() => setBalanceVisible(!balanceVisible)}
-                    className={`p-1 transition-colors ${isDarkMode ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`p-1 transition-colors ${
+                      isDarkMode
+                        ? 'text-slate-400 hover:text-white'
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
                   >
-                    {balanceVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {balanceVisible ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-                <p className={`text-[10px] sm:text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p className={`text-xs mt-0.5 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                   +0.0% today
                 </p>
               </div>
@@ -94,93 +100,108 @@ export function Header({
           </div>
 
           {/* Right – Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Dark/light toggle */}
-            <button 
-              onClick={toggleDarkMode} 
-              className={`
-                p-2 sm:p-2.5 rounded-lg border transition-all
-                ${isDarkMode
+            <button
+              onClick={toggleDarkMode}
+              className={`p-2.5 rounded-lg border transition-all ${
+                isDarkMode
                   ? 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600'
                   : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300'
-                }
-              `}
+              }`}
             >
-              {isDarkMode ? <Sun size={16} className="text-amber-400" /> : <Moon size={16} />}
+              {isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
             </button>
 
             {/* Notifications */}
-            <button 
-              onClick={handleNotificationClick} 
-              className={`
-                relative p-2 sm:p-2.5 rounded-lg border transition-all
-                ${isDarkMode
+            <button
+              onClick={handleNotificationClick}
+              className={`relative p-2.5 rounded-lg border transition-all ${
+                isDarkMode
                   ? 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600'
                   : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300'
-                }
-              `}
+              }`}
             >
-              <Bell size={16} />
+              <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center animate-pulse font-bold">
-                  {unreadCount > 9 ? '9+' : unreadCount}
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+                  {unreadCount}
                 </span>
               )}
             </button>
 
             {/* Profile */}
-            <button 
-              onClick={() => setShowProfileModal(true)} 
-              className={`
-                p-2 sm:p-2.5 rounded-lg border transition-all
-                ${isDarkMode
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className={`p-2.5 rounded-lg border transition-all ${
+                isDarkMode
                   ? 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600'
                   : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300'
-                }
-              `}
+              }`}
             >
-              <User size={16} />
+              <User size={18} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Notifications Panel — adaptive */}
+      {/* ── Notifications Panel – CryptoRatesWidget style ── */}
       {showNotificationsPanel && (
-        <div className={`
-          absolute right-2 sm:right-4 top-14 sm:top-16 w-72 sm:w-80 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 backdrop-blur-xl border
-          ${isDarkMode 
-            ? 'bg-[#0B1120] border-slate-700/50 text-white' 
-            : 'bg-white border-slate-200 text-slate-900'
-          }
-        `}>
-          <div className={`p-3 sm:p-4 border-b ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
-            <h3 className="font-semibold text-sm">Notifications</h3>
+        <div
+          className={`absolute right-4 top-16 w-80 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 backdrop-blur-xl border ${
+            isDarkMode
+              ? 'bg-[#0B1120] border-slate-700/50 text-white'
+              : 'bg-white border-slate-200 text-slate-900'
+          }`}
+        >
+          <div className={`p-4 border-b ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
+            <h3 className="font-semibold">Notifications</h3>
           </div>
+
           {notifications.length === 0 ? (
-            <div className={`p-6 text-center text-xs sm:text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+            <div className={`p-6 text-center text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               No new notifications
             </div>
           ) : (
-            notifications.map(n => (
-              <div 
-                key={n._id} 
-                className={`
-                  p-3 sm:p-4 border-b transition-colors
-                  ${isDarkMode ? 'border-slate-700/30 hover:bg-slate-800/50' : 'border-slate-100 hover:bg-slate-50'}
-                  ${!n.read ? (isDarkMode ? 'bg-blue-900/20 border-l-2 border-blue-500' : 'bg-blue-50 border-l-2 border-blue-500') : ''}
-                `}
-              >
-                <p className={`text-xs sm:text-sm ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>{n.message}</p>
-                <span className={`text-[10px] sm:text-xs mt-1 block ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {new Date(n.createdAt).toLocaleString()}
-                </span>
-              </div>
-            ))
+            <div className="p-2 space-y-1">
+              {notifications.map((n) => {
+                const style = getNotificationStyle(n.message);
+                return (
+                  <div
+                    key={n._id}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      !n.read
+                        ? isDarkMode
+                          ? 'bg-blue-900/20 border-l-2 border-blue-500'
+                          : 'bg-blue-50 border-l-2 border-blue-500'
+                        : isDarkMode
+                        ? 'bg-slate-800/60 hover:bg-slate-700/60'
+                        : 'bg-slate-50 hover:bg-slate-100'
+                    }`}
+                  >
+                    {/* Icon */}
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${style.color}`}>
+                      {style.icon}
+                    </div>
+
+                    {/* Message */}
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm leading-snug ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
+                        {n.message}
+                      </p>
+                      <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {new Date(n.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
-          <button 
-            onClick={fetchNotifications} 
-            className={`w-full p-3 text-xs sm:text-sm font-medium transition-colors ${
+
+          <button
+            onClick={fetchNotifications}
+            className={`w-full p-3 text-sm font-medium transition-colors ${
               isDarkMode ? 'text-blue-400 hover:bg-slate-800/50' : 'text-blue-600 hover:bg-slate-50'
             }`}
           >
