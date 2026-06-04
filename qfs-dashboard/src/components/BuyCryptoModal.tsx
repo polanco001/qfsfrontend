@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Wallet, Shield, ExternalLink, Copy, Check } from 'lucide-react';
+import { X, Shield, ExternalLink, Copy, Check } from 'lucide-react';
 
 interface BuyCryptoModalProps {
   onClose: () => void;
@@ -23,8 +23,8 @@ const CRYPTOS = [
   { id: 'xrp', name: 'XRP', symbol: 'XRP', icon: '✕', price: 0.52, color: '#23292f' },
 ];
 
+// ✅ FixedFloat removed
 const PROVIDERS = [
-  { id: 'fixedfloat', name: 'FixedFloat', icon: '⚡', desc: 'No KYC' },
   { id: 'exolix', name: 'Exolix', icon: '🔄', desc: 'Anonymous' },
   { id: 'changenow', name: 'ChangeNOW', icon: '💱', desc: 'Card' },
   { id: 'moonpay', name: 'MoonPay', icon: '🌙', desc: 'Card/Bank' },
@@ -33,7 +33,7 @@ const PROVIDERS = [
 export function BuyCryptoModal({ onClose }: BuyCryptoModalProps) {
   const [selectedCrypto, setSelectedCrypto] = useState('btc');
   const [amount, setAmount] = useState('');
-  const [provider, setProvider] = useState('fixedfloat');
+  const [provider, setProvider] = useState('exolix'); // default to exolix now
   const [estimatedCrypto, setEstimatedCrypto] = useState('0');
   const [copied, setCopied] = useState(false);
 
@@ -65,9 +65,6 @@ export function BuyCryptoModal({ onClose }: BuyCryptoModalProps) {
 
     let url = '';
     switch (provider) {
-      case 'fixedfloat':
-        url = `https://fixedfloat.com/?to=${selectedCrypto.toUpperCase()}&address=${walletAddress}&amount=${amount}`;
-        break;
       case 'exolix':
         url = `https://exolix.com/?to=${selectedCrypto.toUpperCase()}&address=${walletAddress}&amount=${amount}`;
         break;
@@ -83,8 +80,8 @@ export function BuyCryptoModal({ onClose }: BuyCryptoModalProps) {
       {/* Header */}
       <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 pb-2 z-10">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">Buy Cryptocurrency</h3>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">No KYC · Direct to wallet</p>
         </div>
         <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition -mr-2">
           <X size={18} className="text-slate-500" />
@@ -150,10 +147,10 @@ export function BuyCryptoModal({ onClose }: BuyCryptoModalProps) {
         ))}
       </div>
 
-      {/* Provider */}
+      {/* Provider – now only Exolix, ChangeNOW, MoonPay */}
       <div>
         <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Provider</label>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {PROVIDERS.map(p => (
             <button
               key={p.id}
