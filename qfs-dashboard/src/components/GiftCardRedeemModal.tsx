@@ -316,7 +316,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
         {/* ── STEP 1: Card Grid ──────────────────────────────────────────── */}
         {!selectedId && (
           <div>
-            <p style={{ textAlign: 'center', fontSize: 11, letterSpacing: '0.18em', color: 'rgba(255,255,255,0.4)', marginBottom: 18, textTransform: 'uppercase' }}>
+            <p style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.75)", marginBottom: 18 }}>
               Select Gift Card Brand
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
@@ -339,7 +339,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                     {card.render(true)}
                     {/* Card name overlay */}
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', padding: '0 6px 6px', background: 'linear-gradient(to top,rgba(0,0,0,0.55),transparent 60%)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{card.shortName}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{card.shortName}</span>
                     </div>
                   </div>
                 </button>
@@ -351,16 +351,26 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
         {/* ── STEP 2: Selected card + form ──────────────────────────────── */}
         {selectedCard && (
           <div>
-            {/* Back button */}
+            {/* ── Back arrow — big, easy to tap ── */}
             <button
               onClick={handleBack}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, cursor: 'pointer', padding: '0 0 14px', fontWeight: 500 }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                background: 'rgba(255,255,255,0.08)',
+                border: '1.5px solid rgba(255,255,255,0.15)',
+                borderRadius: 14, color: '#fff',
+                fontSize: 16, fontWeight: 700,
+                cursor: 'pointer', padding: '11px 18px',
+                marginBottom: 18, width: '100%',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
-              <ArrowLeft size={15} /> Back to cards
+              <ArrowLeft size={20} />
+              <span>Back to Cards</span>
             </button>
 
             {/* Full-size card with 360° spin on entry */}
-            <div style={{ perspective: 1000, marginBottom: 20 }}>
+            <div style={{ perspective: 1000, marginBottom: 18 }}>
               <div className={spinning ? 'card-spin' : 'card-flip-in'} style={{ transformStyle: 'preserve-3d', position: 'relative' }}>
                 <div className="card-shimmer" style={{ position: 'relative', borderRadius: 16, overflow: 'hidden' }}>
                   {selectedCard.render(false)}
@@ -369,34 +379,35 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
             </div>
 
             {/* Card name + security badge */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
               <div>
-                <p style={{ fontWeight: 800, fontSize: 16, marginBottom: 2 }}>{selectedCard.name}</p>
-                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{selectedCard.number}</p>
+                <p style={{ fontWeight: 800, fontSize: 20, marginBottom: 3, color: '#fff' }}>{selectedCard.name}</p>
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>{selectedCard.number}</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 20, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                <ShieldCheck size={12} color="#4ade80" />
-                <span style={{ fontSize: 10, color: '#4ade80', fontWeight: 600 }}>Secure</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 20, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                <ShieldCheck size={14} color="#4ade80" />
+                <span style={{ fontSize: 13, color: '#4ade80', fontWeight: 700 }}>Secure</span>
               </div>
             </div>
 
-            {/* Input method toggle */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16, background: 'rgba(255,255,255,0.06)', padding: 4, borderRadius: 14 }}>
+            {/* Input method toggle — large tap targets */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, background: 'rgba(255,255,255,0.06)', padding: 5, borderRadius: 16 }}>
               {[
-                { id: 'image', label: 'Upload Photo', icon: <Camera size={14} /> },
-                { id: 'code',  label: 'Enter Code',   icon: <Sparkles size={14} /> },
+                { id: 'image', label: 'Upload Photo', icon: <Camera size={18} /> },
+                { id: 'code',  label: 'Enter Code',   icon: <Sparkles size={18} /> },
               ].map(m => (
                 <button
                   key={m.id}
                   onClick={() => { setInputMethod(m.id as any); setError(''); }}
                   style={{
-                    flex: 1, padding: '9px 0', borderRadius: 11, border: 'none',
-                    cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
+                    flex: 1, padding: '13px 0', borderRadius: 13, border: 'none',
+                    cursor: 'pointer', fontSize: 15, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                     transition: 'all 0.2s',
                     background: inputMethod === m.id ? '#2563eb' : 'transparent',
-                    color: inputMethod === m.id ? '#fff' : 'rgba(255,255,255,0.45)',
-                    boxShadow: inputMethod === m.id ? '0 4px 16px rgba(37,99,235,0.4)' : 'none',
+                    color: inputMethod === m.id ? '#fff' : 'rgba(255,255,255,0.5)',
+                    boxShadow: inputMethod === m.id ? '0 4px 16px rgba(37,99,235,0.45)' : 'none',
+                    WebkitTapHighlightColor: 'transparent',
                   }}
                 >
                   {m.icon} {m.label}
@@ -406,30 +417,33 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
 
             {/* Image upload */}
             {inputMethod === 'image' && (
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', borderRadius: 12, padding: '10px 12px', marginBottom: 12 }}>
-                  <AlertCircle size={14} color="#fbbf24" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <p style={{ fontSize: 11, color: '#fcd34d', lineHeight: 1.5 }}>Scratch the card first, then take a clear close-up photo of the code so it's fully visible.</p>
+              <div style={{ marginBottom: 18 }}>
+                {/* Instruction box — large readable text */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(245,158,11,0.12)', border: '1.5px solid rgba(245,158,11,0.3)', borderRadius: 14, padding: '13px 14px', marginBottom: 14 }}>
+                  <AlertCircle size={20} color="#fbbf24" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ fontSize: 15, color: '#fde68a', lineHeight: 1.6, fontWeight: 500 }}>
+                    Scratch the silver panel on your card first, then take a <strong>clear close-up photo</strong> of the code.
+                  </p>
                 </div>
 
                 <label style={{ display: 'block', cursor: 'pointer' }}>
                   <div style={{
-                    borderRadius: 14, border: `2px dashed ${preview ? 'rgba(34,197,94,0.5)' : 'rgba(255,255,255,0.15)'}`,
-                    background: preview ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.04)',
-                    overflow: 'hidden', transition: 'all 0.2s', minHeight: 110,
+                    borderRadius: 16, border: `2px dashed ${preview ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.2)'}`,
+                    background: preview ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.04)',
+                    overflow: 'hidden', transition: 'all 0.2s', minHeight: 120,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
+                    position: 'relative', padding: 16,
                   }}>
                     {preview ? (
                       <>
-                        <img src={preview} alt="Card preview" style={{ width: '100%', maxHeight: 160, objectFit: 'cover' }} />
-                        <div style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(34,197,94,0.9)', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 700, color: '#fff' }}>✓ Ready</div>
+                        <img src={preview} alt="Card preview" style={{ width: '100%', maxHeight: 170, objectFit: 'cover', borderRadius: 10 }} />
+                        <div style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(34,197,94,0.92)', borderRadius: 20, padding: '5px 13px', fontSize: 13, fontWeight: 800, color: '#fff' }}>✓ Photo ready</div>
                       </>
                     ) : (
                       <>
-                        <Upload size={28} color="rgba(255,255,255,0.3)" style={{ marginBottom: 8 }} />
-                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Tap to upload photo</p>
-                        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>JPG, PNG, HEIC supported</p>
+                        <Upload size={36} color="rgba(255,255,255,0.35)" style={{ marginBottom: 10 }} />
+                        <p style={{ fontSize: 17, color: '#fff', fontWeight: 700, marginBottom: 4 }}>Tap to upload photo</p>
+                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>JPG, PNG or HEIC</p>
                       </>
                     )}
                   </div>
@@ -440,76 +454,78 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
 
             {/* Code input */}
             {inputMethod === 'code' && (
-              <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>
+              <div style={{ marginBottom: 18 }}>
+                {/* Label — large */}
+                <label style={{ display: 'block', fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>
                   Gift Card Code
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <Lock size={14} color="rgba(255,255,255,0.3)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                  <Lock size={18} color="rgba(255,255,255,0.35)" style={{ position: 'absolute', left: 16, top: 18, pointerEvents: 'none' }} />
                   <textarea
                     value={code}
                     onChange={e => setCode(e.target.value)}
                     placeholder="XXXX-XXXX-XXXX-XXXX"
                     rows={3}
                     style={{
-                      width: '100%', padding: '12px 14px 12px 36px',
-                      borderRadius: 14, border: '1.5px solid rgba(255,255,255,0.12)',
-                      background: 'rgba(255,255,255,0.06)',
-                      color: '#fff', fontSize: 14, fontFamily: 'monospace',
-                      letterSpacing: '0.12em', lineHeight: 1.6,
+                      width: '100%', padding: '16px 16px 16px 44px',
+                      borderRadius: 16, border: '2px solid rgba(255,255,255,0.15)',
+                      background: 'rgba(255,255,255,0.07)',
+                      color: '#fff', fontSize: 18, fontFamily: 'monospace',
+                      letterSpacing: '0.14em', lineHeight: 1.7,
                       outline: 'none', resize: 'none', boxSizing: 'border-box',
                       caretColor: '#60a5fa', transition: 'border 0.2s',
                     }}
-                    onFocus={e => (e.target.style.borderColor = 'rgba(96,165,250,0.5)')}
-                    onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.12)')}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(96,165,250,0.6)')}
+                    onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.15)')}
                   />
                 </div>
-                <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', marginTop: 5 }}>
-                  Your code is encrypted and never stored in plain text.
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginTop: 7, lineHeight: 1.5 }}>
+                  🔒 Your code is encrypted and secure.
                 </p>
               </div>
             )}
 
             {/* Error */}
             {error && (
-              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 12, padding: '10px 14px', marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <AlertCircle size={13} color="#f87171" style={{ flexShrink: 0, marginTop: 1 }} />
-                <p style={{ fontSize: 12, color: '#fca5a5', lineHeight: 1.4 }}>{error}</p>
+              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1.5px solid rgba(239,68,68,0.3)', borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <AlertCircle size={18} color="#f87171" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontSize: 15, color: '#fca5a5', lineHeight: 1.5, fontWeight: 500 }}>{error}</p>
               </div>
             )}
 
             {/* Security note */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', marginBottom: 16 }}>
-              <ShieldCheck size={12} color="rgba(255,255,255,0.3)" />
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', lineHeight: 1.4 }}>
-                256-bit encrypted · Reviewed by verified admin · Never auto-processed
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 18 }}>
+              <ShieldCheck size={16} color="rgba(255,255,255,0.35)" style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+                256-bit encrypted · Reviewed by admin · Never auto-processed
               </p>
             </div>
 
-            {/* Submit */}
+            {/* Submit — large, easy tap */}
             <button
               onClick={handleSubmit}
               disabled={loading}
               style={{
-                width: '100%', padding: '15px 0', borderRadius: 16, border: 'none',
+                width: '100%', padding: '17px 0', borderRadius: 18, border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                fontWeight: 800, fontSize: 15, color: '#fff',
+                fontWeight: 800, fontSize: 17, color: '#fff',
                 background: loading ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#16a34a,#15803d)',
-                boxShadow: loading ? 'none' : '0 8px 24px rgba(22,163,74,0.4)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                boxShadow: loading ? 'none' : '0 8px 28px rgba(22,163,74,0.45)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
                 transition: 'all 0.25s',
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               {loading ? (
                 <>
-                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}>
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                   </svg>
                   Submitting securely…
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={16} />
+                  <ShieldCheck size={18} />
                   Submit for Review
                 </>
               )}
