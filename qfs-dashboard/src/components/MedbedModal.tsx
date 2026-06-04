@@ -1,7 +1,7 @@
 // src/components/MedbedModal.tsx
 import { ShoppingCart, Calendar, Activity, Sparkles, Stethoscope, ClipboardList, Heart, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
-import { PaymentMethodModal } from './PaymentMethodModal';
+import  PaymentMethodModal  from './PaymentMethodModal';
 
 interface MedbedModalProps {
   onClose: () => void;
