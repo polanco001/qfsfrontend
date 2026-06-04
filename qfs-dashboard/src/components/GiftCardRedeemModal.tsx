@@ -228,14 +228,14 @@ const CSS = `
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.15) 50%, transparent 100%);
   animation: shimmer 2.5s infinite;
   pointer-events: none;
   z-index: 10;
 }
 `;
 
-/* ─── Main Component ────────────────────────────────────────────────────── */
+/* ─── Main Component (black text version) ───────────────────────────────── */
 export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
   const [selectedId, setSelectedId] = useState<string>('');
   const [code, setCode] = useState('');
@@ -311,12 +311,12 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
     <>
       <style>{CSS}</style>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', color: '#fff' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', color: '#111' }}>
 
         {/* ── STEP 1: Card Grid ──────────────────────────────────────────── */}
         {!selectedId && (
           <div>
-            <p style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.75)", marginBottom: 18 }}>
+            <p style={{ textAlign: 'center', fontSize: 15, fontWeight: 700, color: '#333', marginBottom: 18 }}>
               Select Gift Card Brand
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
@@ -337,9 +337,13 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                   {/* Full-width realistic card */}
                   <div style={{ width: '100%', aspectRatio: '1.6/1', position: 'relative' }}>
                     {card.render(true)}
-                    {/* Card name overlay */}
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', padding: '0 6px 6px', background: 'linear-gradient(to top,rgba(0,0,0,0.55),transparent 60%)', borderRadius: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: '0 1px 4px rgba(0,0,0,0.8)' }}>{card.shortName}</span>
+                    {/* Card name overlay - now black on light translucent bg */}
+                    <div style={{
+                      position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', padding: '0 6px 6px',
+                      background: 'linear-gradient(to top, rgba(255,255,255,0.85), rgba(255,255,255,0.2) 80%)',
+                      borderRadius: 8
+                    }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: '#111', textShadow: '0 1px 2px rgba(255,255,255,0.8)' }}>{card.shortName}</span>
                     </div>
                   </div>
                 </button>
@@ -356,9 +360,9 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
               onClick={handleBack}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
-                background: 'rgba(255,255,255,0.08)',
-                border: '1.5px solid rgba(255,255,255,0.15)',
-                borderRadius: 14, color: '#fff',
+                background: '#f0f0f0',
+                border: '1.5px solid #ccc',
+                borderRadius: 14, color: '#111',
                 fontSize: 16, fontWeight: 700,
                 cursor: 'pointer', padding: '11px 18px',
                 marginBottom: 18, width: '100%',
@@ -381,17 +385,17 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
             {/* Card name + security badge */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
               <div>
-                <p style={{ fontWeight: 800, fontSize: 20, marginBottom: 3, color: '#fff' }}>{selectedCard.name}</p>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>{selectedCard.number}</p>
+                <p style={{ fontWeight: 800, fontSize: 20, marginBottom: 3, color: '#111' }}>{selectedCard.name}</p>
+                <p style={{ fontSize: 13, color: '#555', fontFamily: 'monospace' }}>{selectedCard.number}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 20, background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)' }}>
-                <ShieldCheck size={14} color="#4ade80" />
-                <span style={{ fontSize: 13, color: '#4ade80', fontWeight: 700 }}>Secure</span>
+                <ShieldCheck size={14} color="#16a34a" />
+                <span style={{ fontSize: 13, color: '#16a34a', fontWeight: 700 }}>Secure</span>
               </div>
             </div>
 
             {/* Input method toggle — large tap targets */}
-            <div style={{ display: 'flex', gap: 10, marginBottom: 20, background: 'rgba(255,255,255,0.06)', padding: 5, borderRadius: 16 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20, background: '#f0f0f0', padding: 5, borderRadius: 16 }}>
               {[
                 { id: 'image', label: 'Upload Photo', icon: <Camera size={18} /> },
                 { id: 'code',  label: 'Enter Code',   icon: <Sparkles size={18} /> },
@@ -405,7 +409,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                     transition: 'all 0.2s',
                     background: inputMethod === m.id ? '#2563eb' : 'transparent',
-                    color: inputMethod === m.id ? '#fff' : 'rgba(255,255,255,0.5)',
+                    color: inputMethod === m.id ? '#fff' : '#444',
                     boxShadow: inputMethod === m.id ? '0 4px 16px rgba(37,99,235,0.45)' : 'none',
                     WebkitTapHighlightColor: 'transparent',
                   }}
@@ -419,17 +423,17 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
             {inputMethod === 'image' && (
               <div style={{ marginBottom: 18 }}>
                 {/* Instruction box — large readable text */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(245,158,11,0.12)', border: '1.5px solid rgba(245,158,11,0.3)', borderRadius: 14, padding: '13px 14px', marginBottom: 14 }}>
-                  <AlertCircle size={20} color="#fbbf24" style={{ flexShrink: 0, marginTop: 1 }} />
-                  <p style={{ fontSize: 15, color: '#fde68a', lineHeight: 1.6, fontWeight: 500 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)', borderRadius: 14, padding: '13px 14px', marginBottom: 14 }}>
+                  <AlertCircle size={20} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ fontSize: 15, color: '#92400e', lineHeight: 1.6, fontWeight: 500 }}>
                     Scratch the silver panel on your card first, then take a <strong>clear close-up photo</strong> of the code.
                   </p>
                 </div>
 
                 <label style={{ display: 'block', cursor: 'pointer' }}>
                   <div style={{
-                    borderRadius: 16, border: `2px dashed ${preview ? 'rgba(34,197,94,0.6)' : 'rgba(255,255,255,0.2)'}`,
-                    background: preview ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.04)',
+                    borderRadius: 16, border: `2px dashed ${preview ? 'rgba(34,197,94,0.6)' : '#ccc'}`,
+                    background: preview ? 'rgba(34,197,94,0.04)' : '#fafafa',
                     overflow: 'hidden', transition: 'all 0.2s', minHeight: 120,
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     position: 'relative', padding: 16,
@@ -441,9 +445,9 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                       </>
                     ) : (
                       <>
-                        <Upload size={36} color="rgba(255,255,255,0.35)" style={{ marginBottom: 10 }} />
-                        <p style={{ fontSize: 17, color: '#fff', fontWeight: 700, marginBottom: 4 }}>Tap to upload photo</p>
-                        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>JPG, PNG or HEIC</p>
+                        <Upload size={36} color="#555" style={{ marginBottom: 10 }} />
+                        <p style={{ fontSize: 17, color: '#111', fontWeight: 700, marginBottom: 4 }}>Tap to upload photo</p>
+                        <p style={{ fontSize: 13, color: '#666' }}>JPG, PNG or HEIC</p>
                       </>
                     )}
                   </div>
@@ -456,11 +460,11 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
             {inputMethod === 'code' && (
               <div style={{ marginBottom: 18 }}>
                 {/* Label — large */}
-                <label style={{ display: 'block', fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 10 }}>
                   Gift Card Code
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <Lock size={18} color="rgba(255,255,255,0.35)" style={{ position: 'absolute', left: 16, top: 18, pointerEvents: 'none' }} />
+                  <Lock size={18} color="#999" style={{ position: 'absolute', left: 16, top: 18, pointerEvents: 'none' }} />
                   <textarea
                     value={code}
                     onChange={e => setCode(e.target.value)}
@@ -468,18 +472,18 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                     rows={3}
                     style={{
                       width: '100%', padding: '16px 16px 16px 44px',
-                      borderRadius: 16, border: '2px solid rgba(255,255,255,0.15)',
-                      background: 'rgba(255,255,255,0.07)',
-                      color: '#fff', fontSize: 18, fontFamily: 'monospace',
+                      borderRadius: 16, border: '2px solid #ccc',
+                      background: '#fafafa',
+                      color: '#111', fontSize: 18, fontFamily: 'monospace',
                       letterSpacing: '0.14em', lineHeight: 1.7,
                       outline: 'none', resize: 'none', boxSizing: 'border-box',
                       caretColor: '#60a5fa', transition: 'border 0.2s',
                     }}
-                    onFocus={e => (e.target.style.borderColor = 'rgba(96,165,250,0.6)')}
-                    onBlur={e => (e.target.style.borderColor = 'rgba(255,255,255,0.15)')}
+                    onFocus={e => (e.target.style.borderColor = 'rgba(37,99,235,0.5)')}
+                    onBlur={e => (e.target.style.borderColor = '#ccc')}
                   />
                 </div>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginTop: 7, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 13, color: '#666', marginTop: 7, lineHeight: 1.5 }}>
                   🔒 Your code is encrypted and secure.
                 </p>
               </div>
@@ -487,16 +491,16 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
 
             {/* Error */}
             {error && (
-              <div style={{ background: 'rgba(239,68,68,0.1)', border: '1.5px solid rgba(239,68,68,0.3)', borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                <AlertCircle size={18} color="#f87171" style={{ flexShrink: 0, marginTop: 2 }} />
-                <p style={{ fontSize: 15, color: '#fca5a5', lineHeight: 1.5, fontWeight: 500 }}>{error}</p>
+              <div style={{ background: 'rgba(239,68,68,0.08)', border: '1.5px solid rgba(239,68,68,0.3)', borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <AlertCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 2 }} />
+                <p style={{ fontSize: 15, color: '#b91c1c', lineHeight: 1.5, fontWeight: 500 }}>{error}</p>
               </div>
             )}
 
             {/* Security note */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 18 }}>
-              <ShieldCheck size={16} color="rgba(255,255,255,0.35)" style={{ flexShrink: 0 }} />
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 12, background: '#f5f5f5', border: '1px solid #e0e0e0', marginBottom: 18 }}>
+              <ShieldCheck size={16} color="#666" style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: 13, color: '#555', lineHeight: 1.5 }}>
                 256-bit encrypted · Reviewed by admin · Never auto-processed
               </p>
             </div>
@@ -509,7 +513,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
                 width: '100%', padding: '17px 0', borderRadius: 18, border: 'none',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontWeight: 800, fontSize: 17, color: '#fff',
-                background: loading ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg,#16a34a,#15803d)',
+                background: loading ? '#aaa' : 'linear-gradient(135deg,#16a34a,#15803d)',
                 boxShadow: loading ? 'none' : '0 8px 28px rgba(22,163,74,0.45)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9,
                 transition: 'all 0.25s',
