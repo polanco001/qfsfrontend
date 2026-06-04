@@ -189,20 +189,33 @@ export function AdminPanel() {
     fetchAll();
   }, [user]);
 
+  // ✅ NEW: Fetch unread count from backend
   useEffect(() => {
     if (!token) return;
     const fetchUnread = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/admin/messages`, { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`${BASE_URL}/api/admin/unread-count`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const data = await res.json();
-        if (Array.isArray(data))
-          setUnreadChatCount(data.filter((m: any) => m.sender?.role !== 'admin' && m.receiver === null).length);
+        setUnreadChatCount(data.unreadCount || 0);
       } catch {}
     };
     fetchUnread();
     const iv = setInterval(fetchUnread, 10000);
     return () => clearInterval(iv);
   }, [token]);
+
+  // ✅ NEW: Mark chat as read
+  const markChatAsRead = async () => {
+    try {
+      await fetch(`${BASE_URL}/api/admin/chat-read`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUnreadChatCount(0);
+    } catch {}
+  };
 
   const fetchAll = async () => {
     setLoading(true);
@@ -474,7 +487,10 @@ export function AdminPanel() {
           {tabs.map(t => (
             <button
               key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              onClick={() => {
+                setActiveTab(t.id);
+                if (t.id === 'chat') markChatAsRead();  // ✅ Reset badge on chat tab click
+              }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '9px 12px', borderRadius: 12, border: 'none',
