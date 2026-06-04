@@ -83,8 +83,8 @@ export function BuyCryptoModal({ onClose }: BuyCryptoModalProps) {
       {/* Header */}
       <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 pb-2 z-10">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">Buy Cryptocurrency</h3>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">No KYC · Direct to wallet</p>
+          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
         </div>
         <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition -mr-2">
           <X size={18} className="text-slate-500" />
