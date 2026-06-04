@@ -1,4 +1,7 @@
-import { ShoppingCart, Calendar, Activity, Sparkles, Stethoscope, ClipboardList, Heart, ArrowLeft } from 'lucide-react';
+import {
+  ShoppingCart, Calendar, Activity, Sparkles,
+  Stethoscope, ClipboardList, Heart, ArrowLeft
+} from 'lucide-react';
 import { useState } from 'react';
 import PaymentMethodModal from './PaymentMethodModal';
 
@@ -38,31 +41,31 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
     </div>
   );
 
-  // ✅ Validate Medbed Card ID: must be 11 digits and end with 042
+  // Secret validation: 11 digits, ends with 042
   const validateCardId = (id: string): boolean => {
-    const cleaned = id.replace(/\s/g, ''); // remove spaces
+    const cleaned = id.replace(/\s/g, '');
     if (cleaned.length !== 11) return false;
-    if (!/^\d{11}$/.test(cleaned)) return false; // must be exactly 11 digits
-    if (!cleaned.endsWith('042')) return false; // must end with 042
+    if (!/^\d{11}$/.test(cleaned)) return false;
+    if (!cleaned.endsWith('042')) return false;   // secret rule
     return true;
   };
 
   const handleCardIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '').slice(0, 11); // digits only, max 11
+    const value = e.target.value.replace(/\D/g, '').slice(0, 11);
     setMedbedCardId(value);
     
     if (value.length === 0) {
       setCardIdError('');
     } else if (value.length < 11) {
       setCardIdError('Card ID must be exactly 11 digits');
-    } else if (!value.endsWith('042')) {
-      setCardIdError('Card ID must end with 042');
+    } else if (value.length === 11 && !validateCardId(value)) {
+      setCardIdError('Invalid Card ID');    // generic, doesn't reveal rule
     } else {
       setCardIdError('');
     }
   };
 
-  const isValidCardId = medbedCardId.length === 11 && medbedCardId.endsWith('042');
+  const isValidCardId = medbedCardId.length === 11 && validateCardId(medbedCardId);
 
   const handleProceedToPayment = () => {
     if (!cardholderName.trim()) {
@@ -81,20 +84,18 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
       alert('Please select both date and time');
       return;
     }
-    if (!medbedCardId.trim() || !isValidCardId) {
-      alert('Please enter a valid 11-digit Medbed Card ID ');
+    if (!isValidCardId) {
+      alert('Please enter a valid 11-digit Medbed Card ID');
       return;
     }
     setShowPayment(true);
   };
 
-  // ✅ Same message for both Buy and Book
   const handlePaymentComplete = () => {
     alert('✅ Payment under review. Our team will review your payment and process your order shortly.');
     onClose();
   };
 
-  // If payment modal is shown
   if (showPayment) {
     return (
       <PaymentMethodModal
@@ -104,26 +105,26 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
     );
   }
 
-  // ========== BUY FLOW (card design + name) ==========
+  // ---------- BUY FLOW ----------
   if (selectedAction === 'buy' && !showPayment) {
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
         <button
           onClick={() => setSelectedAction(null)}
-          className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-1 text-sm text-slate-300 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} /> Back
         </button>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
           <div className="flex flex-col gap-6">
             <div className="w-full max-w-xs mx-auto">{medbedCardPreview(cardholderName)}</div>
             <div>
               <h3 className="text-white text-xl font-bold">Medbed Machine</h3>
-              <p className="text-slate-400 text-sm mt-1">
+              <p className="text-slate-300 text-sm mt-1">
                 Advanced healing technology for home use – includes Medbed access card
               </p>
               <div className="mt-5">
-                <label className="block text-slate-300 text-sm font-medium mb-1">
+                <label className="block text-slate-200 text-sm font-medium mb-1">
                   Cardholder Name
                 </label>
                 <input
@@ -131,7 +132,7 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
                   value={cardholderName}
                   onChange={(e) => setCardholderName(e.target.value.toUpperCase())}
                   placeholder="JOHN DOE"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent uppercase tracking-wider transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent uppercase tracking-wider transition-all"
                 />
               </div>
               <button
@@ -148,13 +149,13 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
     );
   }
 
-  // ========== BOOK FLOW (session type selection) ==========
+  // ---------- BOOK SESSION TYPE ----------
   if (selectedAction === 'book' && !selectedSession) {
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
         <button
           onClick={() => setSelectedAction(null)}
-          className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-1 text-sm text-slate-300 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -205,7 +206,7 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
     );
   }
 
-  // ========== BOOK FLOW (date/time + card ID with validation) ==========
+  // ---------- BOOK DETAILS (date/time + secret card ID) ----------
   if (selectedAction === 'book' && selectedSession && !showPayment) {
     const sessionName = 
       selectedSession === 'fullbody' ? 'Full Body Therapy' :
@@ -216,67 +217,64 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
       <div className="space-y-5 animate-in fade-in duration-300">
         <button
           onClick={() => setSelectedSession(null)}
-          className="flex items-center gap-1 text-sm text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-1 text-sm text-slate-300 hover:text-white transition-colors"
         >
           <ArrowLeft size={16} /> Back
         </button>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+        <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-6">
           <div className="space-y-5">
             <div className="text-center">
               <h3 className="text-white text-xl font-bold">{sessionName}</h3>
-              <p className="text-slate-400 text-sm">Please provide booking details</p>
+              <p className="text-slate-300 text-sm">Please provide booking details</p>
             </div>
+            {/* Card ID – secret validation */}
             <div>
-              <label className="block text-slate-300 text-sm font-medium mb-2">
+              <label className="block text-slate-200 text-sm font-medium mb-2">
                 Medbed Card ID <span className="text-red-400">*</span>
               </label>
               <input
                 type="text"
                 value={medbedCardId}
                 onChange={handleCardIdChange}
-                placeholder="11-digit ID ending with 042"
+                placeholder="Enter your 11‑digit Card ID"
                 inputMode="numeric"
                 maxLength={11}
-                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full px-4 py-3 rounded-xl bg-white/10 border text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
                   medbedCardId.length === 0
-                    ? 'border-white/10 focus:ring-blue-500 focus:border-transparent'
+                    ? 'border-white/10 focus:ring-blue-500'
                     : isValidCardId
-                    ? 'border-emerald-500/50 focus:ring-emerald-500 focus:border-transparent'
-                    : 'border-red-500/50 focus:ring-red-500 focus:border-transparent'
+                    ? 'border-emerald-500/50 focus:ring-emerald-500'
+                    : 'border-red-500/50 focus:ring-red-500'
                 }`}
               />
               <div className="flex items-center justify-between mt-1.5">
-                {cardIdError && (
-                  <p className="text-xs text-red-400">{cardIdError}</p>
-                )}
-                {isValidCardId && (
-                  <p className="text-xs text-emerald-400 flex items-center gap-1">
-                    ✅ Valid Card ID
-                  </p>
-                )}
-                <p className="text-xs text-slate-500 ml-auto">{medbedCardId.length}/11 digits</p>
+                <p className={`text-xs ${cardIdError ? 'text-red-400' : 'text-transparent'}`}>
+                  {cardIdError || ' '}
+                </p>
+                <p className="text-xs text-slate-400">{medbedCardId.length}/11 digits</p>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Enter 11-digit Medbed Card ID •  <span className="text-amber-400 font-semibold"></span>
+              {/* No hint about "042" */}
+              <p className="text-xs text-slate-400 mt-1">
+                Enter your 11‑digit Medbed Card ID
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Session Date</label>
+                <label className="block text-slate-200 text-sm font-medium mb-2">Session Date</label>
                 <input
                   type="date"
                   value={sessionDate}
                   onChange={(e) => setSessionDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [color-scheme:dark]"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all [color-scheme:dark]"
                 />
               </div>
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Session Time</label>
+                <label className="block text-slate-200 text-sm font-medium mb-2">Session Time</label>
                 <input
                   type="time"
                   value={sessionTime}
                   onChange={(e) => setSessionTime(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all [color-scheme:dark]"
+                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all [color-scheme:dark]"
                 />
               </div>
             </div>
@@ -293,7 +291,7 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
     );
   }
 
-  // ========== Initial choice: Buy or Book ==========
+  // ---------- INITIAL CHOICE ----------
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       <p className="text-slate-300 text-center text-sm tracking-wide">CHOOSE AN ACTION</p>
