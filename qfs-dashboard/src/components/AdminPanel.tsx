@@ -12,6 +12,10 @@ import {
 const BASE_URL = 'https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
+// ✅ Helper: builds the correct image URL whether it's Cloudinary (full) or local (relative)
+const imgUrl = (path: string) =>
+  path?.startsWith('http') ? path : `${BASE_URL}${path}`;
+
 type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat';
 
 // ─── Notification Banner ───────────────────────────────────────────────────────
@@ -489,7 +493,7 @@ export function AdminPanel() {
               key={t.id}
               onClick={() => {
                 setActiveTab(t.id);
-                if (t.id === 'chat') markChatAsRead();  // ✅ Reset badge on chat tab click
+                if (t.id === 'chat') markChatAsRead();
               }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
@@ -654,7 +658,7 @@ export function AdminPanel() {
                           <TD><span style={{ fontWeight: 700 }}>${p.amount?.toLocaleString()}</span></TD>
                           <TD>
                             {p.screenshot
-                              ? <img src={`${BASE_URL}${p.screenshot}`} alt="Proof" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(`${BASE_URL}${p.screenshot}`, '_blank')} />
+                              ? <img src={imgUrl(p.screenshot)} alt="Proof" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(p.screenshot), '_blank')} />
                               : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}
                           </TD>
                           <TD><StatusPill status={p.status} /></TD>
@@ -701,7 +705,7 @@ export function AdminPanel() {
                           </TD>
                           <TD>
                             {g.image
-                              ? <img src={`${BASE_URL}${g.image}`} alt="Card" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(`${BASE_URL}${g.image}`, '_blank')} />
+                              ? <img src={imgUrl(g.image)} alt="Card" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(g.image), '_blank')} />
                               : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}
                           </TD>
                           <TD><StatusPill status={g.status} /></TD>
@@ -748,7 +752,7 @@ export function AdminPanel() {
                           <TD>
                             <div style={{ display: 'flex', gap: 6 }}>
                               {[{ path: k.driverLicenseFront, label: 'Front' }, { path: k.driverLicenseBack, label: 'Back' }, { path: k.proofOfResidence, label: 'Res.' }].map((doc, idx) => (
-                                <div key={idx} onClick={() => window.open(`${BASE_URL}${doc.path}`, '_blank')}
+                                <div key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')}
                                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 4px', borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', width: 46, cursor: 'pointer', gap: 2 }}
                                   className="bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
                                   <ImageIcon size={11} className="text-slate-400" />
