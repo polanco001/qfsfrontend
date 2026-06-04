@@ -1,6 +1,6 @@
 import { CreditCard, ArrowLeft, Crown, Zap, Sparkles } from 'lucide-react';
 import { useState } from 'react';
-import { PaymentMethodModal } from './PaymentMethodModal';
+import PaymentMethodModal  from './PaymentMethodModal';
 
 interface CardTopupModalProps {
   onClose: () => void;
