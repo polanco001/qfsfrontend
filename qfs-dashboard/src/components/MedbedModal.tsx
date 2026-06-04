@@ -82,7 +82,7 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
       return;
     }
     if (!medbedCardId.trim() || !isValidCardId) {
-      alert('Please enter a valid 11-digit Medbed Card ID ending with 042');
+      alert('Please enter a valid 11-digit Medbed Card ID ');
       return;
     }
     setShowPayment(true);
@@ -257,7 +257,7 @@ export function MedbedModal({ onClose }: MedbedModalProps) {
                 <p className="text-xs text-slate-500 ml-auto">{medbedCardId.length}/11 digits</p>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Enter 11-digit Medbed Card ID • Must end with <span className="text-amber-400 font-semibold">042</span>
+                Enter 11-digit Medbed Card ID •  <span className="text-amber-400 font-semibold"></span>
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
