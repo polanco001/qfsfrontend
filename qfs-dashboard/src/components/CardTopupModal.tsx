@@ -25,7 +25,7 @@ const useCardHeight = () => {
   return height;
 };
 
-/* ─── CardShell now uses dynamic height ──────────────────────────────────── */
+/* ─── CardShell ──────────────────────────────────────────────────────────── */
 function CardShell({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
   const h = useCardHeight();
   return (
@@ -39,16 +39,13 @@ function CardShell({ children, style }: { children: React.ReactNode; style?: Rea
   );
 }
 
-/* ─── 3D Flip Card (also uses responsive height) ─────────────────────────── */
+/* ─── 3D Flip Card ───────────────────────────────────────────────────────── */
 function FlipCard({ front, back, flipped, onClick }: {
   front: React.ReactNode; back: React.ReactNode; flipped: boolean; onClick: () => void;
 }) {
   const h = useCardHeight();
   return (
-    <div
-      onClick={onClick}
-      style={{ width:'100%', height:h, cursor:'pointer', perspective:1200, WebkitPerspective:1200 }}
-    >
+    <div onClick={onClick} style={{ width:'100%', height:h, cursor:'pointer', perspective:1200, WebkitPerspective:1200 }}>
       <div style={{
         width:'100%', height:'100%', position:'relative',
         transformStyle:'preserve-3d', WebkitTransformStyle:'preserve-3d',
@@ -66,41 +63,47 @@ function FlipCard({ front, back, flipped, onClick }: {
   );
 }
 
-/* ─── Card designs (unchanged) ───────────────────────────────────────────── */
+/* ─── Card designs (all text now BLACK) ──────────────────────────────────── */
+
+/* QFS Silver */
 function SilverFront({ name }: { name: string }) {
   return (
     <CardShell style={{ background: 'linear-gradient(135deg,#c0c0c0 0%,#e8e8e8 30%,#a8a8a8 60%,#d4d4d4 100%)' }}>
       <div style={{ position:'absolute', inset:0, background:'linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.55) 50%,transparent 60%)', pointerEvents:'none' }} />
+      {/* chip */}
       <div style={{ position:'absolute', top:24, left:24, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#d4af37,#f5e27a,#c9a227)', boxShadow:'0 2px 8px rgba(0,0,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center' }}>
         <div style={{ width:28, height:20, border:'1.5px solid rgba(139,100,20,0.6)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
           {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,20,0.4)' }} />)}
         </div>
       </div>
+      {/* wave lines */}
       <svg style={{ position:'absolute', right:0, top:0, height:'100%', opacity:0.12 }} viewBox="0 0 120 200" preserveAspectRatio="none">
         {[0,20,40,60,80,100].map(x=>(
           <path key={x} d={`M${x} 0 Q${x+30} 100 ${x} 200`} stroke="#fff" strokeWidth="18" fill="none"/>
         ))}
       </svg>
+      {/* number */}
       <div style={{ position:'absolute', bottom:54, left:24, right:24 }}>
-        <p style={{ fontFamily:'monospace', fontSize:17, letterSpacing:'0.2em', color:'#2a2a2a', fontWeight:700, textShadow:'0 1px 0 rgba(255,255,255,0.6)' }}>
+        <p style={{ fontFamily:'monospace', fontSize:17, letterSpacing:'0.2em', color:'#000', fontWeight:700 }}>
           •••• •••• •••• 4582
         </p>
       </div>
+      {/* name + expiry */}
       <div style={{ position:'absolute', bottom:18, left:24, right:24, display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
         <div>
-          <p style={{ fontSize:9, color:'#555', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2 }}>Card holder</p>
-          <p style={{ fontSize:13, fontWeight:700, color:'#1a1a1a', textTransform:'uppercase', letterSpacing:'0.05em', minHeight:16 }}>
+          <p style={{ fontSize:9, color:'#000', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:2 }}>Card holder</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#000', textTransform:'uppercase', letterSpacing:'0.05em', minHeight:16 }}>
             {name || 'YOUR NAME'}
           </p>
         </div>
         <div style={{ textAlign:'right' }}>
-          <p style={{ fontSize:9, color:'#555', letterSpacing:'0.1em', marginBottom:2 }}>EXPIRES</p>
-          <p style={{ fontSize:13, fontWeight:700, color:'#1a1a1a' }}>12/28</p>
+          <p style={{ fontSize:9, color:'#000', letterSpacing:'0.1em', marginBottom:2 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#000' }}>12/28</p>
         </div>
       </div>
       <div style={{ position:'absolute', top:22, right:20, display:'flex', alignItems:'center', gap:4 }}>
-        <Sparkles size={14} color="#555" />
-        <span style={{ fontSize:12, fontWeight:900, color:'#333', letterSpacing:'0.12em' }}>QFS SILVER</span>
+        <Sparkles size={14} color="#000" />
+        <span style={{ fontSize:12, fontWeight:900, color:'#000', letterSpacing:'0.12em' }}>QFS SILVER</span>
       </div>
       <div style={{ position:'absolute', bottom:18, right:24 }}>
         <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:22, color:'#1a1a6e', letterSpacing:'-1px' }}>VISA</span>
@@ -115,49 +118,50 @@ function SilverBack() {
       <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#1a1a1a' }} />
       <div style={{ position:'absolute', top:90, left:16, right:16 }}>
         <div style={{ background:'linear-gradient(90deg,#f0f0f0,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
-          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#1a1a1a', fontWeight:700 }}>•••  7 2 4</span>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#000', fontWeight:700 }}>•••  7 2 4</span>
         </div>
-        <p style={{ fontSize:9, color:'#555', marginTop:4, textAlign:'right' }}>CVV</p>
+        <p style={{ fontSize:9, color:'#000', marginTop:4, textAlign:'right' }}>CVV</p>
       </div>
       <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <p style={{ fontSize:9, color:'#777', maxWidth:180, lineHeight:1.4 }}>This card is property of QFS. If found, please return to nearest bank.</p>
+        <p style={{ fontSize:9, color:'#000', maxWidth:180, lineHeight:1.4 }}>This card is property of QFS. If found, please return to nearest bank.</p>
         <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:18, color:'#1a1a6e' }}>VISA</span>
       </div>
     </CardShell>
   );
 }
 
-/* ─── QFS Gold ────────────────────────────────────────────────────────────── */
+/* QFS Gold */
 function GoldFront({ name }: { name: string }) {
   return (
     <CardShell style={{ background:'linear-gradient(135deg,#b8860b 0%,#ffd700 30%,#daa520 60%,#f5c842 85%,#b8860b 100%)' }}>
       <div style={{ position:'absolute', inset:0, background:'linear-gradient(105deg,transparent 35%,rgba(255,255,255,0.5) 50%,transparent 65%)', pointerEvents:'none' }} />
       <div style={{ position:'absolute', inset:0, backgroundImage:'repeating-linear-gradient(45deg,rgba(0,0,0,0.03) 0px,rgba(0,0,0,0.03) 1px,transparent 1px,transparent 8px)', pointerEvents:'none' }} />
+      {/* chip */}
       <div style={{ position:'absolute', top:24, left:24, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#8B6914,#f5d060,#8B6914)', boxShadow:'0 3px 10px rgba(0,0,0,0.4)' }}>
         <div style={{ position:'absolute', inset:4, border:'1px solid rgba(139,100,20,0.5)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
           {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,20,0.3)' }} />)}
         </div>
       </div>
       <div style={{ position:'absolute', top:20, right:20, display:'flex', alignItems:'center', gap:5 }}>
-        <Crown size={16} color="#7a5200" />
-        <span style={{ fontSize:12, fontWeight:900, color:'#7a5200', letterSpacing:'0.12em' }}>QFS GOLD</span>
+        <Crown size={16} color="#000" />
+        <span style={{ fontSize:12, fontWeight:900, color:'#000', letterSpacing:'0.12em' }}>QFS GOLD</span>
       </div>
       <div style={{ position:'absolute', bottom:22, right:70, width:36, height:36, borderRadius:'50%', background:'conic-gradient(#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)', opacity:0.7, boxShadow:'0 0 10px rgba(255,200,0,0.6)' }} />
       <div style={{ position:'absolute', bottom:30, left:24, right:24 }}>
-        <p style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.2em', color:'#3d2800', fontWeight:800, textShadow:'0 1px 0 rgba(255,255,200,0.8)' }}>•••• •••• •••• 8793</p>
+        <p style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.2em', color:'#000', fontWeight:800 }}>•••• •••• •••• 8793</p>
       </div>
       <div style={{ position:'absolute', bottom:10, left:24, right:24, display:'flex', justifyContent:'space-between' }}>
         <div>
-          <p style={{ fontSize:9, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>CARD HOLDER</p>
-          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+          <p style={{ fontSize:9, color:'#000', letterSpacing:'0.1em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#000', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
         </div>
         <div style={{ textAlign:'right' }}>
-          <p style={{ fontSize:9, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
-          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800' }}>12/30</p>
+          <p style={{ fontSize:9, color:'#000', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#000' }}>12/30</p>
         </div>
       </div>
       <div style={{ position:'absolute', bottom:12, right:20 }}>
-        <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:22, color:'#3d2800' }}>GOLD</span>
+        <span style={{ fontFamily:'serif', fontStyle:'italic', fontWeight:900, fontSize:22, color:'#000' }}>GOLD</span>
       </div>
     </CardShell>
   );
@@ -169,19 +173,19 @@ function GoldBack() {
       <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#1a1a1a' }} />
       <div style={{ position:'absolute', top:90, left:16, right:16 }}>
         <div style={{ background:'linear-gradient(90deg,#fffde7,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
-          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#3d2800', fontWeight:700 }}>•••  5 8 1</span>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#000', fontWeight:700 }}>•••  5 8 1</span>
         </div>
-        <p style={{ fontSize:9, color:'#7a5200', marginTop:4, textAlign:'right' }}>CVV</p>
+        <p style={{ fontSize:9, color:'#000', marginTop:4, textAlign:'right' }}>CVV</p>
       </div>
       <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <p style={{ fontSize:9, color:'#7a5200', maxWidth:180, lineHeight:1.4 }}>QFS Gold — premium membership card. Property of QFS Financial.</p>
+        <p style={{ fontSize:9, color:'#000', maxWidth:180, lineHeight:1.4 }}>QFS Gold — premium membership card. Property of QFS Financial.</p>
         <div style={{ width:36, height:36, borderRadius:'50%', background:'conic-gradient(#ff0000,#ffff00,#00ff00,#00ffff,#0000ff,#ff00ff,#ff0000)', opacity:0.7 }} />
       </div>
     </CardShell>
   );
 }
 
-/* ─── Trump Gold ──────────────────────────────────────────────────────────── */
+/* Trump Gold */
 function TrumpFront({ name }: { name: string }) {
   return (
     <CardShell style={{ background:'linear-gradient(135deg,#c9970c 0%,#f7d060 25%,#e8a800 50%,#fbe89a 70%,#c9970c 100%)' }}>
@@ -189,27 +193,28 @@ function TrumpFront({ name }: { name: string }) {
       <div style={{ position:'absolute', inset:0, backgroundImage:'repeating-linear-gradient(-45deg,rgba(255,255,255,0.04) 0px,rgba(255,255,255,0.04) 2px,transparent 2px,transparent 12px)', pointerEvents:'none' }} />
       <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', opacity:0.08, fontSize:90, lineHeight:1 }}>🦅</div>
       <div style={{ position:'absolute', top:0, left:0, right:0, height:6, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
+      {/* chip */}
       <div style={{ position:'absolute', top:22, left:22, width:42, height:32, borderRadius:6, background:'linear-gradient(135deg,#a07000,#f5e27a,#a07000)', boxShadow:'0 3px 12px rgba(0,0,0,0.5)' }}>
         <div style={{ position:'absolute', inset:4, border:'1px solid rgba(139,100,0,0.5)', borderRadius:3, display:'grid', gridTemplateColumns:'1fr 1fr' }}>
           {[0,1,2,3].map(i=><div key={i} style={{ border:'0.5px solid rgba(139,100,0,0.3)' }} />)}
         </div>
       </div>
       <div style={{ position:'absolute', top:18, right:16, textAlign:'right' }}>
-        <p style={{ fontFamily:'Georgia,serif', fontSize:22, fontWeight:900, color:'#3d2800', letterSpacing:'0.15em', lineHeight:1, textShadow:'0 1px 0 rgba(255,255,200,0.8)' }}>TRUMP</p>
-        <p style={{ fontFamily:'Georgia,serif', fontSize:9, fontWeight:700, color:'#7a5200', letterSpacing:'0.35em' }}>GOLD CARD</p>
-        <Zap size={12} color="#7a5200" style={{ marginLeft:'auto', marginTop:2 }} />
+        <p style={{ fontFamily:'Georgia,serif', fontSize:22, fontWeight:900, color:'#000', letterSpacing:'0.15em', lineHeight:1 }}>TRUMP</p>
+        <p style={{ fontFamily:'Georgia,serif', fontSize:9, fontWeight:700, color:'#000', letterSpacing:'0.35em' }}>GOLD CARD</p>
+        <Zap size={12} color="#000" style={{ marginLeft:'auto', marginTop:2 }} />
       </div>
       <div style={{ position:'absolute', bottom:46, left:22 }}>
-        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#3d2800', fontWeight:800, textShadow:'0 1px 0 rgba(255,255,200,0.9)' }}>•••• •••• •••• 4501</p>
+        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#000', fontWeight:800 }}>•••• •••• •••• 4501</p>
       </div>
       <div style={{ position:'absolute', bottom:12, left:22, right:22, display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
         <div>
-          <p style={{ fontSize:8, color:'#7a5200', letterSpacing:'0.15em', marginBottom:1 }}>CARD HOLDER</p>
-          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+          <p style={{ fontSize:8, color:'#000', letterSpacing:'0.15em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#000', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
         </div>
         <div style={{ textAlign:'right' }}>
-          <p style={{ fontSize:8, color:'#7a5200', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
-          <p style={{ fontSize:13, fontWeight:800, color:'#3d2800' }}>01/29</p>
+          <p style={{ fontSize:8, color:'#000', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:800, color:'#000' }}>01/29</p>
         </div>
       </div>
       <div style={{ position:'absolute', bottom:0, left:0, right:0, height:5, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
@@ -224,12 +229,12 @@ function TrumpBack() {
       <div style={{ position:'absolute', top:30, left:0, right:0, height:44, background:'#1a1a1a' }} />
       <div style={{ position:'absolute', top:92, left:16, right:16 }}>
         <div style={{ background:'linear-gradient(90deg,#fffde7,#fff)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12 }}>
-          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#3d2800', fontWeight:700 }}>•••  3 1 7</span>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#000', fontWeight:700 }}>•••  3 1 7</span>
         </div>
-        <p style={{ fontSize:9, color:'#7a5200', marginTop:4, textAlign:'right' }}>CVV</p>
+        <p style={{ fontSize:9, color:'#000', marginTop:4, textAlign:'right' }}>CVV</p>
       </div>
       <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <p style={{ fontSize:9, color:'#7a5200', maxWidth:180, lineHeight:1.4 }}>Trump Gold — Exclusive limited edition card. Authorized use only.</p>
+        <p style={{ fontSize:9, color:'#000', maxWidth:180, lineHeight:1.4 }}>Trump Gold — Exclusive limited edition card. Authorized use only.</p>
         <div style={{ fontSize:28, opacity:0.6 }}>🦅</div>
       </div>
       <div style={{ position:'absolute', bottom:0, left:0, right:0, height:5, background:'linear-gradient(90deg,#b22234,#b22234 33%,#fff 33%,#fff 66%,#3c3b6e 66%)' }} />
@@ -237,7 +242,7 @@ function TrumpBack() {
   );
 }
 
-/* ─── Medbed ─────────────────────────────────────────────────────────────── */
+/* Medbed (keep white text for contrast) */
 function MedbedFront({ name }: { name: string }) {
   return (
     <CardShell style={{ background:'linear-gradient(135deg,#1a0533 0%,#4a1060 30%,#7b2d8b 60%,#9b59b6 100%)' }}>
@@ -251,25 +256,25 @@ function MedbedFront({ name }: { name: string }) {
         </div>
       </div>
       <div style={{ position:'absolute', top:20, right:18, textAlign:'right' }}>
-        <p style={{ fontSize:12, fontWeight:900, color:'#e8aaff', letterSpacing:'0.14em' }}>MEDBED</p>
-        <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.2em' }}>HEALING CARD</p>
+        <p style={{ fontSize:12, fontWeight:900, color:'#fff', letterSpacing:'0.14em' }}>MEDBED</p>
+        <p style={{ fontSize:8, color:'#fff', letterSpacing:'0.2em' }}>HEALING CARD</p>
       </div>
       <div style={{ position:'absolute', right:18, bottom:44, opacity:0.9 }}>
         <svg width="44" height="22" viewBox="0 0 44 22">
-          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#c084fc" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
       <div style={{ position:'absolute', bottom:46, left:22 }}>
-        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#f0d0ff', fontWeight:700 }}>•••• •••• •••• 2024</p>
+        <p style={{ fontFamily:'monospace', fontSize:15, letterSpacing:'0.22em', color:'#fff', fontWeight:700 }}>•••• •••• •••• 2024</p>
       </div>
       <div style={{ position:'absolute', bottom:12, left:22, right:22, display:'flex', justifyContent:'space-between' }}>
         <div>
-          <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.12em', marginBottom:1 }}>CARD HOLDER</p>
-          <p style={{ fontSize:13, fontWeight:700, color:'#f5e6ff', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
+          <p style={{ fontSize:8, color:'#fff', letterSpacing:'0.12em', marginBottom:1 }}>CARD HOLDER</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#fff', textTransform:'uppercase', letterSpacing:'0.04em', minHeight:16 }}>{name || 'YOUR NAME'}</p>
         </div>
         <div style={{ textAlign:'right' }}>
-          <p style={{ fontSize:8, color:'#c084fc', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
-          <p style={{ fontSize:13, fontWeight:700, color:'#f5e6ff' }}>01/30</p>
+          <p style={{ fontSize:8, color:'#fff', letterSpacing:'0.1em', marginBottom:1 }}>EXPIRES</p>
+          <p style={{ fontSize:13, fontWeight:700, color:'#fff' }}>01/30</p>
         </div>
       </div>
     </CardShell>
@@ -282,14 +287,14 @@ function MedbedBack() {
       <div style={{ position:'absolute', top:28, left:0, right:0, height:44, background:'#0a0a0a' }} />
       <div style={{ position:'absolute', top:90, left:16, right:16 }}>
         <div style={{ background:'linear-gradient(90deg,#2d0050,#4a0080)', borderRadius:4, height:36, display:'flex', alignItems:'center', justifyContent:'flex-end', paddingRight:12, border:'1px solid rgba(192,132,252,0.3)' }}>
-          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#e8aaff', fontWeight:700 }}>•••  9 4 2</span>
+          <span style={{ fontFamily:'monospace', fontSize:16, letterSpacing:'0.15em', color:'#fff', fontWeight:700 }}>•••  9 4 2</span>
         </div>
-        <p style={{ fontSize:9, color:'#c084fc', marginTop:4, textAlign:'right' }}>CVV</p>
+        <p style={{ fontSize:9, color:'#fff', marginTop:4, textAlign:'right' }}>CVV</p>
       </div>
       <div style={{ position:'absolute', bottom:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <p style={{ fontSize:9, color:'#c084fc', maxWidth:200, lineHeight:1.4 }}>Medbed Healing Card. Authorized sessions only. Property of MedBed Corp.</p>
+        <p style={{ fontSize:9, color:'#fff', maxWidth:200, lineHeight:1.4 }}>Medbed Healing Card. Authorized sessions only. Property of MedBed Corp.</p>
         <svg width="32" height="16" viewBox="0 0 44 22">
-          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#c084fc" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+          <polyline points="0,11 8,11 12,2 16,20 20,6 24,16 28,11 44,11" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </div>
     </CardShell>
@@ -315,7 +320,6 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
     front:(n)=><MedbedFront name={n} />, back:()=><MedbedBack />,
   };
 
-  const allCards = step === 'pick-card' && cardType === 'qfs' ? qfsCards : [medbedCard];
   const selected = [...qfsCards, medbedCard].find(c => c.id === selectedId);
 
   const handleSelectCard = (id: string) => {
@@ -331,27 +335,27 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:0, width:'100%', maxHeight:'80vh', overflowY:'auto', paddingBottom:20 }}>
 
-      {/* ── Back button ────────────────────────────────────────── */}
+      {/* Back button */}
       {step !== 'pick-type' && (
         <button
           onClick={() => {
             if (step === 'detail') { setSelectedId(null); setFlippedId(null); setCardholderName(''); setStep(cardType === 'medbed' ? 'pick-type' : 'pick-card'); }
             else if (step === 'pick-card') { setCardType(null); setStep('pick-type'); }
           }}
-          style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', color:'rgba(255,255,255,0.6)', fontSize:14, cursor:'pointer', padding:'0 0 12px', fontWeight:500 }}
+          style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', color:'#fff', fontSize:14, cursor:'pointer', padding:'0 0 12px', fontWeight:500 }}
         >
           <ArrowLeft size={16} /> Back
         </button>
       )}
 
-      {/* ══ STEP 1: Pick type ═══════════════════════════════════════════════ */}
+      {/* STEP 1: Pick type */}
       {step === 'pick-type' && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:20, textTransform:'uppercase' }}>Select a Card Type</p>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:20, textTransform:'uppercase' }}>Select a Card Type</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             {[
-              { id:'qfs',    label:'QFS Card',    sub:'Silver / Gold / Trump', color:'#2563eb', bg:'rgba(37,99,235,0.12)', border:'rgba(37,99,235,0.35)', icon:<CreditCard size={28} color="#60a5fa" /> },
-              { id:'medbed', label:'Medbed Card',  sub:'Healing session credits', color:'#9333ea', bg:'rgba(147,51,234,0.12)', border:'rgba(147,51,234,0.35)', icon:<CreditCard size={28} color="#c084fc" /> },
+              { id:'qfs', label:'QFS Card', sub:'Silver / Gold / Trump', color:'#2563eb', bg:'rgba(37,99,235,0.12)', border:'rgba(37,99,235,0.35)', icon:<CreditCard size={28} color="#60a5fa" /> },
+              { id:'medbed', label:'Medbed Card', sub:'Healing session credits', color:'#9333ea', bg:'rgba(147,51,234,0.12)', border:'rgba(147,51,234,0.35)', icon:<CreditCard size={28} color="#c084fc" /> },
             ].map(t => (
               <button
                 key={t.id}
@@ -368,7 +372,7 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
                 </div>
                 <div>
                   <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{t.label}</p>
-                  <p style={{ color:'rgba(255,255,255,0.45)', fontSize:11 }}>{t.sub}</p>
+                  <p style={{ color:'#fff', fontSize:11 }}>{t.sub}</p>
                 </div>
               </button>
             ))}
@@ -376,13 +380,13 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
         </div>
       )}
 
-      {/* ══ STEP 2: Pick card (gallery) ═════════════════════════════════════ */}
+      {/* STEP 2: Pick card (gallery) */}
       {step === 'pick-card' && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:4, textTransform:'uppercase' }}>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:4, textTransform:'uppercase' }}>
             {cardType === 'qfs' ? 'Choose your QFS Card' : 'Medbed Card'}
           </p>
-          <p style={{ textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', marginBottom:20 }}>Tap a card to flip · tap again to select</p>
+          <p style={{ textAlign:'center', fontSize:11, color:'#fff', marginBottom:20 }}>Tap a card to flip · tap again to select</p>
 
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {(cardType === 'qfs' ? qfsCards : [medbedCard]).map(card => (
@@ -398,7 +402,7 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
                 <div style={{ padding:'12px 16px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
                   <div style={{ minWidth:0 }}>
                     <p style={{ color:'#fff', fontWeight:700, fontSize:14, marginBottom:2 }}>{card.name}</p>
-                    <p style={{ color:'rgba(255,255,255,0.4)', fontSize:11 }}>{card.tag}</p>
+                    <p style={{ color:'#fff', fontSize:11 }}>{card.tag}</p>
                   </div>
                   <button
                     onClick={() => handleSelectCard(card.id)}
@@ -419,12 +423,11 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
         </div>
       )}
 
-      {/* ══ STEP 3: Detail + cardholder name ════════════════════════════════ */}
+      {/* STEP 3: Detail + cardholder name */}
       {step === 'detail' && selected && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'rgba(255,255,255,0.45)', marginBottom:16, textTransform:'uppercase' }}>Personalize your Card</p>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:16, textTransform:'uppercase' }}>Personalize your Card</p>
 
-          {/* Live card preview */}
           <div style={{ marginBottom:16 }}>
             <FlipCard
               front={selected.front(cardholderName)}
@@ -432,30 +435,27 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
               flipped={flippedId === selected.id}
               onClick={() => setFlippedId(prev => prev === selected.id ? null : selected.id)}
             />
-            <p style={{ textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:8 }}>Tap card to flip</p>
+            <p style={{ textAlign:'center', fontSize:11, color:'#fff', marginTop:8 }}>Tap card to flip</p>
           </div>
 
-          {/* Card info */}
           <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, padding:'14px 16px', marginBottom:12 }}>
             <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{selected.name}</p>
-            <p style={{ color:'rgba(255,255,255,0.45)', fontSize:12, lineHeight:1.5 }}>{selected.description}</p>
+            <p style={{ color:'#fff', fontSize:12, lineHeight:1.5 }}>{selected.description}</p>
           </div>
 
-          {/* Benefits */}
           <div style={{ marginBottom:16, display:'flex', flexDirection:'column', gap:4 }}>
             {['Worldwide acceptance', 'Instant activation', 'Secure encrypted chip', '24/7 support access'].map(b => (
               <div key={b} style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <div style={{ width:16, height:16, borderRadius:'50%', background:'rgba(34,197,94,0.15)', border:'1px solid rgba(34,197,94,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <Check size={10} color="#4ade80" />
                 </div>
-                <span style={{ color:'rgba(255,255,255,0.6)', fontSize:12 }}>{b}</span>
+                <span style={{ color:'#fff', fontSize:12 }}>{b}</span>
               </div>
             ))}
           </div>
 
-          {/* Name input */}
           <div style={{ marginBottom:14 }}>
-            <label style={{ display:'block', color:'rgba(255,255,255,0.7)', fontSize:12, fontWeight:600, marginBottom:6, letterSpacing:'0.08em', textTransform:'uppercase' }}>
+            <label style={{ display:'block', color:'#fff', fontSize:12, fontWeight:600, marginBottom:6, letterSpacing:'0.08em', textTransform:'uppercase' }}>
               Cardholder Name
             </label>
             <input
@@ -472,10 +472,9 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
               onFocus={e => (e.target.style.borderColor='rgba(255,255,255,0.4)')}
               onBlur={e => (e.target.style.borderColor='rgba(255,255,255,0.15)')}
             />
-            <p style={{ color:'rgba(255,255,255,0.3)', fontSize:11, marginTop:4 }}>This name will appear on your card</p>
+            <p style={{ color:'#fff', fontSize:11, marginTop:4 }}>This name will appear on your card</p>
           </div>
 
-          {/* Purchase button – always visible */}
           <button
             onClick={() => {
               if (!cardholderName.trim()) { alert('Please enter the cardholder name'); return; }
