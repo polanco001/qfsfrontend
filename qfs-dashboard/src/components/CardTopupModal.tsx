@@ -63,7 +63,7 @@ function FlipCard({ front, back, flipped, onClick }: {
   );
 }
 
-/* ─── Card designs (all text now BLACK) ──────────────────────────────────── */
+/* ─── Card designs (keep original colors, some with dark backgrounds for contrast) ─── */
 
 /* QFS Silver */
 function SilverFront({ name }: { name: string }) {
@@ -242,7 +242,7 @@ function TrumpBack() {
   );
 }
 
-/* Medbed (keep white text for contrast) */
+/* Medbed (dark card - keep white text for contrast) */
 function MedbedFront({ name }: { name: string }) {
   return (
     <CardShell style={{ background:'linear-gradient(135deg,#1a0533 0%,#4a1060 30%,#7b2d8b 60%,#9b59b6 100%)' }}>
@@ -301,7 +301,7 @@ function MedbedBack() {
   );
 }
 
-/* ─── Main Component ──────────────────────────────────────────────────────── */
+/* ─── Main Component (light text → black) ────────────────────────────────── */
 export function CardTopupModal({ onClose }: CardTopupModalProps) {
   const [step, setStep] = useState<'pick-type' | 'pick-card' | 'detail' | 'payment'>('pick-type');
   const [cardType, setCardType] = useState<'qfs' | 'medbed' | null>(null);
@@ -333,7 +333,7 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
   }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:0, width:'100%', maxHeight:'80vh', overflowY:'auto', paddingBottom:20 }}>
+    <div style={{ display:'flex', flexDirection:'column', gap:0, width:'100%', maxHeight:'80vh', overflowY:'auto', paddingBottom:20, color:'#111' }}>
 
       {/* Back button */}
       {step !== 'pick-type' && (
@@ -342,7 +342,7 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
             if (step === 'detail') { setSelectedId(null); setFlippedId(null); setCardholderName(''); setStep(cardType === 'medbed' ? 'pick-type' : 'pick-card'); }
             else if (step === 'pick-card') { setCardType(null); setStep('pick-type'); }
           }}
-          style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', color:'#fff', fontSize:14, cursor:'pointer', padding:'0 0 12px', fontWeight:500 }}
+          style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', color:'#111', fontSize:14, cursor:'pointer', padding:'0 0 12px', fontWeight:600 }}
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -351,11 +351,11 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
       {/* STEP 1: Pick type */}
       {step === 'pick-type' && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:20, textTransform:'uppercase' }}>Select a Card Type</p>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#333', marginBottom:20, textTransform:'uppercase', fontWeight:700 }}>Select a Card Type</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
             {[
-              { id:'qfs', label:'QFS Card', sub:'Silver / Gold / Trump', color:'#2563eb', bg:'rgba(37,99,235,0.12)', border:'rgba(37,99,235,0.35)', icon:<CreditCard size={28} color="#60a5fa" /> },
-              { id:'medbed', label:'Medbed Card', sub:'Healing session credits', color:'#9333ea', bg:'rgba(147,51,234,0.12)', border:'rgba(147,51,234,0.35)', icon:<CreditCard size={28} color="#c084fc" /> },
+              { id:'qfs', label:'QFS Card', sub:'Silver / Gold / Trump', color:'#2563eb', bg:'rgba(37,99,235,0.05)', border:'rgba(37,99,235,0.3)', icon:<CreditCard size={28} color="#2563eb" /> },
+              { id:'medbed', label:'Medbed Card', sub:'Healing session credits', color:'#9333ea', bg:'rgba(147,51,234,0.05)', border:'rgba(147,51,234,0.3)', icon:<CreditCard size={28} color="#9333ea" /> },
             ].map(t => (
               <button
                 key={t.id}
@@ -363,16 +363,16 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
                 style={{
                   padding:'24px 12px', borderRadius:20, border:`1.5px solid ${t.border}`,
                   background:t.bg, cursor:'pointer', textAlign:'center',
-                  backdropFilter:'blur(12px)', transition:'all 0.2s',
+                  transition:'all 0.2s',
                   display:'flex', flexDirection:'column', alignItems:'center', gap:10,
                 }}
               >
-                <div style={{ width:56, height:56, borderRadius:'50%', background:`rgba(${t.id==='qfs'?'37,99,235':'147,51,234'},0.15)`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <div style={{ width:56, height:56, borderRadius:'50%', background:`${t.bg}`, display:'flex', alignItems:'center', justifyContent:'center' }}>
                   {t.icon}
                 </div>
                 <div>
-                  <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{t.label}</p>
-                  <p style={{ color:'#fff', fontSize:11 }}>{t.sub}</p>
+                  <p style={{ color:'#111', fontWeight:700, fontSize:15, marginBottom:3 }}>{t.label}</p>
+                  <p style={{ color:'#555', fontSize:11 }}>{t.sub}</p>
                 </div>
               </button>
             ))}
@@ -383,14 +383,14 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
       {/* STEP 2: Pick card (gallery) */}
       {step === 'pick-card' && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:4, textTransform:'uppercase' }}>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#333', marginBottom:4, textTransform:'uppercase', fontWeight:700 }}>
             {cardType === 'qfs' ? 'Choose your QFS Card' : 'Medbed Card'}
           </p>
-          <p style={{ textAlign:'center', fontSize:11, color:'#fff', marginBottom:20 }}>Tap a card to flip · tap again to select</p>
+          <p style={{ textAlign:'center', fontSize:11, color:'#555', marginBottom:20 }}>Tap a card to flip · tap again to select</p>
 
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {(cardType === 'qfs' ? qfsCards : [medbedCard]).map(card => (
-              <div key={card.id} style={{ borderRadius:22, border: selectedId===card.id ? '1.5px solid rgba(255,255,255,0.4)' : '1.5px solid rgba(255,255,255,0.08)', overflow:'hidden', background:'rgba(255,255,255,0.04)', backdropFilter:'blur(12px)', transition:'border 0.2s' }}>
+              <div key={card.id} style={{ borderRadius:22, border: selectedId===card.id ? '1.5px solid rgba(0,0,0,0.15)' : '1.5px solid rgba(0,0,0,0.06)', overflow:'hidden', background:'rgba(0,0,0,0.02)', transition:'border 0.2s' }}>
                 <div style={{ padding:'16px 16px 0' }}>
                   <FlipCard
                     front={card.front('')}
@@ -401,16 +401,16 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
                 </div>
                 <div style={{ padding:'12px 16px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
                   <div style={{ minWidth:0 }}>
-                    <p style={{ color:'#fff', fontWeight:700, fontSize:14, marginBottom:2 }}>{card.name}</p>
-                    <p style={{ color:'#fff', fontSize:11 }}>{card.tag}</p>
+                    <p style={{ color:'#111', fontWeight:700, fontSize:14, marginBottom:2 }}>{card.name}</p>
+                    <p style={{ color:'#555', fontSize:11 }}>{card.tag}</p>
                   </div>
                   <button
                     onClick={() => handleSelectCard(card.id)}
                     style={{
                       flexShrink:0, padding:'8px 16px', borderRadius:12,
-                      border:'none', cursor:'pointer', fontWeight:700, fontSize:13,
-                      background:'rgba(255,255,255,0.12)', color:'#fff',
-                      backdropFilter:'blur(8px)', transition:'all 0.2s',
+                      border:'1px solid #ccc', cursor:'pointer', fontWeight:700, fontSize:13,
+                      background:'#fff', color:'#111',
+                      transition:'all 0.2s',
                       display:'flex', alignItems:'center', gap:6,
                     }}
                   >
@@ -426,7 +426,7 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
       {/* STEP 3: Detail + cardholder name */}
       {step === 'detail' && selected && (
         <div>
-          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#fff', marginBottom:16, textTransform:'uppercase' }}>Personalize your Card</p>
+          <p style={{ textAlign:'center', fontSize:11, letterSpacing:'0.2em', color:'#333', marginBottom:16, textTransform:'uppercase', fontWeight:700 }}>Personalize your Card</p>
 
           <div style={{ marginBottom:16 }}>
             <FlipCard
@@ -435,27 +435,27 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
               flipped={flippedId === selected.id}
               onClick={() => setFlippedId(prev => prev === selected.id ? null : selected.id)}
             />
-            <p style={{ textAlign:'center', fontSize:11, color:'#fff', marginTop:8 }}>Tap card to flip</p>
+            <p style={{ textAlign:'center', fontSize:11, color:'#555', marginTop:8 }}>Tap card to flip</p>
           </div>
 
-          <div style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:16, padding:'14px 16px', marginBottom:12 }}>
-            <p style={{ color:'#fff', fontWeight:700, fontSize:15, marginBottom:3 }}>{selected.name}</p>
-            <p style={{ color:'#fff', fontSize:12, lineHeight:1.5 }}>{selected.description}</p>
+          <div style={{ background:'rgba(0,0,0,0.02)', border:'1px solid rgba(0,0,0,0.08)', borderRadius:16, padding:'14px 16px', marginBottom:12 }}>
+            <p style={{ color:'#111', fontWeight:700, fontSize:15, marginBottom:3 }}>{selected.name}</p>
+            <p style={{ color:'#333', fontSize:12, lineHeight:1.5 }}>{selected.description}</p>
           </div>
 
           <div style={{ marginBottom:16, display:'flex', flexDirection:'column', gap:4 }}>
             {['Worldwide acceptance', 'Instant activation', 'Secure encrypted chip', '24/7 support access'].map(b => (
               <div key={b} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <div style={{ width:16, height:16, borderRadius:'50%', background:'rgba(34,197,94,0.15)', border:'1px solid rgba(34,197,94,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  <Check size={10} color="#4ade80" />
+                <div style={{ width:16, height:16, borderRadius:'50%', background:'rgba(34,197,94,0.1)', border:'1px solid rgba(34,197,94,0.3)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Check size={10} color="#16a34a" />
                 </div>
-                <span style={{ color:'#fff', fontSize:12 }}>{b}</span>
+                <span style={{ color:'#111', fontSize:12 }}>{b}</span>
               </div>
             ))}
           </div>
 
           <div style={{ marginBottom:14 }}>
-            <label style={{ display:'block', color:'#fff', fontSize:12, fontWeight:600, marginBottom:6, letterSpacing:'0.08em', textTransform:'uppercase' }}>
+            <label style={{ display:'block', color:'#111', fontSize:12, fontWeight:700, marginBottom:6, letterSpacing:'0.08em', textTransform:'uppercase' }}>
               Cardholder Name
             </label>
             <input
@@ -465,14 +465,14 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
               placeholder="JOHN DOE"
               style={{
                 width:'100%', padding:'13px 16px', borderRadius:14,
-                background:'rgba(255,255,255,0.07)', border:'1.5px solid rgba(255,255,255,0.15)',
-                color:'#fff', fontSize:15, fontWeight:600, letterSpacing:'0.15em',
-                outline:'none', boxSizing:'border-box', caretColor:'#fff',
+                background:'#fafafa', border:'1.5px solid #ccc',
+                color:'#111', fontSize:15, fontWeight:600, letterSpacing:'0.15em',
+                outline:'none', boxSizing:'border-box', caretColor:'#111',
               }}
-              onFocus={e => (e.target.style.borderColor='rgba(255,255,255,0.4)')}
-              onBlur={e => (e.target.style.borderColor='rgba(255,255,255,0.15)')}
+              onFocus={e => (e.target.style.borderColor='#888')}
+              onBlur={e => (e.target.style.borderColor='#ccc')}
             />
-            <p style={{ color:'#fff', fontSize:11, marginTop:4 }}>This name will appear on your card</p>
+            <p style={{ color:'#555', fontSize:11, marginTop:4 }}>This name will appear on your card</p>
           </div>
 
           <button
@@ -487,8 +487,8 @@ export function CardTopupModal({ onClose }: CardTopupModalProps) {
               fontWeight:800, fontSize:16, letterSpacing:'0.04em',
               background: cardholderName.trim()
                 ? 'linear-gradient(135deg,#2563eb,#1d4ed8)'
-                : 'rgba(255,255,255,0.08)',
-              color: cardholderName.trim() ? '#fff' : 'rgba(255,255,255,0.3)',
+                : '#ccc',
+              color: '#fff',
               boxShadow: cardholderName.trim() ? '0 8px 24px rgba(37,99,235,0.4)' : 'none',
               transition:'all 0.3s',
               marginTop: 4,
