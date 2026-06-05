@@ -34,7 +34,6 @@ export function Header({
     setShowNotificationsPanel(!showNotificationsPanel);
   };
 
-  // Helper: choose an icon & colour based on notification text
   const getNotificationStyle = (message: string) => {
     if (message.includes('KYC')) return { icon: '🛡️', color: 'text-purple-500' };
     if (message.includes('payment') || message.includes('credited')) return { icon: '💰', color: 'text-green-500' };
@@ -45,7 +44,6 @@ export function Header({
 
   return (
     <>
-      {/* Header – light/dark adaptive */}
       <div
         className={`border-b px-4 sm:px-8 py-4 relative ${
           isDarkMode
@@ -54,7 +52,6 @@ export function Header({
         }`}
       >
         <div className="flex items-center justify-between gap-4">
-          {/* Left – Balance Card (shifted right to clear hamburger) */}
           <div className="ml-10">
             <div
               className={`rounded-xl px-5 py-3 flex items-center gap-4 backdrop-blur-md ${
@@ -64,12 +61,21 @@ export function Header({
               }`}
             >
               <div>
+                {/* User's name shown prominently above the balance */}
+                <p
+                  className={`text-xs font-semibold mb-0.5 ${
+                    isDarkMode ? 'text-slate-300' : 'text-slate-600'
+                  }`}
+                >
+                  👤 {user?.fullName || 'User'}
+                </p>
+
                 <p
                   className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${
                     isDarkMode ? 'text-slate-400' : 'text-slate-500'
                   }`}
                 >
-                  Portfolio Value
+                  Wallet Balance
                 </p>
                 <div className="flex items-center gap-2">
                   <span
@@ -99,9 +105,7 @@ export function Header({
             </div>
           </div>
 
-          {/* Right – Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Dark/light toggle */}
             <button
               onClick={toggleDarkMode}
               className={`p-2.5 rounded-lg border transition-all ${
@@ -113,7 +117,6 @@ export function Header({
               {isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
             </button>
 
-            {/* Notifications */}
             <button
               onClick={handleNotificationClick}
               className={`relative p-2.5 rounded-lg border transition-all ${
@@ -130,7 +133,6 @@ export function Header({
               )}
             </button>
 
-            {/* Profile */}
             <button
               onClick={() => setShowProfileModal(true)}
               className={`p-2.5 rounded-lg border transition-all ${
@@ -145,7 +147,6 @@ export function Header({
         </div>
       </div>
 
-      {/* ── Notifications Panel – CryptoRatesWidget style ── */}
       {showNotificationsPanel && (
         <div
           className={`absolute right-4 top-16 w-80 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 backdrop-blur-xl border ${
@@ -179,12 +180,10 @@ export function Header({
                         : 'bg-slate-50 hover:bg-slate-100'
                     }`}
                   >
-                    {/* Icon */}
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${style.color}`}>
                       {style.icon}
                     </div>
 
-                    {/* Message */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm leading-snug ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
                         {n.message}
