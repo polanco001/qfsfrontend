@@ -816,11 +816,15 @@ export function AdminPanel() {
           {activeTab === 'chat' && (
             <div>
               <SectionHeader title="Support Chat" />
-              <CardShell>
-                <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 160px)', minHeight: 400 }}>
-                  <AdminChatPanel />
-                </div>
-              </CardShell>
+              <div
+                style={{
+                  borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', overflow: 'hidden',
+                  height: 'calc(100vh - 160px)', minHeight: 400, display: 'flex', flexDirection: 'column',
+                }}
+                className="bg-white dark:bg-slate-800"
+              >
+                <AdminChatPanel />
+              </div>
             </div>
           )}
         </main>
