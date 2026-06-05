@@ -12,7 +12,7 @@ import {
 const BASE_URL = 'https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
-// ✅ Helper: builds the correct image URL whether it's Cloudinary (full) or local (relative)
+// Helper: builds the correct image URL whether it's Cloudinary (full URL) or local (relative path)
 const imgUrl = (path: string) =>
   path?.startsWith('http') ? path : `${BASE_URL}${path}`;
 
@@ -493,7 +493,7 @@ export function AdminPanel() {
               key={t.id}
               onClick={() => {
                 setActiveTab(t.id);
-                if (t.id === 'chat') markChatAsRead();
+                if (t.id === 'chat') markChatAsRead();  // ✅ Reset badge on chat tab click
               }}
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
