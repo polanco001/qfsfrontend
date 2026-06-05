@@ -82,11 +82,15 @@ export function AdminChatPanel() {
         <select
           value={selectedUser}
           onChange={e => setSelectedUser(e.target.value)}
-          style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(148,163,184,0.3)', background: 'transparent', color: 'inherit', fontSize: 13 }}
+          // ✅ Visible in both modes
+          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          style={{ fontSize: 13 }}
         >
           <option value="">All public messages</option>
           {users.map((u: any) => (
-            <option key={u._id} value={u._id}>{u.email}</option>
+            <option key={u._id} value={u._id}>
+              {u.email}
+            </option>
           ))}
         </select>
       </div>
