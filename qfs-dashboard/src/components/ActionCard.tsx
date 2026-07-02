@@ -1,5 +1,4 @@
-';
-
+import {LucideIcon } from lucie-react';
 
 interface ActionCardProps {
   title: string;
