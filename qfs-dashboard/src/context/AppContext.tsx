@@ -187,6 +187,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ✅ Fixed: no more window.location.href hard redirect.
+  // This only clears auth state. The component that calls logout()
+  // is responsible for navigating (via React Router's navigate()),
+  // so the SPA router handles it instead of hitting the server directly.
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -195,7 +199,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
     setPasscodeVerified(false);
     delete axios.defaults.headers.common['Authorization'];
-    window.location.href = '/login';
   };
 
   const setPasscode = async (passcode: string): Promise<boolean> => {
