@@ -55,7 +55,8 @@ export default function MarketingPage() {
 
   return (
     <div className="bg-[#080a0e] text-white min-h-screen">
-      <style>{`
+ 
+<style>{`
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
           --gold:#0e4fa5;
@@ -436,7 +437,8 @@ export default function MarketingPage() {
           .stats-bar{flex-direction:column}
           .stat{border-right:none;border-bottom:1px solid var(--border2)}
           .footer-grid{grid-template-columns:1fr}
-          .bank-stats{grid-template-columns:1fr 1fr}
+          .bank-stats{grid-template-columns:1fr}        /* FIXED: now single column */
+          .bank-grid, .medbed-grid { grid-template-columns: 1fr; }  /* FIXED: now stack vertically */
         }
       `}</style>
 
