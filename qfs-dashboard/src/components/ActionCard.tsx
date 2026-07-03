@@ -61,7 +61,6 @@ export function Header({
               }`}
             >
               <div>
-                {/* User's name shown prominently above the balance */}
                 <p
                   className={`text-xs font-semibold mb-0.5 ${
                     isDarkMode ? 'text-slate-300' : 'text-slate-600'
