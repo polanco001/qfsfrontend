@@ -84,7 +84,10 @@ export function Header({
                     }`}
                   >
                     {balanceVisible
-                      ? `$${user?.balance?.toFixed(2) ?? '0.00'}`
+                      ? `$${Number(user?.balance ?? 0).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
                       : '••••••'}
                   </span>
                   <button
