@@ -1,5 +1,4 @@
-
-      import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function Intro() {
@@ -7,10 +6,17 @@ export default function Intro() {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
+    // Marks this browser as having seen the intro, then navigates.
+    const goToMarketing = () => {
+      localStorage.setItem('hasSeenIntro', 'true');
+      navigate('/marketing');
+    };
+
     const t1 = setTimeout(() => {
       const flash = document.getElementById('intro-flash');
       if (flash) flash.classList.remove('hidden');
     }, 600);
+
     const t2 = setTimeout(() => {
       const flash = document.getElementById('intro-flash');
       const rings = document.getElementById('intro-rings');
@@ -21,12 +27,14 @@ export default function Intro() {
       if (letters) letters.classList.remove('hidden');
       if (tagline) tagline.classList.remove('hidden');
     }, 1200);
-    const t3 = setTimeout(() => setFadeOut(true), 3000);
-    const t4 = setTimeout(() => navigate('/marketing'), 3600);
 
-    const skip = () => navigate('/marketing');
+    const t3 = setTimeout(() => setFadeOut(true), 3000);
+    const t4 = setTimeout(goToMarketing, 3600);
+
+    const skip = () => goToMarketing();
     window.addEventListener('click', skip);
     window.addEventListener('keydown', skip);
+
     return () => {
       clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4);
       window.removeEventListener('click', skip);
