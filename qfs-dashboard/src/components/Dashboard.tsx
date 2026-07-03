@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ShoppingCart, TrendingDown, Repeat, Wallet } from 'lucide-react';
-import { ActionCard } from './ActionCard';
+import ActionCard from './ActionCard';            // default import – no curly braces
 import { CryptoRatesWidget } from './CryptoRatesWidget';
 import { Modal } from './Modal';
 import { BuyCryptoModal } from './BuyCryptoModal';
