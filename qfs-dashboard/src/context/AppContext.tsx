@@ -47,6 +47,7 @@ interface AppContextType {
   addTransaction: (tx: Omit<Transaction, '_id' | 'timestamp'>) => Promise<void>;
   updateBalance: (amount: number) => Promise<void>;
   updateKYC: (completed: boolean) => Promise<void>;
+  updateProfile: (fullName: string) => Promise<boolean>;
   fetchUser: () => Promise<void>;
   fetchTransactions: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
@@ -260,6 +261,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = async (fullName: string): Promise<boolean> => {
+    try {
+      const res = await axios.patch(`${API_URL}/user/profile`, { fullName });
+      setUser(res.data);
+      return true;
+    } catch (err) {
+      console.error('updateProfile failed:', err);
+      return false;
+    }
+  };
+
   const value: AppContextType = {
     user,
     token,
@@ -276,6 +288,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addTransaction,
     updateBalance,
     updateKYC,
+    updateProfile,
     fetchUser,
     fetchTransactions,
     fetchNotifications,
