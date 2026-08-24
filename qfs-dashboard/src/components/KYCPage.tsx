@@ -1,145 +1,272 @@
 import { useState, useRef } from 'react';
+import { Upload, CheckCircle } from 'lucide-react';
 
 export function KYCPage() {
   const [loading, setLoading] = useState(false);
-  const [frontFile, setFrontFile] = useState<File | null>(null);
-  const [backFile, setBackFile] = useState<File | null>(null);
-  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+    address: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: '',
+    dateOfBirth: '',
+    phoneNumber2: '', // second phone number
+  });
+  const [documents, setDocuments] = useState({
+    driverLicenseFront: null as File | null,
+    driverLicenseBack: null as File | null,
+    proofOfResidence: null as File | null,
+  });
+  const [proofType, setProofType] = useState('');
 
-  const frontRef = useRef<HTMLInputElement>(null);
-  const backRef = useRef<HTMLInputElement>(null);
-  const proofRef = useRef<HTMLInputElement>(null);
+  // Refs for file inputs (same as working version)
+  const frontInputRef = useRef<HTMLInputElement>(null);
+  const backInputRef = useRef<HTMLInputElement>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>) => 
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0] || null;
-      setter(file);
-      console.log('File selected:', file?.name);
-    };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Submit clicked – you can implement your fetch here.');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Helper to trigger file input
+  const handleFileChange = (field: string, file: File | null) => {
+    console.log(`📁 File selected for ${field}:`, file?.name);
+    setDocuments({ ...documents, [field]: file });
+  };
+
+  // ─── EXACT SAME triggerFilePicker from working version ──────────
   const triggerFilePicker = (ref: React.RefObject<HTMLInputElement>) => {
     if (ref.current) {
       ref.current.click();
     } else {
-      alert('Input ref is null!');
+      console.warn('Ref is null');
     }
   };
 
-  return (
-    <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px' }}>
-        KYC Verification
-      </h2>
-      <p style={{ marginBottom: '24px' }}>
-        Upload your documents.
-      </p>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !formData.fullName || !formData.email || !formData.phoneNumber ||
+      !formData.address || !formData.postalCode || !formData.country ||
+      !formData.dateOfBirth || !formData.phoneNumber2
+    ) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    if (!documents.driverLicenseFront || !documents.driverLicenseBack) {
+      alert("Please upload both sides of your driver's license");
+      return;
+    }
+    if (!documents.proofOfResidence) {
+      alert('Please upload proof of residence');
+      return;
+    }
+    if (!proofType) {
+      alert('Please select proof of residence type');
+      return;
+    }
 
-      <form onSubmit={handleSubmit}>
-        {/* Driver's License Front */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
-            Driver's License (Front) *
-          </label>
-          <button
-            type="button"
-            onClick={() => triggerFilePicker(frontRef)}
-            style={{
-              padding: '10px 20px',
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            {frontFile ? frontFile.name : 'Choose File'}
-          </button>
-          <input
-            ref={frontRef}
-            type="file"
-            accept="image/*,.pdf"
-            onChange={handleFileChange(setFrontFile)}
-            style={{ display: 'none' }}
-          />
-        </div>
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    const multiForm = new FormData();
+    Object.entries(formData).forEach(([key, val]) => multiForm.append(key, val));
+    multiForm.append('proofType', proofType);
+    multiForm.append('dlFront', documents.driverLicenseFront);
+    multiForm.append('dlBack', documents.driverLicenseBack);
+    multiForm.append('proofDoc', documents.proofOfResidence);
 
-        {/* Driver's License Back */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
-            Driver's License (Back) *
-          </label>
-          <button
-            type="button"
-            onClick={() => triggerFilePicker(backRef)}
-            style={{
-              padding: '10px 20px',
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            {backFile ? backFile.name : 'Choose File'}
-          </button>
-          <input
-            ref={backRef}
-            type="file"
-            accept="image/*,.pdf"
-            onChange={handleFileChange(setBackFile)}
-            style={{ display: 'none' }}
-          />
-        </div>
+    try {
+      const res = await fetch('https://backend-1.onrender.com/api/user/kyc/submit', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: multiForm,
+      });
+      if (res.ok) {
+        alert('✅ KYC verification submitted successfully!');
+      } else {
+        const data = await res.json();
+        alert(`❌ Error: ${data.error || data.msg || 'KYC submission failed.'}`);
+      }
+    } catch (err) {
+      alert('❌ Failed to communicate with the server.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        {/* Proof of Residence */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
-            Proof of Residence *
-          </label>
-          <button
-            type="button"
-            onClick={() => triggerFilePicker(proofRef)}
-            style={{
-              padding: '10px 20px',
-              background: '#2563eb',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
-          >
-            {proofFile ? proofFile.name : 'Choose File'}
-          </button>
-          <input
-            ref={proofRef}
-            type="file"
-            accept="image/*,.pdf"
-            onChange={handleFileChange(setProofFile)}
-            style={{ display: 'none' }}
-          />
-        </div>
+  // ─── FileUploadBox – uses EXACT same pattern as working version ──
+  const FileUploadBox = ({
+    label,
+    field,
+    file,
+    required = true,
+    inputRef,
+  }: {
+    label: string;
+    field: string;
+    file: File | null;
+    required?: boolean;
+    inputRef: React.RefObject<HTMLInputElement>;
+  }) => {
+    return (
+      <div>
+        <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
 
+        {/* The button – styled like your original upload box */}
         <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: '12px 32px',
-            background: '#16a34a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '16px',
-          }}
+          type="button"
+          onClick={() => triggerFilePicker(inputRef)}
+          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900"
         >
-          {loading ? 'Uploading...' : 'Submit'}
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            {file ? (
+              <>
+                <CheckCircle className="text-green-500 mb-2" size={32} />
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">{file.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to change</p>
+              </>
+            ) : (
+              <>
+                <Upload className="text-slate-400 mb-2" size={32} />
+                <p className="text-sm text-slate-600 dark:text-slate-400">Click to upload</p>
+              </>
+            )}
+          </div>
         </button>
+
+        {/* Hidden file input – EXACT same as working version */}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*,.pdf"
+          onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
+          className="hidden"
+        />
+      </div>
+    );
+  };
+
+  const inputClass =
+    'w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
+
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="mb-8">
+        <h2 className="text-slate-900 dark:text-white text-3xl font-bold mb-2">KYC Verification</h2>
+        <p className="text-slate-600 dark:text-slate-400">
+          Complete your identity verification to unlock all features.
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* ─── Personal Information ─────────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Full Name <span className="text-red-500">*</span></label>
+              <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Email Address <span className="text-red-500">*</span></label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Phone Number <span className="text-red-500">*</span></label>
+              <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Country <span className="text-red-500">*</span></label>
+              <input type="text" name="country" value={formData.country} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Date of Birth <span className="text-red-500">*</span></label>
+              <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} className={inputClass} required />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Phone Number (Alternative) <span className="text-red-500">*</span></label>
+              <input type="tel" name="phoneNumber2" placeholder="Enter alternate phone number" value={formData.phoneNumber2} onChange={handleInputChange} className={inputClass} required />
+              <p className="text-xs text-slate-500 mt-1">We may use this to verify your identity.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Address Information ──────────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Street Address <span className="text-red-500">*</span></label>
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">City</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">State/Province</label>
+                <input type="text" name="state" value={formData.state} onChange={handleInputChange} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Postal/Zip Code <span className="text-red-500">*</span></label>
+                <input type="text" name="postalCode" value={formData.postalCode} onChange={handleInputChange} className={inputClass} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Identity Documents ───────────────────────────────────── */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FileUploadBox
+                label="Driver's License (Front)"
+                field="driverLicenseFront"
+                file={documents.driverLicenseFront}
+                inputRef={frontInputRef}
+              />
+              <FileUploadBox
+                label="Driver's License (Back)"
+                field="driverLicenseBack"
+                file={documents.driverLicenseBack}
+                inputRef={backInputRef}
+              />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
+              <select value={proofType} onChange={(e) => setProofType(e.target.value)} className={inputClass}>
+                <option value="">Select document type</option>
+                <option value="water">Water Bill</option>
+                <option value="internet">Internet Bill</option>
+                <option value="credit">Credit Card Statement</option>
+                <option value="bank">Bank Statement</option>
+              </select>
+            </div>
+            <FileUploadBox
+              label="Proof of Residence Document"
+              field="proofOfResidence"
+              file={documents.proofOfResidence}
+              inputRef={proofInputRef}
+            />
+            <p className="text-xs text-slate-500">
+              Upload a recent utility bill, bank statement, or credit card statement
+              (dated within last 3 months).
+            </p>
+          </div>
+        </div>
+
+        {/* ─── Buttons ────────────────────────────────────────────── */}
+        <div className="flex justify-end gap-4">
+          <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
+          <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
+            {loading ? 'Uploading...' : 'Submit for Verification'}
+          </button>
+        </div>
       </form>
     </div>
   );
