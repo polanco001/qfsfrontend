@@ -86,7 +86,7 @@ export function KYCPage() {
     }
   };
 
-  // ─── FIXED FileUploadBox with ref and click handler ──────────────
+  // ─── FileUploadBox with ref and click handler ──────────────────
   const FileUploadBox = ({
     label,
     field,
