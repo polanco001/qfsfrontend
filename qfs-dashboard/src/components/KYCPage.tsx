@@ -22,7 +22,6 @@ export function KYCPage() {
   });
   const [proofType, setProofType] = useState('');
 
-  // Refs for file inputs
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
   const proofInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +31,7 @@ export function KYCPage() {
   };
 
   const handleFileChange = (field: string, file: File | null) => {
+    console.log(`📁 File selected for ${field}:`, file?.name);
     setDocuments({ ...documents, [field]: file });
   };
 
@@ -86,7 +86,7 @@ export function KYCPage() {
     }
   };
 
-  // ─── FileUploadBox with ref and click handler ──────────────────
+  // ─── FileUploadBox – with label, div click, and fallback button ──
   const FileUploadBox = ({
     label,
     field,
@@ -100,7 +100,19 @@ export function KYCPage() {
     required?: boolean;
     inputRef: React.RefObject<HTMLInputElement>;
   }) => {
-    const handleClick = () => {
+    const inputId = `file-${field}`;
+
+    const handleDivClick = () => {
+      console.log(`🖱️ Div clicked for ${field}`);
+      if (inputRef.current) {
+        inputRef.current.click();
+      } else {
+        console.warn(`⚠️ inputRef.current is null for ${field}`);
+      }
+    };
+
+    const handleFallbackClick = () => {
+      console.log(`🖱️ Fallback button clicked for ${field}`);
       if (inputRef.current) {
         inputRef.current.click();
       }
@@ -111,8 +123,10 @@ export function KYCPage() {
         <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        <div
-          onClick={handleClick}
+
+        {/* Main upload area – uses htmlFor to link to the input */}
+        <label
+          htmlFor={inputId}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900"
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -129,14 +143,26 @@ export function KYCPage() {
               </>
             )}
           </div>
-        </div>
+        </label>
+
+        {/* The hidden file input – linked by id and ref */}
         <input
+          id={inputId}
           ref={inputRef}
           type="file"
           accept="image/*,.pdf"
           onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
-          className="hidden"
+          style={{ display: 'none' }}
         />
+
+        {/* Fallback button – in case the label doesn't work */}
+        <button
+          type="button"
+          onClick={handleFallbackClick}
+          className="mt-2 w-full py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800/50 transition"
+        >
+          📎 Click here if the box above doesn't work
+        </button>
       </div>
     );
   };
@@ -153,181 +179,74 @@ export function KYCPage() {
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ─── Personal Information ─────────────────────────────────── */}
+        {/* Personal Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">
-            Personal Information
-          </h3>
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Full Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                className={inputClass}
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Full Name <span className="text-red-500">*</span></label>
+              <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputClass} />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Email Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={inputClass}
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Email Address <span className="text-red-500">*</span></label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass} />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Phone Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleInputChange}
-                className={inputClass}
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Phone Number <span className="text-red-500">*</span></label>
+              <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className={inputClass} />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Country <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                className={inputClass}
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Country <span className="text-red-500">*</span></label>
+              <input type="text" name="country" value={formData.country} onChange={handleInputChange} className={inputClass} />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Date of Birth <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData.dateOfBirth}
-                onChange={handleInputChange}
-                className={inputClass}
-                required
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Date of Birth <span className="text-red-500">*</span></label>
+              <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} className={inputClass} required />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Social Security Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                name="ssn"
-                placeholder="XXX-XX-XXXX"
-                value={formData.ssn}
-                onChange={handleInputChange}
-                className={inputClass}
-                required
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Your SSN is encrypted and stored securely.
-              </p>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Social Security Number <span className="text-red-500">*</span></label>
+              <input type="password" name="ssn" placeholder="XXX-XX-XXXX" value={formData.ssn} onChange={handleInputChange} className={inputClass} required />
+              <p className="text-xs text-slate-500 mt-1">Your SSN is encrypted and stored securely.</p>
             </div>
           </div>
         </div>
 
-        {/* ─── Address Information ──────────────────────────────────── */}
+        {/* Address Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">
-            Address Information
-          </h3>
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Street Address <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className={inputClass}
-              />
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Street Address <span className="text-red-500">*</span></label>
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">City</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass} />
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                  State/Province
-                </label>
-                <input
-                  type="text"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">State/Province</label>
+                <input type="text" name="state" value={formData.state} onChange={handleInputChange} className={inputClass} />
               </div>
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                  Postal/Zip Code <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  className={inputClass}
-                />
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Postal/Zip Code <span className="text-red-500">*</span></label>
+                <input type="text" name="postalCode" value={formData.postalCode} onChange={handleInputChange} className={inputClass} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* ─── Identity Documents ───────────────────────────────────── */}
+        {/* Identity Documents */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">
-            Identity Documents
-          </h3>
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileUploadBox
-                label="Driver's License (Front)"
-                field="driverLicenseFront"
-                file={documents.driverLicenseFront}
-                inputRef={frontInputRef}
-              />
-              <FileUploadBox
-                label="Driver's License (Back)"
-                field="driverLicenseBack"
-                file={documents.driverLicenseBack}
-                inputRef={backInputRef}
-              />
+              <FileUploadBox label="Driver's License (Front)" field="driverLicenseFront" file={documents.driverLicenseFront} inputRef={frontInputRef} />
+              <FileUploadBox label="Driver's License (Back)" field="driverLicenseBack" file={documents.driverLicenseBack} inputRef={backInputRef} />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Proof of Residence Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={proofType}
-                onChange={(e) => setProofType(e.target.value)}
-                className={inputClass}
-              >
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
+              <select value={proofType} onChange={(e) => setProofType(e.target.value)} className={inputClass}>
                 <option value="">Select document type</option>
                 <option value="water">Water Bill</option>
                 <option value="internet">Internet Bill</option>
@@ -335,32 +254,15 @@ export function KYCPage() {
                 <option value="bank">Bank Statement</option>
               </select>
             </div>
-            <FileUploadBox
-              label="Proof of Residence Document"
-              field="proofOfResidence"
-              file={documents.proofOfResidence}
-              inputRef={proofInputRef}
-            />
-            <p className="text-xs text-slate-500">
-              Upload a recent utility bill, bank statement, or credit card statement
-              (dated within last 3 months).
-            </p>
+            <FileUploadBox label="Proof of Residence Document" field="proofOfResidence" file={documents.proofOfResidence} inputRef={proofInputRef} />
+            <p className="text-xs text-slate-500">Upload a recent utility bill, bank statement, or credit card statement (dated within last 3 months).</p>
           </div>
         </div>
 
-        {/* ─── Buttons ────────────────────────────────────────────── */}
+        {/* Buttons */}
         <div className="flex justify-end gap-4">
-          <button
-            type="button"
-            className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-          >
-            Save Draft
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500"
-          >
+          <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
+          <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
             {loading ? 'Uploading...' : 'Submit for Verification'}
           </button>
         </div>
