@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Upload, CheckCircle } from 'lucide-react';
 
 export function KYCPage() {
   const [loading, setLoading] = useState(false);
@@ -81,7 +80,7 @@ export function KYCPage() {
     }
   };
 
-  // ─── FileUploadBox – uses a visible file input with a custom look ──
+  // ─── Simple, working file input – no hidden tricks ──────────────
   const FileUploadBox = ({
     label,
     field,
@@ -94,31 +93,28 @@ export function KYCPage() {
     required?: boolean;
   }) => {
     return (
-      <div>
-        <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-          {label} {required && <span className="text-red-500">*</span>}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
+          {label} {required && <span style={{ color: 'red' }}>*</span>}
         </label>
-        <div className="flex items-center gap-3">
-          {/* The native file input – visible, clickable, works everywhere */}
-          <input
-            type="file"
-            accept="image/*,.pdf"
-            onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
-            className="block w-full text-sm text-slate-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100
-              dark:file:bg-blue-900/30 dark:file:text-blue-400
-              dark:hover:file:bg-blue-900/50"
-          />
-          {file && (
-            <span className="text-sm text-green-600 dark:text-green-400 whitespace-nowrap">
-              ✅ {file.name}
-            </span>
-          )}
-        </div>
+        <input
+          type="file"
+          accept="image/*,.pdf"
+          onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '8px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            background: 'white',
+          }}
+        />
+        {file && (
+          <p style={{ marginTop: '4px', fontSize: '14px', color: 'green' }}>
+            ✅ {file.name}
+          </p>
+        )}
       </div>
     );
   };
@@ -135,7 +131,7 @@ export function KYCPage() {
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ─── Personal Information ─────────────────────────────────── */}
+        {/* Personal Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,7 +163,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* ─── Address Information ──────────────────────────────────── */}
+        {/* Address Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
           <div className="space-y-4">
@@ -192,7 +188,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* ─── Identity Documents ───────────────────────────────────── */}
+        {/* Identity Documents */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
           <div className="space-y-4">
@@ -218,7 +214,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* ─── Buttons ────────────────────────────────────────────── */}
+        {/* Buttons */}
         <div className="flex justify-end gap-4">
           <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
           <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
