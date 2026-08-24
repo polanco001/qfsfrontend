@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 
 export function KYCPage() {
@@ -12,8 +12,8 @@ export function KYCPage() {
     state: '',
     postalCode: '',
     country: '',
-    dateOfBirth: '',   // NEW
-    ssn: '',           // NEW
+    dateOfBirth: '',
+    ssn: '',
   });
   const [documents, setDocuments] = useState({
     driverLicenseFront: null as File | null,
@@ -21,6 +21,11 @@ export function KYCPage() {
     proofOfResidence: null as File | null,
   });
   const [proofType, setProofType] = useState('');
+
+  // Refs for file inputs
+  const frontInputRef = useRef<HTMLInputElement>(null);
+  const backInputRef = useRef<HTMLInputElement>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,10 +37,11 @@ export function KYCPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate required fields (including new ones)
-    if (!formData.fullName || !formData.email || !formData.phoneNumber ||
-        !formData.address || !formData.postalCode || !formData.country ||
-        !formData.dateOfBirth || !formData.ssn) {
+    if (
+      !formData.fullName || !formData.email || !formData.phoneNumber ||
+      !formData.address || !formData.postalCode || !formData.country ||
+      !formData.dateOfBirth || !formData.ssn
+    ) {
       alert('Please fill in all required fields');
       return;
     }
@@ -55,10 +61,8 @@ export function KYCPage() {
     setLoading(true);
     const token = localStorage.getItem('token');
     const multiForm = new FormData();
-    // Append all text fields
     Object.entries(formData).forEach(([key, val]) => multiForm.append(key, val));
     multiForm.append('proofType', proofType);
-    // Append files (field names must match backend: dlFront, dlBack, proofDoc)
     multiForm.append('dlFront', documents.driverLicenseFront);
     multiForm.append('dlBack', documents.driverLicenseBack);
     multiForm.append('proofDoc', documents.proofOfResidence);
@@ -66,7 +70,7 @@ export function KYCPage() {
     try {
       const res = await fetch('https://qfsbackend-1.onrender.com/api/user/kyc/submit', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: multiForm,
       });
       if (res.ok) {
@@ -82,28 +86,33 @@ export function KYCPage() {
     }
   };
 
-  // ─── FIXED FileUploadBox component ──────────────────────────────
+  // ─── FIXED FileUploadBox with ref and click handler ──────────────
   const FileUploadBox = ({
     label,
     field,
     file,
     required = true,
+    inputRef,
   }: {
     label: string;
     field: string;
     file: File | null;
     required?: boolean;
+    inputRef: React.RefObject<HTMLInputElement>;
   }) => {
-    const inputId = `file-${field}`; // unique ID for each input
+    const handleClick = () => {
+      if (inputRef.current) {
+        inputRef.current.click();
+      }
+    };
 
     return (
       <div>
         <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        {/* Label uses htmlFor to link to the hidden input */}
-        <label
-          htmlFor={inputId}
+        <div
+          onClick={handleClick}
           className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900"
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
@@ -120,10 +129,9 @@ export function KYCPage() {
               </>
             )}
           </div>
-        </label>
-        {/* Hidden input – linked via id */}
+        </div>
         <input
-          id={inputId}
+          ref={inputRef}
           type="file"
           accept="image/*,.pdf"
           onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
@@ -199,7 +207,6 @@ export function KYCPage() {
                 className={inputClass}
               />
             </div>
-            {/* ─── NEW FIELDS ────────────────────────────────────────── */}
             <div>
               <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
                 Date of Birth <span className="text-red-500">*</span>
@@ -218,7 +225,7 @@ export function KYCPage() {
                 Social Security Number <span className="text-red-500">*</span>
               </label>
               <input
-                type="password" // hides while typing; you may use text with masking
+                type="password"
                 name="ssn"
                 placeholder="XXX-XX-XXXX"
                 value={formData.ssn}
@@ -303,11 +310,13 @@ export function KYCPage() {
                 label="Driver's License (Front)"
                 field="driverLicenseFront"
                 file={documents.driverLicenseFront}
+                inputRef={frontInputRef}
               />
               <FileUploadBox
                 label="Driver's License (Back)"
                 field="driverLicenseBack"
                 file={documents.driverLicenseBack}
+                inputRef={backInputRef}
               />
             </div>
             <div>
@@ -330,6 +339,7 @@ export function KYCPage() {
               label="Proof of Residence Document"
               field="proofOfResidence"
               file={documents.proofOfResidence}
+              inputRef={proofInputRef}
             />
             <p className="text-xs text-slate-500">
               Upload a recent utility bill, bank statement, or credit card statement
