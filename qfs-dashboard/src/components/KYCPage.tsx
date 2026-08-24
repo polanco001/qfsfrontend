@@ -36,7 +36,54 @@ export function KYCPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    // ... (same as before)
+    e.preventDefault();
+    if (
+      !formData.fullName || !formData.email || !formData.phoneNumber ||
+      !formData.address || !formData.postalCode || !formData.country ||
+      !formData.dateOfBirth || !formData.ssn
+    ) {
+      alert('Please fill in all required fields');
+      return;
+    }
+    if (!documents.driverLicenseFront || !documents.driverLicenseBack) {
+      alert("Please upload both sides of your driver's license");
+      return;
+    }
+    if (!documents.proofOfResidence) {
+      alert('Please upload proof of residence');
+      return;
+    }
+    if (!proofType) {
+      alert('Please select proof of residence type');
+      return;
+    }
+
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    const multiForm = new FormData();
+    Object.entries(formData).forEach(([key, val]) => multiForm.append(key, val));
+    multiForm.append('proofType', proofType);
+    multiForm.append('dlFront', documents.driverLicenseFront);
+    multiForm.append('dlBack', documents.driverLicenseBack);
+    multiForm.append('proofDoc', documents.proofOfResidence);
+
+    try {
+      const res = await fetch('https://qfsbackend-1.onrender.com/api/user/kyc/submit', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: multiForm,
+      });
+      if (res.ok) {
+        alert('✅ KYC verification submitted successfully!');
+      } else {
+        const data = await res.json();
+        alert(`❌ Error: ${data.error || data.msg || 'KYC submission failed.'}`);
+      }
+    } catch (err) {
+      alert('❌ Failed to communicate with the server.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const FileUploadBox = ({
@@ -65,7 +112,7 @@ export function KYCPage() {
     };
 
     const handleFallbackClick = () => {
-      alert(`🔔 Fallback button clicked for ${field}`);  // <-- ALERT
+      alert(`🔔 Fallback button clicked for ${field}`);
       console.log(`🖱️ Fallback button clicked for ${field}`);
       if (inputRef.current) {
         console.log('✅ inputRef exists, calling click()');
@@ -127,14 +174,100 @@ export function KYCPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <h2 className="text-slate-900 dark:text-white text-3xl font-bold mb-2">KYC Verification</h2>
-      <p className="text-slate-600 dark:text-slate-400 mb-8">
-        Complete your identity verification to unlock all features.
-      </p>
+      <div className="mb-8">
+        <h2 className="text-slate-900 dark:text-white text-3xl font-bold mb-2">KYC Verification</h2>
+        <p className="text-slate-600 dark:text-slate-400">
+          Complete your identity verification to unlock all features.
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ... (form fields - same as before) */}
-        {/* I'll keep the rest identical, but to save space I'm abbreviating; you can copy from previous version */}
-        {/* For brevity, I'm not repeating all fields, but you must include them */}
+        {/* Personal Information */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Full Name <span className="text-red-500">*</span></label>
+              <input type="text" name="fullName" value={formData.fullName} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Email Address <span className="text-red-500">*</span></label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Phone Number <span className="text-red-500">*</span></label>
+              <input type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Country <span className="text-red-500">*</span></label>
+              <input type="text" name="country" value={formData.country} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Date of Birth <span className="text-red-500">*</span></label>
+              <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} className={inputClass} required />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Social Security Number <span className="text-red-500">*</span></label>
+              <input type="password" name="ssn" placeholder="XXX-XX-XXXX" value={formData.ssn} onChange={handleInputChange} className={inputClass} required />
+              <p className="text-xs text-slate-500 mt-1">Your SSN is encrypted and stored securely.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Address Information */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Street Address <span className="text-red-500">*</span></label>
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">City</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">State/Province</label>
+                <input type="text" name="state" value={formData.state} onChange={handleInputChange} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Postal/Zip Code <span className="text-red-500">*</span></label>
+                <input type="text" name="postalCode" value={formData.postalCode} onChange={handleInputChange} className={inputClass} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Identity Documents */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+          <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FileUploadBox label="Driver's License (Front)" field="driverLicenseFront" file={documents.driverLicenseFront} inputRef={frontInputRef} />
+              <FileUploadBox label="Driver's License (Back)" field="driverLicenseBack" file={documents.driverLicenseBack} inputRef={backInputRef} />
+            </div>
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
+              <select value={proofType} onChange={(e) => setProofType(e.target.value)} className={inputClass}>
+                <option value="">Select document type</option>
+                <option value="water">Water Bill</option>
+                <option value="internet">Internet Bill</option>
+                <option value="credit">Credit Card Statement</option>
+                <option value="bank">Bank Statement</option>
+              </select>
+            </div>
+            <FileUploadBox label="Proof of Residence Document" field="proofOfResidence" file={documents.proofOfResidence} inputRef={proofInputRef} />
+            <p className="text-xs text-slate-500">Upload a recent utility bill, bank statement, or credit card statement (dated within last 3 months).</p>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-4">
+          <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
+          <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
+            {loading ? 'Uploading...' : 'Submit for Verification'}
+          </button>
+        </div>
       </form>
     </div>
   );
