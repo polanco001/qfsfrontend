@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { Upload, CheckCircle } from 'lucide-react';
 
 export function KYCPage() {
   const [loading, setLoading] = useState(false);
@@ -21,12 +22,36 @@ export function KYCPage() {
   });
   const [proofType, setProofType] = useState('');
 
+  // Refs for file inputs
+  const frontRef = useRef<HTMLInputElement>(null);
+  const backRef = useRef<HTMLInputElement>(null);
+  const proofRef = useRef<HTMLInputElement>(null);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileChange = (field: string, file: File | null) => {
     setDocuments({ ...documents, [field]: file });
+  };
+
+  // ─── Button click handler – triggers hidden file input ──────────
+  const triggerFilePicker = (ref: React.RefObject<HTMLInputElement>) => {
+    if (ref.current) {
+      ref.current.click();
+    }
+  };
+
+  // ─── Fallback: create a file input on the fly ──────────────────
+  const openFallbackPicker = (field: string) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,.pdf';
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0] || null;
+      handleFileChange(field, file);
+    };
+    input.click();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,41 +105,67 @@ export function KYCPage() {
     }
   };
 
-  // ─── Simple, working file input – no hidden tricks ──────────────
+  // ─── FileUploadBox – uses a <button> to trigger hidden input ──
   const FileUploadBox = ({
     label,
     field,
     file,
     required = true,
+    inputRef,
+    fallbackField,
   }: {
     label: string;
     field: string;
     file: File | null;
     required?: boolean;
+    inputRef: React.RefObject<HTMLInputElement>;
+    fallbackField: string;
   }) => {
     return (
-      <div style={{ marginBottom: '16px' }}>
-        <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600' }}>
-          {label} {required && <span style={{ color: 'red' }}>*</span>}
+      <div>
+        <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
+          {label} {required && <span className="text-red-500">*</span>}
         </label>
+
+        {/* The button – styled like your original upload box */}
+        <button
+          type="button"
+          onClick={() => triggerFilePicker(inputRef)}
+          className="w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center cursor-pointer"
+        >
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            {file ? (
+              <>
+                <CheckCircle className="text-green-500 mb-2" size={32} />
+                <p className="text-sm text-green-600 dark:text-green-400 font-medium">{file.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to change</p>
+              </>
+            ) : (
+              <>
+                <Upload className="text-slate-400 mb-2" size={32} />
+                <p className="text-sm text-slate-600 dark:text-slate-400">Click to upload</p>
+              </>
+            )}
+          </div>
+        </button>
+
+        {/* Hidden file input */}
         <input
+          ref={inputRef}
           type="file"
           accept="image/*,.pdf"
           onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: 'white',
-          }}
+          className="hidden"
         />
-        {file && (
-          <p style={{ marginTop: '4px', fontSize: '14px', color: 'green' }}>
-            ✅ {file.name}
-          </p>
-        )}
+
+        {/* Fallback button – uses document.createElement */}
+        <button
+          type="button"
+          onClick={() => openFallbackPicker(fallbackField)}
+          className="mt-2 w-full py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800/50 transition"
+        >
+          📎 Fallback: Click here if the box above doesn't work
+        </button>
       </div>
     );
   };
@@ -131,7 +182,7 @@ export function KYCPage() {
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal Information */}
+        {/* ─── Personal Information ─────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -163,7 +214,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Address Information */}
+        {/* ─── Address Information ──────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
           <div className="space-y-4">
@@ -188,13 +239,25 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Identity Documents */}
+        {/* ─── Identity Documents ───────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileUploadBox label="Driver's License (Front)" field="driverLicenseFront" file={documents.driverLicenseFront} />
-              <FileUploadBox label="Driver's License (Back)" field="driverLicenseBack" file={documents.driverLicenseBack} />
+              <FileUploadBox
+                label="Driver's License (Front)"
+                field="driverLicenseFront"
+                file={documents.driverLicenseFront}
+                inputRef={frontRef}
+                fallbackField="driverLicenseFront"
+              />
+              <FileUploadBox
+                label="Driver's License (Back)"
+                field="driverLicenseBack"
+                file={documents.driverLicenseBack}
+                inputRef={backRef}
+                fallbackField="driverLicenseBack"
+              />
             </div>
             <div>
               <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
@@ -206,7 +269,13 @@ export function KYCPage() {
                 <option value="bank">Bank Statement</option>
               </select>
             </div>
-            <FileUploadBox label="Proof of Residence Document" field="proofOfResidence" file={documents.proofOfResidence} />
+            <FileUploadBox
+              label="Proof of Residence Document"
+              field="proofOfResidence"
+              file={documents.proofOfResidence}
+              inputRef={proofRef}
+              fallbackField="proofOfResidence"
+            />
             <p className="text-xs text-slate-500">
               Upload a recent utility bill, bank statement, or credit card statement
               (dated within last 3 months).
@@ -214,7 +283,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* ─── Buttons ────────────────────────────────────────────── */}
         <div className="flex justify-end gap-4">
           <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
           <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
