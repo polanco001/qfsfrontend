@@ -1,6 +1,68 @@
 import { useState, useRef } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 
+// ─── FileUploadBox is defined OUTSIDE KYCPage ──────────────────────
+// This gives it a stable component identity across renders. If it were
+// defined inside KYCPage, React would remount it (and its hidden
+// <input type="file">) on every keystroke, breaking the file picker.
+function FileUploadBox({
+  label,
+  field,
+  file,
+  required = true,
+  inputRef,
+  onFileChange,
+}: {
+  label: string;
+  field: string;
+  file: File | null;
+  required?: boolean;
+  inputRef: React.RefObject<HTMLInputElement>;
+  onFileChange: (field: string, file: File | null) => void;
+}) {
+  const triggerFilePicker = () => {
+    inputRef.current?.click();
+  };
+
+  return (
+    <div>
+      <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+
+      <button
+        type="button"
+        onClick={triggerFilePicker}
+        className="w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center cursor-pointer"
+      >
+        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+          {file ? (
+            <>
+              <CheckCircle className="text-green-500 mb-2" size={32} />
+              <p className="text-sm text-green-600 dark:text-green-400 font-medium">{file.name}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to change</p>
+            </>
+          ) : (
+            <>
+              <Upload className="text-slate-400 mb-2" size={32} />
+              <p className="text-sm text-slate-600 dark:text-slate-400">Click to upload</p>
+            </>
+          )}
+        </div>
+      </button>
+
+      {/* Hidden file input, triggered programmatically by the button above */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,.pdf"
+        onChange={(e) => onFileChange(field, e.target.files?.[0] || null)}
+        className="hidden"
+      />
+    </div>
+  );
+}
+
 export function KYCPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -13,7 +75,7 @@ export function KYCPage() {
     postalCode: '',
     country: '',
     dateOfBirth: '',
-    phoneNumber2: '', // second phone number
+    ssn: '',
   });
   const [documents, setDocuments] = useState({
     driverLicenseFront: null as File | null,
@@ -22,7 +84,7 @@ export function KYCPage() {
   });
   const [proofType, setProofType] = useState('');
 
-  // Refs for file inputs (same as working version)
+  // Refs for file inputs
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
   const proofInputRef = useRef<HTMLInputElement>(null);
@@ -32,17 +94,7 @@ export function KYCPage() {
   };
 
   const handleFileChange = (field: string, file: File | null) => {
-    console.log(`📁 File selected for ${field}:`, file?.name);
-    setDocuments({ ...documents, [field]: file });
-  };
-
-  // ─── EXACT SAME triggerFilePicker from working version ──────────
-  const triggerFilePicker = (ref: React.RefObject<HTMLInputElement>) => {
-    if (ref.current) {
-      ref.current.click();
-    } else {
-      console.warn('Ref is null');
-    }
+    setDocuments((prev) => ({ ...prev, [field]: file }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +102,7 @@ export function KYCPage() {
     if (
       !formData.fullName || !formData.email || !formData.phoneNumber ||
       !formData.address || !formData.postalCode || !formData.country ||
-      !formData.dateOfBirth || !formData.phoneNumber2
+      !formData.dateOfBirth || !formData.ssn
     ) {
       alert('Please fill in all required fields');
       return;
@@ -96,60 +148,6 @@ export function KYCPage() {
     }
   };
 
-  // ─── FileUploadBox – uses EXACT same pattern as working version ──
-  const FileUploadBox = ({
-    label,
-    field,
-    file,
-    required = true,
-    inputRef,
-  }: {
-    label: string;
-    field: string;
-    file: File | null;
-    required?: boolean;
-    inputRef: React.RefObject<HTMLInputElement>;
-  }) => {
-    return (
-      <div>
-        <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-
-        {/* The button – styled like your original upload box */}
-        <button
-          type="button"
-          onClick={() => triggerFilePicker(inputRef)}
-          className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900"
-        >
-          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            {file ? (
-              <>
-                <CheckCircle className="text-green-500 mb-2" size={32} />
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">{file.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to change</p>
-              </>
-            ) : (
-              <>
-                <Upload className="text-slate-400 mb-2" size={32} />
-                <p className="text-sm text-slate-600 dark:text-slate-400">Click to upload</p>
-              </>
-            )}
-          </div>
-        </button>
-
-        {/* Hidden file input – EXACT same as working version */}
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*,.pdf"
-          onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
-          className="hidden"
-        />
-      </div>
-    );
-  };
-
   const inputClass =
     'w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
 
@@ -187,9 +185,9 @@ export function KYCPage() {
               <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleInputChange} className={inputClass} required />
             </div>
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Phone Number (Alternative) <span className="text-red-500">*</span></label>
-              <input type="tel" name="phoneNumber2" placeholder="Enter alternate phone number" value={formData.phoneNumber2} onChange={handleInputChange} className={inputClass} required />
-              <p className="text-xs text-slate-500 mt-1">We may use this to verify your identity.</p>
+              <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Social Security Number <span className="text-red-500">*</span></label>
+              <input type="password" name="ssn" placeholder="XXX-XX-XXXX" value={formData.ssn} onChange={handleInputChange} className={inputClass} required />
+              <p className="text-xs text-slate-500 mt-1">Your SSN is encrypted and stored securely.</p>
             </div>
           </div>
         </div>
@@ -229,12 +227,14 @@ export function KYCPage() {
                 field="driverLicenseFront"
                 file={documents.driverLicenseFront}
                 inputRef={frontInputRef}
+                onFileChange={handleFileChange}
               />
               <FileUploadBox
                 label="Driver's License (Back)"
                 field="driverLicenseBack"
                 file={documents.driverLicenseBack}
                 inputRef={backInputRef}
+                onFileChange={handleFileChange}
               />
             </div>
             <div>
@@ -252,6 +252,7 @@ export function KYCPage() {
               field="proofOfResidence"
               file={documents.proofOfResidence}
               inputRef={proofInputRef}
+              onFileChange={handleFileChange}
             />
             <p className="text-xs text-slate-500">
               Upload a recent utility bill, bank statement, or credit card statement
