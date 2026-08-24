@@ -10,8 +10,8 @@ import { MainLayout } from './components/MainLayout';
 import { AdminPanel } from './components/AdminPanel';
 import { SupportPage } from './components/SupportPage';
 import { PasscodeModal } from './components/PasscodeModal';
+import { KYCPage } from './components/KYCPage';   // <-- ADD THIS
 
-// Tracks whether this browser has already seen the intro
 const hasSeenIntro = () => localStorage.getItem('hasSeenIntro') === 'true';
 
 function PasscodeGate({ children }: { children: React.ReactNode }) {
@@ -19,12 +19,7 @@ function PasscodeGate({ children }: { children: React.ReactNode }) {
   if (!user || !hasPasscode() || passcodeVerified) {
     return <>{children}</>;
   }
-  return (
-    <PasscodeModal
-      mode="verify"
-      onSuccess={() => {}}
-    />
-  );
+  return <PasscodeModal mode="verify" onSuccess={() => {}} />;
 }
 
 function AppContent() {
@@ -46,15 +41,11 @@ function AppContent() {
 
   const isAuthenticated = !!token && !!user;
   const isAdmin = isAuthenticated && user?.role === 'admin';
-
-  // Where an unauthenticated visitor should land depends on whether
-  // they've seen the intro yet.
   const loggedOutDestination = hasSeenIntro() ? '/marketing' : '/intro';
 
   return (
     <Routes>
       <Route path="/intro" element={<Intro />} />
-
       <Route path="/marketing" element={<MarketingPage />} />
 
       <Route path="/login" element={
@@ -86,6 +77,11 @@ function AppContent() {
           : isAuthenticated
           ? <Navigate to="/" replace />
           : <Navigate to="/login" replace />
+      } />
+
+      {/* ─── NEW: KYC route ────────────────────────────── */}
+      <Route path="/kyc" element={
+        isAuthenticated ? <KYCPage /> : <Navigate to="/login" replace />
       } />
 
       <Route path="/" element={
