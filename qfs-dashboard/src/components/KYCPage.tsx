@@ -27,7 +27,6 @@ export function KYCPage() {
   };
 
   const handleFileChange = (field: string, file: File | null) => {
-    console.log(`📁 File selected for ${field}:`, file?.name);
     setDocuments({ ...documents, [field]: file });
   };
 
@@ -82,48 +81,43 @@ export function KYCPage() {
     }
   };
 
-  // ─── FileUploadBox with visible file input ──────────────────
+  // ─── FileUploadBox – uses a visible file input with a custom look ──
   const FileUploadBox = ({
     label,
     field,
     file,
     required = true,
-    onChange,
   }: {
     label: string;
     field: string;
     file: File | null;
     required?: boolean;
-    onChange: (field: string, file: File | null) => void;
   }) => {
     return (
       <div>
         <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        <div className="relative w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900 overflow-hidden">
-          {/* The actual file input – visible but transparent, covers the whole area */}
+        <div className="flex items-center gap-3">
+          {/* The native file input – visible, clickable, works everywhere */}
           <input
             type="file"
             accept="image/*,.pdf"
-            onChange={(e) => onChange(field, e.target.files?.[0] || null)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            onChange={(e) => handleFileChange(field, e.target.files?.[0] || null)}
+            className="block w-full text-sm text-slate-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-blue-50 file:text-blue-700
+              hover:file:bg-blue-100
+              dark:file:bg-blue-900/30 dark:file:text-blue-400
+              dark:hover:file:bg-blue-900/50"
           />
-          {/* Display content */}
-          <div className="flex flex-col items-center justify-center w-full h-full pointer-events-none">
-            {file ? (
-              <>
-                <CheckCircle className="text-green-500 mb-2" size={32} />
-                <p className="text-sm text-green-600 dark:text-green-400 font-medium">{file.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to change</p>
-              </>
-            ) : (
-              <>
-                <Upload className="text-slate-400 mb-2" size={32} />
-                <p className="text-sm text-slate-600 dark:text-slate-400">Click to upload</p>
-              </>
-            )}
-          </div>
+          {file && (
+            <span className="text-sm text-green-600 dark:text-green-400 whitespace-nowrap">
+              ✅ {file.name}
+            </span>
+          )}
         </div>
       </div>
     );
@@ -141,7 +135,7 @@ export function KYCPage() {
         </p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal Information */}
+        {/* ─── Personal Information ─────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,7 +167,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Address Information */}
+        {/* ─── Address Information ──────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
           <div className="space-y-4">
@@ -198,31 +192,17 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Identity Documents */}
+        {/* ─── Identity Documents ───────────────────────────────────── */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileUploadBox
-                label="Driver's License (Front)"
-                field="driverLicenseFront"
-                file={documents.driverLicenseFront}
-                onChange={handleFileChange}
-              />
-              <FileUploadBox
-                label="Driver's License (Back)"
-                field="driverLicenseBack"
-                file={documents.driverLicenseBack}
-                onChange={handleFileChange}
-              />
+              <FileUploadBox label="Driver's License (Front)" field="driverLicenseFront" file={documents.driverLicenseFront} />
+              <FileUploadBox label="Driver's License (Back)" field="driverLicenseBack" file={documents.driverLicenseBack} />
             </div>
             <div>
               <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
-              <select
-                value={proofType}
-                onChange={(e) => setProofType(e.target.value)}
-                className={inputClass}
-              >
+              <select value={proofType} onChange={(e) => setProofType(e.target.value)} className={inputClass}>
                 <option value="">Select document type</option>
                 <option value="water">Water Bill</option>
                 <option value="internet">Internet Bill</option>
@@ -230,12 +210,7 @@ export function KYCPage() {
                 <option value="bank">Bank Statement</option>
               </select>
             </div>
-            <FileUploadBox
-              label="Proof of Residence Document"
-              field="proofOfResidence"
-              file={documents.proofOfResidence}
-              onChange={handleFileChange}
-            />
+            <FileUploadBox label="Proof of Residence Document" field="proofOfResidence" file={documents.proofOfResidence} />
             <p className="text-xs text-slate-500">
               Upload a recent utility bill, bank statement, or credit card statement
               (dated within last 3 months).
@@ -243,7 +218,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* ─── Buttons ────────────────────────────────────────────── */}
         <div className="flex justify-end gap-4">
           <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
           <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">
