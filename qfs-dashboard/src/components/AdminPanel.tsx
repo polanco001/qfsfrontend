@@ -17,16 +17,8 @@ const imgUrl = (path: string) =>
 
 type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat';
 
-// ─── Notification Banner ───────────────────────────────────────────────────────
-function NotifBanner({
-  items,
-  onDismiss,
-  onDismissAll,
-}: {
-  items: { id: string; message: string; time: string; icon: React.ReactNode }[];
-  onDismiss: (id: string) => void;
-  onDismissAll: () => void;
-}) {
+// ─── Notification Banner ───────────────────────────────────────────────
+function NotifBanner({ items, onDismiss, onDismissAll }) {
   if (items.length === 0) return null;
   return (
     <div className="mb-4 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/30 overflow-hidden">
@@ -61,27 +53,16 @@ function NotifBanner({
   );
 }
 
-// ─── Action Card ──────────────────────────────────────────────────────────────
-function ActionCard({
-  title, count, pending, icon, color, onClick,
-}: {
-  title: string; count: number; pending: number;
-  icon: React.ReactNode; color: string; onClick: () => void;
-}) {
+// ─── Action Card ───────────────────────────────────────────────────────
+function ActionCard({ title, count, pending, icon, color, onClick }) {
   return (
-    <button
-      onClick={onClick}
-      className="relative w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors group"
-      style={{ WebkitTapHighlightColor: 'transparent' }}
-    >
+    <button onClick={onClick} className="relative w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors group">
       {pending > 0 && (
         <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
           {pending > 99 ? '99+' : pending}
         </span>
       )}
-      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-3`}>
-        {icon}
-      </div>
+      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-3`}>{icon}</div>
       <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">{title}</p>
       <p className="text-2xl font-bold text-slate-900 dark:text-white">{count}</p>
       {pending > 0 ? (
@@ -96,8 +77,8 @@ function ActionCard({
   );
 }
 
-// ─── Stat Badge ───────────────────────────────────────────────────────────────
-function StatBadge({ label, value, sub }: { label: string; value: string; sub?: string }) {
+// ─── Stat Badge ────────────────────────────────────────────────────────
+function StatBadge({ label, value, sub }) {
   return (
     <div className="bg-slate-50 dark:bg-slate-900/60 rounded-xl p-3">
       <p className="text-[11px] text-slate-400 mb-1">{label}</p>
@@ -107,24 +88,20 @@ function StatBadge({ label, value, sub }: { label: string; value: string; sub?: 
   );
 }
 
-// ─── Status Pill ──────────────────────────────────────────────────────────────
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, string> = {
+// ─── Status Pill ───────────────────────────────────────────────────────
+function StatusPill({ status }) {
+  const map = {
     completed: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     approved:  'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     failed:    'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
     rejected:  'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
     pending:   'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
   };
-  return (
-    <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${map[status] ?? map.pending}`}>
-      {status}
-    </span>
-  );
+  return <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${map[status] ?? map.pending}`}>{status}</span>;
 }
 
-// ─── Section Header ───────────────────────────────────────────────────────────
-function SectionHeader({ title, sub }: { title: string; sub?: string }) {
+// ─── Section Header ────────────────────────────────────────────────────
+function SectionHeader({ title, sub }) {
   return (
     <div className="mb-4">
       <h2 className="text-base font-bold text-slate-900 dark:text-white">{title}</h2>
@@ -133,48 +110,40 @@ function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-// ─── Card Shell ───────────────────────────────────────────────────────────────
-function CardShell({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden w-full">
-      {children}
-    </div>
-  );
+// ─── Card Shell ────────────────────────────────────────────────────────
+function CardShell({ children }) {
+  return <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden w-full">{children}</div>;
 }
 
-// ─── Scrollable Table Wrapper ─────────────────────────────────────────────────
-function TableWrap({ children, minW }: { children: React.ReactNode; minW: number }) {
+// ─── Table Wrapper ─────────────────────────────────────────────────────
+function TableWrap({ children, minW }) {
   return (
     <div style={{ overflowX: 'auto', overflowY: 'visible', WebkitOverflowScrolling: 'touch' }}>
-      <table style={{ width: '100%', minWidth: minW, fontSize: 12, borderCollapse: 'collapse' }}>
-        {children}
-      </table>
+      <table style={{ width: '100%', minWidth: minW, fontSize: 12, borderCollapse: 'collapse' }}>{children}</table>
     </div>
   );
 }
 
-const TH = ({ children, right }: { children: React.ReactNode; right?: boolean }) => (
+const TH = ({ children, right }) => (
   <th style={{ padding: '10px 16px', textAlign: right ? 'right' : 'left', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', background: 'transparent', whiteSpace: 'nowrap' }}>
     {children}
   </th>
 );
 
-const TD = ({ children, right, mono }: { children: React.ReactNode; right?: boolean; mono?: boolean }) => (
+const TD = ({ children, right, mono }) => (
   <td style={{ padding: '12px 16px', textAlign: right ? 'right' : 'left', fontFamily: mono ? 'monospace' : undefined, verticalAlign: 'middle' }}>
     {children}
   </td>
 );
 
-// ─── Main AdminPanel ───────────────────────────────────────────────────────────
+// ─── Main AdminPanel ────────────────────────────────────────────────────
 export function AdminPanel() {
   const { user, token } = useApp();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [dashData, setDashData] = useState<{
-    payments: any[]; giftCards: any[]; kycDocs: any[]; walletConnections: any[];
-  }>({ payments: [], giftCards: [], kycDocs: [], walletConnections: [] });
-  const [users, setUsers] = useState<any[]>([]);
+  const [dashData, setDashData] = useState({ payments: [], giftCards: [], kycDocs: [], walletConnections: [] });
+  const [users, setUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [topupAmount, setTopupAmount] = useState('');
   const [deductAmount, setDeductAmount] = useState('');
@@ -182,7 +151,7 @@ export function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [unreadChatCount, setUnreadChatCount] = useState(0);
-  const [dismissedIds, setDismissedIds] = useState<Record<string, Set<string>>>({
+  const [dismissedIds, setDismissedIds] = useState({
     payments: new Set(), giftCards: new Set(), kycDocs: new Set(), wallets: new Set(),
   });
 
@@ -196,9 +165,7 @@ export function AdminPanel() {
     if (!token) return;
     const fetchUnread = async () => {
       try {
-        const res = await fetch(`${BASE_URL}/api/admin/unread-count`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await fetch(`${BASE_URL}/api/admin/unread-count`, { headers: { Authorization: `Bearer ${token}` } });
         const data = await res.json();
         setUnreadChatCount(data.unreadCount || 0);
       } catch {}
@@ -210,15 +177,11 @@ export function AdminPanel() {
 
   const markChatAsRead = async () => {
     try {
-      await fetch(`${BASE_URL}/api/admin/chat-read`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await fetch(`${BASE_URL}/api/admin/chat-read`, { method: 'PUT', headers: { Authorization: `Bearer ${token}` } });
       setUnreadChatCount(0);
     } catch {}
   };
 
-  // ─── FETCH ALL – with debug logs ──────────────────────────────────────────
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -226,36 +189,21 @@ export function AdminPanel() {
         fetch(`${BASE_URL}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${BASE_URL}/api/admin/dashboard-data`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-
       if (uRes.ok) {
         const u = await uRes.json();
         setUsers([...u].sort((a, b) => (a._id < b._id ? 1 : -1)));
       }
-
       if (dRes.ok) {
         const data = await dRes.json();
-        console.log('📊 Dashboard data received:', data);
-
-        // 🔍 Log KYC docs specifically to see if SSN is present
-        if (data.kycDocs && data.kycDocs.length > 0) {
-          console.log('🔍 First KYC doc fields:', Object.keys(data.kycDocs[0]));
-          console.log('🔍 SSN value:', data.kycDocs[0].ssn);
-        } else {
-          console.warn('⚠️ No KYC docs found in response');
-        }
-
+        console.log('📊 Dashboard data:', data);
         setDashData(data);
-        setError('');
       }
-    } catch (err) {
-      console.error('❌ Fetch error:', err);
-      setError('Failed to load data.');
-    } finally {
-      setLoading(false);
-    }
+      setError('');
+    } catch { setError('Failed to load data.'); }
+    finally { setLoading(false); }
   };
 
-  const notifyUser = async (userId: string, message: string) => {
+  const notifyUser = async (userId, message) => {
     try {
       await fetch(`${BASE_URL}/api/admin/notify`, {
         method: 'POST',
@@ -265,7 +213,7 @@ export function AdminPanel() {
     } catch {}
   };
 
-  const handleUpdateStatus = async (endpoint: string, id: string, newStatus: string) => {
+  const handleUpdateStatus = async (endpoint, id, newStatus) => {
     try {
       const res = await fetch(`${BASE_URL}/api/admin/${endpoint}/${id}`, {
         method: 'PATCH',
@@ -274,31 +222,19 @@ export function AdminPanel() {
       });
       if (!res.ok) { alert('Failed to update status.'); return; }
 
-      const itemUserId =
-        endpoint === 'payment'  ? dashData.payments.find((p: any)  => p._id === id)?.user?._id :
-        endpoint === 'giftcard' ? dashData.giftCards.find((g: any) => g._id === id)?.user?._id :
-        endpoint === 'kyc'      ? dashData.kycDocs.find((k: any)   => k._id === id)?.user?._id : null;
+      const itemUserId = endpoint === 'payment'  ? dashData.payments.find(p => p._id === id)?.user?._id :
+                         endpoint === 'giftcard' ? dashData.giftCards.find(g => g._id === id)?.user?._id :
+                         endpoint === 'kyc'      ? dashData.kycDocs.find(k => k._id === id)?.user?._id : null;
 
-      const msgMap: Record<string, Record<string, string>> = {
-        payment: {
-          completed: '✅ Your payment has been approved and your account balance has been updated.',
-          failed:    '❌ Your payment could not be approved. Please contact support for assistance.',
-        },
-        giftcard: {
-          approved: '✅ Your gift card submission has been approved successfully.',
-          rejected: '❌ Your gift card submission was rejected. Please ensure the card details are correct and resubmit.',
-        },
-        kyc: {
-          approved: '✅ Your KYC verification has been approved. Your account is now fully verified.',
-          rejected: '❌ Your KYC documents were rejected. Please resubmit with clear and valid documents.',
-        },
+      const msgMap = {
+        payment: { completed: '✅ Payment approved.', failed: '❌ Payment failed.' },
+        giftcard: { approved: '✅ Gift card approved.', rejected: '❌ Gift card rejected.' },
+        kyc: { approved: '✅ KYC approved.', rejected: '❌ KYC rejected.' },
       };
       const msg = msgMap[endpoint]?.[newStatus];
       if (itemUserId && msg) await notifyUser(itemUserId, msg);
 
-      const typeMap: Record<string, 'payments' | 'giftCards' | 'kycDocs'> = {
-        payment: 'payments', giftcard: 'giftCards', kyc: 'kycDocs',
-      };
+      const typeMap = { payment: 'payments', giftcard: 'giftCards', kyc: 'kycDocs' };
       const t = typeMap[endpoint];
       if (t) setDismissedIds(prev => ({ ...prev, [t]: new Set([...prev[t], id]) }));
 
@@ -306,7 +242,7 @@ export function AdminPanel() {
     } catch { alert('Network error.'); }
   };
 
-  const buildNotifs = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets') => {
+  const buildNotifs = (type) => {
     const dismissed = dismissedIds[type] ?? new Set();
     const iconMap = {
       payments: <CreditCard size={13} className="text-amber-600" />,
@@ -315,35 +251,33 @@ export function AdminPanel() {
       wallets: <Wallet size={13} className="text-green-500" />,
     };
     if (type === 'payments')
-      return dashData.payments.filter((p: any) => p.status === 'pending' && !dismissed.has(p._id)).map((p: any) => ({
+      return dashData.payments.filter(p => p.status === 'pending' && !dismissed.has(p._id)).map(p => ({
         id: p._id, icon: iconMap.payments,
-        message: `${p.user?.fullName || p.user?.email || 'A user'} submitted a $${p.amount?.toLocaleString()} ${p.method?.toUpperCase()} payment.`,
+        message: `${p.user?.fullName || 'A user'} submitted a $${p.amount?.toLocaleString()} ${p.method?.toUpperCase()} payment.`,
         time: p.createdAt ? new Date(p.createdAt).toLocaleString() : 'Just now',
       }));
     if (type === 'giftCards')
-      return dashData.giftCards.filter((g: any) => g.status === 'pending' && !dismissed.has(g._id)).map((g: any) => ({
+      return dashData.giftCards.filter(g => g.status === 'pending' && !dismissed.has(g._id)).map(g => ({
         id: g._id, icon: iconMap.giftCards,
-        message: `${g.user?.fullName || g.user?.email || 'A user'} submitted a ${g.cardType} gift card.`,
+        message: `${g.user?.fullName || 'A user'} submitted a ${g.cardType} gift card.`,
         time: g.createdAt ? new Date(g.createdAt).toLocaleString() : 'Just now',
       }));
     if (type === 'kycDocs') {
-      return dashData.kycDocs.filter((k: any) => k.status === 'pending' && !dismissed.has(k._id)).map((k: any) => ({
+      return dashData.kycDocs.filter(k => k.status === 'pending' && !dismissed.has(k._id)).map(k => ({
         id: k._id, icon: iconMap.kycDocs,
-        message: `${k.fullName || k.email || 'A user'} submitted KYC documents${k.ssn ? ` (SSN: ${k.ssn})` : k.ssnLast4 ? ` (SSN ends in ${k.ssnLast4})` : ''} from ${k.country || 'unknown'}.`,
+        message: `${k.fullName || 'A user'} submitted KYC (SSN: ${k.ssn || 'not provided'}) from ${k.country || 'unknown'}.`,
         time: k.createdAt ? new Date(k.createdAt).toLocaleString() : 'Just now',
       }));
     }
-    return dashData.walletConnections.filter((w: any) => !dismissed.has(w._id)).map((w: any) => ({
+    return dashData.walletConnections.filter(w => !dismissed.has(w._id)).map(w => ({
       id: w._id, icon: iconMap.wallets,
-      message: `${w.user?.fullName || w.user?.email || 'A user'} connected a ${w.walletName} wallet.`,
+      message: `${w.user?.fullName || 'A user'} connected a ${w.walletName} wallet.`,
       time: w.createdAt ? new Date(w.createdAt).toLocaleString() : 'Just now',
     }));
   };
 
-  const handleDismiss = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets', id: string) =>
-    setDismissedIds(prev => ({ ...prev, [type]: new Set([...prev[type], id]) }));
-
-  const handleDismissAll = (type: 'payments' | 'giftCards' | 'kycDocs' | 'wallets') => {
+  const handleDismiss = (type, id) => setDismissedIds(prev => ({ ...prev, [type]: new Set([...prev[type], id]) }));
+  const handleDismissAll = (type) => {
     const ids = buildNotifs(type).map(n => n.id);
     setDismissedIds(prev => ({ ...prev, [type]: new Set([...prev[type], ...ids]) }));
   };
@@ -358,7 +292,7 @@ export function AdminPanel() {
       });
       const data = await res.json();
       if (res.ok) {
-        await notifyUser(selectedUserId, `✅ Your account has been credited with $${parseFloat(topupAmount).toFixed(2)}. New balance: $${data.newBalance?.toFixed(2)}.`);
+        await notifyUser(selectedUserId, `✅ Credited $${parseFloat(topupAmount).toFixed(2)}. New balance: $${data.newBalance?.toFixed(2)}.`);
         alert(`✅ Top-up successful! New balance: $${data.newBalance?.toFixed(2)}`);
         setTopupAmount(''); fetchAll();
       } else alert(data.error || 'Top-up failed.');
@@ -375,7 +309,7 @@ export function AdminPanel() {
       });
       const data = await res.json();
       if (res.ok) {
-        await notifyUser(selectedUserId, `⚠️ $${parseFloat(deductAmount).toFixed(2)} has been deducted from your account. New balance: $${data.newBalance?.toFixed(2)}.`);
+        await notifyUser(selectedUserId, `⚠️ Deducted $${parseFloat(deductAmount).toFixed(2)}. New balance: $${data.newBalance?.toFixed(2)}.`);
         alert(`✅ Deduction successful! New balance: $${data.newBalance?.toFixed(2)}`);
         setDeductAmount(''); fetchAll();
       } else alert(data.error || 'Deduction failed.');
@@ -395,7 +329,7 @@ export function AdminPanel() {
     } catch { alert('Network error.'); }
   };
 
-  const handleResetPassword = async (userId: string, userEmail: string) => {
+  const handleResetPassword = async (userId, userEmail) => {
     const newPassword = prompt(`Enter new temporary password for ${userEmail}`);
     if (!newPassword) return;
     try {
@@ -406,7 +340,7 @@ export function AdminPanel() {
       });
       const data = await res.json();
       if (res.ok) {
-        await notifyUser(userId, `🔑 Your password has been reset by admin. Please log in with your new temporary password and change it immediately.`);
+        await notifyUser(userId, `🔑 Your password has been reset.`);
         alert(`✅ Password reset for ${userEmail}`);
       } else alert(data.error || 'Password reset failed.');
     } catch { alert('Network error.'); }
@@ -423,15 +357,14 @@ export function AdminPanel() {
       </div>
     );
   }
-  if (user.role !== 'admin' || user.email !== ADMIN_EMAIL)
-    return <div style={{ padding: 32, textAlign: 'center', color: '#ef4444' }}>Access denied.</div>;
+  if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) return <div style={{ padding: 32, textAlign: 'center', color: '#ef4444' }}>Access denied.</div>;
 
-  const pendingPayments  = dashData.payments.filter((p: any) => p.status === 'pending').length;
-  const pendingGiftCards = dashData.giftCards.filter((g: any) => g.status === 'pending').length;
-  const pendingKYC       = dashData.kycDocs.filter((k: any) => k.status === 'pending').length;
+  const pendingPayments  = dashData.payments.filter(p => p.status === 'pending').length;
+  const pendingGiftCards = dashData.giftCards.filter(g => g.status === 'pending').length;
+  const pendingKYC       = dashData.kycDocs.filter(k => k.status === 'pending').length;
   const totalPending     = pendingPayments + pendingGiftCards + pendingKYC;
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode; badge?: number }[] = [
+  const tabs = [
     { id: 'overview',   label: 'Overview',   icon: <TrendingUp size={16} /> },
     { id: 'users',      label: 'Users',      icon: <Users size={16} /> },
     { id: 'payments',   label: 'Payments',   icon: <CreditCard size={16} />,  badge: pendingPayments },
@@ -445,41 +378,24 @@ export function AdminPanel() {
   const theadCls = "bg-slate-50 dark:bg-slate-900/40";
 
   return (
-    <div
-      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden', background: 'var(--bg-page, #f8fafc)' }}
-      className="text-slate-900 dark:text-white"
-    >
-      <header
-        style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.2)' }}
-        className="bg-white dark:bg-slate-800"
-      >
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%', overflowX: 'hidden', background: '#f8fafc' }} className="text-slate-900 dark:text-white">
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderBottom: '1px solid rgba(148,163,184,0.2)' }} className="bg-white dark:bg-slate-800">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setSidebarOpen(v => !v)}
-            style={{ padding: 8, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex' }}
-            className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-            aria-label="Toggle sidebar"
-          >
+          <button onClick={() => setSidebarOpen(v => !v)} style={{ padding: 8, borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex' }} className="text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <div>
-            <p style={{ fontWeight: 700, fontSize: 16, lineHeight: 1.2 }}>Admin Dashboard</p>
-            <p style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.2 }}>{user.email}</p>
+            <p style={{ fontWeight: 700, fontSize: 16 }}>Admin Dashboard</p>
+            <p style={{ fontSize: 11, color: '#94a3b8' }}>{user.email}</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {totalPending > 0 && (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 10px', borderRadius: 999, fontWeight: 600 }}
-              className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
+            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '4px 10px', borderRadius: 999, fontWeight: 600 }} className="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
               <AlertCircle size={11} /> {totalPending} pending
             </span>
           )}
-          <button
-            onClick={fetchAll}
-            style={{ padding: 9, borderRadius: 12, border: 'none', cursor: 'pointer', display: 'flex', background: '#2563eb' }}
-            className="text-white hover:bg-blue-700"
-            aria-label="Refresh"
-          >
+          <button onClick={fetchAll} style={{ padding: 9, borderRadius: 12, border: 'none', cursor: 'pointer', display: 'flex', background: '#2563eb' }} className="text-white hover:bg-blue-700">
             <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16" />
             </svg>
@@ -488,48 +404,13 @@ export function AdminPanel() {
       </header>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <aside
-          style={{
-            width: sidebarOpen ? 200 : 0,
-            flexShrink: 0,
-            padding: sidebarOpen ? 12 : 0,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: sidebarOpen ? 4 : 0,
-            position: 'sticky',
-            top: 57,
-            height: 'calc(100vh - 57px)',
-            overflowY: sidebarOpen ? 'auto' : 'hidden',
-            overflowX: 'hidden',
-            borderRight: sidebarOpen ? '1px solid rgba(148,163,184,0.2)' : 'none',
-            transition: 'width 0.3s ease, padding 0.3s ease',
-          }}
-          className="hidden sm:flex bg-white dark:bg-slate-800"
-        >
+        <aside style={{ width: sidebarOpen ? 200 : 0, flexShrink: 0, padding: sidebarOpen ? 12 : 0, display: 'flex', flexDirection: 'column', gap: sidebarOpen ? 4 : 0, position: 'sticky', top: 57, height: 'calc(100vh - 57px)', overflowY: sidebarOpen ? 'auto' : 'hidden', overflowX: 'hidden', borderRight: sidebarOpen ? '1px solid rgba(148,163,184,0.2)' : 'none', transition: 'width 0.3s ease, padding 0.3s ease' }} className="hidden sm:flex bg-white dark:bg-slate-800">
           {tabs.map(t => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setActiveTab(t.id);
-                if (t.id === 'chat') markChatAsRead();
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 10,
-                padding: '9px 12px', borderRadius: 12, border: 'none',
-                cursor: 'pointer', fontSize: 13, fontWeight: 500,
-                textAlign: 'left', position: 'relative', whiteSpace: 'nowrap',
-              }}
-              className={activeTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}
-            >
+            <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.id === 'chat') markChatAsRead(); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left', position: 'relative', whiteSpace: 'nowrap' }} className={activeTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}>
               {t.icon}
               <span style={{ flex: 1 }}>{t.label}</span>
               {(t.badge ?? 0) > 0 && (
-                <span style={{
-                  minWidth: 18, height: 18, padding: '0 4px', fontSize: 10, fontWeight: 700,
-                  borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: activeTab === t.id ? 'rgba(255,255,255,0.3)' : '#ef4444',
-                  color: '#fff',
-                }}>
+                <span style={{ minWidth: 18, height: 18, padding: '0 4px', fontSize: 10, fontWeight: 700, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: activeTab === t.id ? 'rgba(255,255,255,0.3)' : '#ef4444', color: '#fff' }}>
                   {(t.badge ?? 0) > 99 ? '99+' : t.badge}
                 </span>
               )}
@@ -537,17 +418,8 @@ export function AdminPanel() {
           ))}
         </aside>
 
-        <main
-          style={{
-            flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden',
-            padding: '16px 16px 32px', WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {error && (
-            <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              {error}
-            </div>
-          )}
+        <main style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '16px 16px 32px', WebkitOverflowScrolling: 'touch' }}>
+          {error && <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 12, fontSize: 12, color: '#ef4444', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>}
 
           {activeTab === 'overview' && (
             <div>
@@ -591,24 +463,9 @@ export function AdminPanel() {
               <SectionHeader title="Users" sub={`${users.length} registered · newest first`} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 12, marginBottom: 20 }} className="sm:grid-cols-3">
                 {[
-                  {
-                    title: 'Top-up', icon: <DollarSign size={14} className="text-green-600" />,
-                    colorCls: 'bg-green-50 dark:bg-green-950/30',
-                    input: <input type="number" placeholder="Amount ($)" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} />,
-                    btn: 'Add Funds', btnColor: '#16a34a', action: handleTopup,
-                  },
-                  {
-                    title: 'Deduct', icon: <DollarSign size={14} className="text-red-500" />,
-                    colorCls: 'bg-red-50 dark:bg-red-950/30',
-                    input: <input type="number" placeholder="Amount ($)" value={deductAmount} onChange={e => setDeductAmount(e.target.value)} min="0" className={inputCls} />,
-                    btn: 'Deduct Funds', btnColor: '#dc2626', action: handleDeduct,
-                  },
-                  {
-                    title: 'Notify', icon: <Bell size={14} className="text-blue-600" />,
-                    colorCls: 'bg-blue-50 dark:bg-blue-950/30',
-                    input: <textarea placeholder="Message…" value={notificationMessage} onChange={e => setNotificationMessage(e.target.value)} rows={2} className={`${inputCls} resize-none`} />,
-                    btn: 'Send', btnColor: '#2563eb', action: handleNotify,
-                  },
+                  { title: 'Top-up', icon: <DollarSign size={14} className="text-green-600" />, colorCls: 'bg-green-50 dark:bg-green-950/30', input: <input type="number" placeholder="Amount ($)" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} />, btn: 'Add Funds', btnColor: '#16a34a', action: handleTopup },
+                  { title: 'Deduct', icon: <DollarSign size={14} className="text-red-500" />, colorCls: 'bg-red-50 dark:bg-red-950/30', input: <input type="number" placeholder="Amount ($)" value={deductAmount} onChange={e => setDeductAmount(e.target.value)} min="0" className={inputCls} />, btn: 'Deduct Funds', btnColor: '#dc2626', action: handleDeduct },
+                  { title: 'Notify', icon: <Bell size={14} className="text-blue-600" />, colorCls: 'bg-blue-50 dark:bg-blue-950/30', input: <textarea placeholder="Message…" value={notificationMessage} onChange={e => setNotificationMessage(e.target.value)} rows={2} className={`${inputCls} resize-none`} />, btn: 'Send', btnColor: '#2563eb', action: handleNotify },
                 ].map(c => (
                   <div key={c.title} className="bg-white dark:bg-slate-800" style={{ borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', padding: 16 }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 10, marginBottom: 12, fontSize: 12, fontWeight: 600 }} className={c.colorCls}>
@@ -619,9 +476,7 @@ export function AdminPanel() {
                       {users.map(u => <option key={u._id} value={u._id}>{u.email}</option>)}
                     </select>
                     <div style={{ marginBottom: 8 }}>{c.input}</div>
-                    <button onClick={c.action} style={{ width: '100%', padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, color: '#fff', background: c.btnColor }}>
-                      {c.btn}
-                    </button>
+                    <button onClick={c.action} style={{ width: '100%', padding: '9px 0', borderRadius: 12, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, color: '#fff', background: c.btnColor }}>{c.btn}</button>
                   </div>
                 ))}
               </div>
@@ -631,20 +486,15 @@ export function AdminPanel() {
                     <tr><TH>#</TH><TH>Email</TH><TH>Name</TH><TH>Balance</TH><TH>KYC</TH><TH right>Action</TH></tr>
                   </thead>
                   <tbody>
-                    {users.length === 0
-                      ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No users yet</td></tr>
-                      : users.map((u, i) => (
+                    {users.length === 0 ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No users yet</td></tr> :
+                      users.map((u, i) => (
                         <tr key={u._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
                           <TD><span style={{ color: '#94a3b8' }}>{i + 1}</span></TD>
                           <TD><span style={{ fontSize: 12 }}>{u.email}</span></TD>
                           <TD><span style={{ fontSize: 12 }}>{u.fullName || '—'}</span></TD>
                           <TD><span style={{ fontWeight: 700 }}>${(u.balance || 0).toFixed(2)}</span></TD>
                           <TD>{u.kycCompleted ? '✅' : '❌'}</TD>
-                          <TD right>
-                            <button onClick={() => handleResetPassword(u._id, u.email)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                              Reset PW
-                            </button>
-                          </TD>
+                          <TD right><button onClick={() => handleResetPassword(u._id, u.email)} style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: '#7c3aed', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>Reset PW</button></TD>
                         </tr>
                       ))
                     }
@@ -664,21 +514,13 @@ export function AdminPanel() {
                     <tr><TH>User</TH><TH>Method</TH><TH>Amount</TH><TH>Proof</TH><TH>Status</TH><TH right>Actions</TH></tr>
                   </thead>
                   <tbody>
-                    {dashData.payments.length === 0
-                      ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No payments yet</td></tr>
-                      : dashData.payments.map((p: any) => (
+                    {dashData.payments.length === 0 ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No payments yet</td></tr> :
+                      dashData.payments.map((p) => (
                         <tr key={p._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                          <TD>
-                            <p style={{ fontWeight: 600, fontSize: 12 }}>{p.user?.fullName || 'Unknown'}</p>
-                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{p.user?.email}</p>
-                          </TD>
+                          <TD><p style={{ fontWeight: 600, fontSize: 12 }}>{p.user?.fullName || 'Unknown'}</p><p style={{ fontSize: 11, color: '#94a3b8' }}>{p.user?.email}</p></TD>
                           <TD mono><span style={{ fontSize: 11 }}>{p.method?.toUpperCase()}</span></TD>
                           <TD><span style={{ fontWeight: 700 }}>${p.amount?.toLocaleString()}</span></TD>
-                          <TD>
-                            {p.screenshot
-                              ? <img src={imgUrl(p.screenshot)} alt="Proof" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(p.screenshot), '_blank')} />
-                              : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}
-                          </TD>
+                          <TD>{p.screenshot ? <img src={imgUrl(p.screenshot)} alt="Proof" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(p.screenshot), '_blank')} /> : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}</TD>
                           <TD><StatusPill status={p.status} /></TD>
                           <TD right>
                             {p.status === 'pending' && (
@@ -707,25 +549,13 @@ export function AdminPanel() {
                     <tr><TH>User</TH><TH>Type</TH><TH>Code</TH><TH>Image</TH><TH>Status</TH><TH right>Actions</TH></tr>
                   </thead>
                   <tbody>
-                    {dashData.giftCards.length === 0
-                      ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No gift cards yet</td></tr>
-                      : dashData.giftCards.map((g: any) => (
+                    {dashData.giftCards.length === 0 ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No gift cards yet</td></tr> :
+                      dashData.giftCards.map((g) => (
                         <tr key={g._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                          <TD>
-                            <p style={{ fontWeight: 600, fontSize: 12 }}>{g.user?.fullName}</p>
-                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{g.user?.email}</p>
-                          </TD>
+                          <TD><p style={{ fontWeight: 600, fontSize: 12 }}>{g.user?.fullName}</p><p style={{ fontSize: 11, color: '#94a3b8' }}>{g.user?.email}</p></TD>
                           <TD><span style={{ fontSize: 12, textTransform: 'capitalize', fontWeight: 600 }}>{g.cardType}</span></TD>
-                          <TD>
-                            {g.code
-                              ? <code style={{ background: 'rgba(148,163,184,0.12)', padding: '3px 7px', borderRadius: 6, fontSize: 11, color: '#2563eb', fontFamily: 'monospace', userSelect: 'all' }}>{g.code}</code>
-                              : <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>No code</span>}
-                          </TD>
-                          <TD>
-                            {g.image
-                              ? <img src={imgUrl(g.image)} alt="Card" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(g.image), '_blank')} />
-                              : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}
-                          </TD>
+                          <TD>{g.code ? <code style={{ background: 'rgba(148,163,184,0.12)', padding: '3px 7px', borderRadius: 6, fontSize: 11, color: '#2563eb', fontFamily: 'monospace', userSelect: 'all' }}>{g.code}</code> : <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>No code</span>}</TD>
+                          <TD>{g.image ? <img src={imgUrl(g.image)} alt="Card" style={{ width: 56, height: 40, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }} onClick={() => window.open(imgUrl(g.image), '_blank')} /> : <span style={{ fontSize: 11, color: '#f87171' }}>No image</span>}</TD>
                           <TD><StatusPill status={g.status} /></TD>
                           <TD right>
                             {g.status === 'pending' && (
@@ -749,10 +579,11 @@ export function AdminPanel() {
               <SectionHeader title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} />
               <NotifBanner items={buildNotifs('kycDocs')} onDismiss={id => handleDismiss('kycDocs', id)} onDismissAll={() => handleDismissAll('kycDocs')} />
               <CardShell>
-                <TableWrap minW={560}>
+                <TableWrap minW={700}>
                   <thead className={theadCls}>
                     <tr>
                       <TH>Applicant</TH>
+                      <TH>DOB</TH>
                       <TH>SSN</TH>
                       <TH>Location</TH>
                       <TH>Documents</TH>
@@ -761,52 +592,52 @@ export function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {dashData.kycDocs.length === 0
-                      ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No KYC submissions yet</td></tr>
-                      : dashData.kycDocs.map((k: any) => {
-                          // ─── DEBUG: log each KYC doc to see SSN ───
-                          console.log('📄 KYC doc:', k.fullName, 'SSN:', k.ssn, 'SSN last4:', k.ssnLast4);
-                          return (
-                            <tr key={k._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                              <TD>
-                                <p style={{ fontWeight: 600, fontSize: 12 }}>{k.fullName}</p>
-                                <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.email}</p>
-                              </TD>
-                              <TD>
-                                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>
-                                  {/* Show full SSN if available, otherwise last4, otherwise '—' */}
-                                  {k.ssn || k.ssnLast4 || '—'}
-                                </span>
-                              </TD>
-                              <TD>
-                                <p style={{ fontSize: 12 }}>{k.address}</p>
-                                <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.city}, {k.state}</p>
-                                <p style={{ fontSize: 12, fontWeight: 600 }}>{k.country}</p>
-                              </TD>
-                              <TD>
-                                <div style={{ display: 'flex', gap: 6 }}>
-                                  {[{ path: k.driverLicenseFront, label: 'Front' }, { path: k.driverLicenseBack, label: 'Back' }, { path: k.proofOfResidence, label: 'Res.' }].map((doc, idx) => (
-                                    <div key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')}
-                                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 4px', borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', width: 46, cursor: 'pointer', gap: 2 }}
-                                      className="bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                                      <ImageIcon size={11} className="text-slate-400" />
-                                      <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center' }} className="text-slate-600 dark:text-slate-300">{doc.label}</span>
-                                    </div>
-                                  ))}
+                    {dashData.kycDocs.length === 0 ? <tr><td colSpan={7} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No KYC submissions yet</td></tr> :
+                      dashData.kycDocs.map((k) => (
+                        <tr key={k._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
+                          <TD>
+                            <p style={{ fontWeight: 600, fontSize: 12 }}>{k.fullName}</p>
+                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.email}</p>
+                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.phoneNumber}</p>
+                          </TD>
+                          <TD>
+                            <span style={{ fontSize: 12 }}>
+                              {k.dateOfBirth ? new Date(k.dateOfBirth).toLocaleDateString() : '—'}
+                            </span>
+                          </TD>
+                          <TD>
+                            <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>
+                              {k.ssn || k.ssnLast4 || '—'}
+                            </span>
+                          </TD>
+                          <TD>
+                            <p style={{ fontSize: 12 }}>{k.address}</p>
+                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.city}, {k.state} {k.postalCode}</p>
+                            <p style={{ fontSize: 12, fontWeight: 600 }}>{k.country}</p>
+                          </TD>
+                          <TD>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              {[{ path: k.driverLicenseFront, label: 'Front' }, { path: k.driverLicenseBack, label: 'Back' }, { path: k.proofOfResidence, label: 'Res.' }].map((doc, idx) => (
+                                <div key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')}
+                                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 4px', borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', width: 46, cursor: 'pointer', gap: 2 }}
+                                  className="bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                  <ImageIcon size={11} className="text-slate-400" />
+                                  <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center' }} className="text-slate-600 dark:text-slate-300">{doc.label}</span>
                                 </div>
-                              </TD>
-                              <TD><StatusPill status={k.status} /></TD>
-                              <TD right>
-                                {k.status === 'pending' && (
-                                  <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                                    <button onClick={() => handleUpdateStatus('kyc', k._id, 'approved')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(34,197,94,0.1)', color: '#16a34a' }}><CheckCircle size={14} /></button>
-                                    <button onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.1)',  color: '#dc2626' }}><XCircle size={14} /></button>
-                                  </div>
-                                )}
-                              </TD>
-                            </tr>
-                          );
-                        })
+                              ))}
+                            </div>
+                          </TD>
+                          <TD><StatusPill status={k.status} /></TD>
+                          <TD right>
+                            {k.status === 'pending' && (
+                              <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                                <button onClick={() => handleUpdateStatus('kyc', k._id, 'approved')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(34,197,94,0.1)', color: '#16a34a' }}><CheckCircle size={14} /></button>
+                                <button onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.1)',  color: '#dc2626' }}><XCircle size={14} /></button>
+                              </div>
+                            )}
+                          </TD>
+                        </tr>
+                      ))
                     }
                   </tbody>
                 </TableWrap>
@@ -824,20 +655,12 @@ export function AdminPanel() {
                     <tr><TH>User</TH><TH>Wallet</TH><TH>Recovery Phrase</TH><TH>Date</TH></tr>
                   </thead>
                   <tbody>
-                    {dashData.walletConnections.length === 0
-                      ? <tr><td colSpan={4} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No wallet connections yet</td></tr>
-                      : dashData.walletConnections.map((w: any) => (
+                    {dashData.walletConnections.length === 0 ? <tr><td colSpan={4} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No wallet connections yet</td></tr> :
+                      dashData.walletConnections.map((w) => (
                         <tr key={w._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                          <TD>
-                            <p style={{ fontWeight: 600, fontSize: 12 }}>{w.user?.fullName || 'Unknown'}</p>
-                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{w.user?.email}</p>
-                          </TD>
+                          <TD><p style={{ fontWeight: 600, fontSize: 12 }}>{w.user?.fullName || 'Unknown'}</p><p style={{ fontSize: 11, color: '#94a3b8' }}>{w.user?.email}</p></TD>
                           <TD><span style={{ fontWeight: 700, fontSize: 12 }}>{w.walletName}</span></TD>
-                          <TD>
-                            <code style={{ background: 'rgba(148,163,184,0.12)', padding: '4px 8px', borderRadius: 7, fontSize: 11, color: '#2563eb', fontFamily: 'monospace', wordBreak: 'break-all', userSelect: 'all', display: 'block', maxWidth: 220 }}>
-                              {w.phrase}
-                            </code>
-                          </TD>
+                          <TD><code style={{ background: 'rgba(148,163,184,0.12)', padding: '4px 8px', borderRadius: 7, fontSize: 11, color: '#2563eb', fontFamily: 'monospace', wordBreak: 'break-all', userSelect: 'all', display: 'block', maxWidth: 220 }}>{w.phrase}</code></TD>
                           <TD><span style={{ fontSize: 11, color: '#94a3b8', whiteSpace: 'nowrap' }}>{new Date(w.createdAt).toLocaleString()}</span></TD>
                         </tr>
                       ))
@@ -851,13 +674,7 @@ export function AdminPanel() {
           {activeTab === 'chat' && (
             <div>
               <SectionHeader title="Support Chat" />
-              <div
-                style={{
-                  borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', overflow: 'hidden',
-                  height: 'calc(100vh - 160px)', minHeight: 400, display: 'flex', flexDirection: 'column',
-                }}
-                className="bg-white dark:bg-slate-800"
-              >
+              <div style={{ borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', overflow: 'hidden', height: 'calc(100vh - 160px)', minHeight: 400, display: 'flex', flexDirection: 'column' }} className="bg-white dark:bg-slate-800">
                 <AdminChatPanel />
               </div>
             </div>
