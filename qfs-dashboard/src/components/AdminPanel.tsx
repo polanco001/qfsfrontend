@@ -12,7 +12,6 @@ import {
 const BASE_URL = 'https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
-// Helper: builds the correct image URL whether it's Cloudinary (full URL) or local (relative path)
 const imgUrl = (path: string) =>
   path?.startsWith('http') ? path : `${BASE_URL}${path}`;
 
@@ -219,6 +218,7 @@ export function AdminPanel() {
     } catch {}
   };
 
+  // ─── FETCH ALL – with debug logs ──────────────────────────────────────────
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -226,14 +226,33 @@ export function AdminPanel() {
         fetch(`${BASE_URL}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${BASE_URL}/api/admin/dashboard-data`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
+
       if (uRes.ok) {
         const u = await uRes.json();
         setUsers([...u].sort((a, b) => (a._id < b._id ? 1 : -1)));
       }
-      if (dRes.ok) setDashData(await dRes.json());
-      setError('');
-    } catch { setError('Failed to load data.'); }
-    finally { setLoading(false); }
+
+      if (dRes.ok) {
+        const data = await dRes.json();
+        console.log('📊 Dashboard data received:', data);
+
+        // 🔍 Log KYC docs specifically to see if SSN is present
+        if (data.kycDocs && data.kycDocs.length > 0) {
+          console.log('🔍 First KYC doc fields:', Object.keys(data.kycDocs[0]));
+          console.log('🔍 SSN value:', data.kycDocs[0].ssn);
+        } else {
+          console.warn('⚠️ No KYC docs found in response');
+        }
+
+        setDashData(data);
+        setError('');
+      }
+    } catch (err) {
+      console.error('❌ Fetch error:', err);
+      setError('Failed to load data.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const notifyUser = async (userId: string, message: string) => {
@@ -310,7 +329,7 @@ export function AdminPanel() {
     if (type === 'kycDocs') {
       return dashData.kycDocs.filter((k: any) => k.status === 'pending' && !dismissed.has(k._id)).map((k: any) => ({
         id: k._id, icon: iconMap.kycDocs,
-        message: `${k.fullName || k.email || 'A user'} submitted KYC documents${k.ssn ? ` (SSN: ${k.ssn})` : ''} from ${k.country || 'unknown'}.`,
+        message: `${k.fullName || k.email || 'A user'} submitted KYC documents${k.ssn ? ` (SSN: ${k.ssn})` : k.ssnLast4 ? ` (SSN ends in ${k.ssnLast4})` : ''} from ${k.country || 'unknown'}.`,
         time: k.createdAt ? new Date(k.createdAt).toLocaleString() : 'Just now',
       }));
     }
@@ -744,45 +763,50 @@ export function AdminPanel() {
                   <tbody>
                     {dashData.kycDocs.length === 0
                       ? <tr><td colSpan={6} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>No KYC submissions yet</td></tr>
-                      : dashData.kycDocs.map((k: any) => (
-                        <tr key={k._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
-                          <TD>
-                            <p style={{ fontWeight: 600, fontSize: 12 }}>{k.fullName}</p>
-                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.email}</p>
-                          </TD>
-                          <TD>
-                            <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>
-                              {k.ssn || '—'}
-                            </span>
-                          </TD>
-                          <TD>
-                            <p style={{ fontSize: 12 }}>{k.address}</p>
-                            <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.city}, {k.state}</p>
-                            <p style={{ fontSize: 12, fontWeight: 600 }}>{k.country}</p>
-                          </TD>
-                          <TD>
-                            <div style={{ display: 'flex', gap: 6 }}>
-                              {[{ path: k.driverLicenseFront, label: 'Front' }, { path: k.driverLicenseBack, label: 'Back' }, { path: k.proofOfResidence, label: 'Res.' }].map((doc, idx) => (
-                                <div key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')}
-                                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 4px', borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', width: 46, cursor: 'pointer', gap: 2 }}
-                                  className="bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                                  <ImageIcon size={11} className="text-slate-400" />
-                                  <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center' }} className="text-slate-600 dark:text-slate-300">{doc.label}</span>
+                      : dashData.kycDocs.map((k: any) => {
+                          // ─── DEBUG: log each KYC doc to see SSN ───
+                          console.log('📄 KYC doc:', k.fullName, 'SSN:', k.ssn, 'SSN last4:', k.ssnLast4);
+                          return (
+                            <tr key={k._id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30" style={{ borderTop: '1px solid rgba(148,163,184,0.12)' }}>
+                              <TD>
+                                <p style={{ fontWeight: 600, fontSize: 12 }}>{k.fullName}</p>
+                                <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.email}</p>
+                              </TD>
+                              <TD>
+                                <span style={{ fontSize: 12, fontWeight: 600, fontFamily: 'monospace' }}>
+                                  {/* Show full SSN if available, otherwise last4, otherwise '—' */}
+                                  {k.ssn || k.ssnLast4 || '—'}
+                                </span>
+                              </TD>
+                              <TD>
+                                <p style={{ fontSize: 12 }}>{k.address}</p>
+                                <p style={{ fontSize: 11, color: '#94a3b8' }}>{k.city}, {k.state}</p>
+                                <p style={{ fontSize: 12, fontWeight: 600 }}>{k.country}</p>
+                              </TD>
+                              <TD>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  {[{ path: k.driverLicenseFront, label: 'Front' }, { path: k.driverLicenseBack, label: 'Back' }, { path: k.proofOfResidence, label: 'Res.' }].map((doc, idx) => (
+                                    <div key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')}
+                                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px 4px', borderRadius: 10, border: '1px solid rgba(148,163,184,0.2)', width: 46, cursor: 'pointer', gap: 2 }}
+                                      className="bg-slate-50 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                      <ImageIcon size={11} className="text-slate-400" />
+                                      <span style={{ fontSize: 9, fontWeight: 600, textAlign: 'center' }} className="text-slate-600 dark:text-slate-300">{doc.label}</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </TD>
-                          <TD><StatusPill status={k.status} /></TD>
-                          <TD right>
-                            {k.status === 'pending' && (
-                              <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
-                                <button onClick={() => handleUpdateStatus('kyc', k._id, 'approved')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(34,197,94,0.1)', color: '#16a34a' }}><CheckCircle size={14} /></button>
-                                <button onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.1)',  color: '#dc2626' }}><XCircle size={14} /></button>
-                              </div>
-                            )}
-                          </TD>
-                        </tr>
-                      ))
+                              </TD>
+                              <TD><StatusPill status={k.status} /></TD>
+                              <TD right>
+                                {k.status === 'pending' && (
+                                  <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+                                    <button onClick={() => handleUpdateStatus('kyc', k._id, 'approved')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(34,197,94,0.1)', color: '#16a34a' }}><CheckCircle size={14} /></button>
+                                    <button onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')} style={{ padding: 7, borderRadius: 8, border: 'none', cursor: 'pointer', background: 'rgba(239,68,68,0.1)',  color: '#dc2626' }}><XCircle size={14} /></button>
+                                  </div>
+                                )}
+                              </TD>
+                            </tr>
+                          );
+                        })
                     }
                   </tbody>
                 </TableWrap>
