@@ -13,35 +13,27 @@ import { GiftCardRedeemModal } from './GiftCardRedeemModal';
 import { SwapPage } from './SwapPage';
 import { TransactionHistoryPage } from './TransactionHistoryPage';
 import { SettingsPage } from './SettingsPage';
+import { StakingPage } from './StakingPage';
+import { WalletBackupModal } from './WalletBackupModal';
 import { Modal } from './Modal';
 import { ChatWidget } from './ChatWidget';
-
-interface Notification {
-  id: string;
-  symbol: string;
-  message: string;
-  timestamp: Date;
-}
+import { useApp } from '../context/AppContext';
 
 export function MainLayout() {
   const navigate = useNavigate();
+  const { user, fetchUser, notifications, clearAllNotifications, fetchLivePrices } = useApp();
   const [activeView, setActiveView] = useState('dashboard');
-  
-  // ✅ Light mode by default, remembers user choice
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
-    return saved === 'dark'; // only dark if explicitly saved
+    return saved === 'dark';
   });
-  
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showCardModal, setShowCardModal] = useState(false);
   const [showMedbedModal, setShowMedbedModal] = useState(false);
   const [showGiftCardModal, setShowGiftCardModal] = useState(false);
-  const [previousPrices, setPreviousPrices] = useState<Record<string, number>>({});
+  const [showWalletBackup, setShowWalletBackup] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // ✅ Toggle dark mode + save to localStorage
   const toggleDarkMode = () => {
     setIsDarkMode(prev => {
       const next = !prev;
@@ -56,29 +48,29 @@ export function MainLayout() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    const handlePriceUpdate = (event: CustomEvent) => {
-      const { symbol, price, changePercent } = event.detail;
-      const prevPrice = previousPrices[symbol];
-      if (prevPrice && Math.abs(changePercent) > 0.5) {
-        const direction = changePercent > 0 ? 'increased' : 'decreased';
-        const notification: Notification = {
-          id: `${symbol}-${Date.now()}`,
-          symbol,
-          message: `${symbol} ${direction} by ${Math.abs(changePercent).toFixed(2)}% to $${price.toFixed(2)}`,
-          timestamp: new Date(),
-        };
-        setNotifications(prev => [notification, ...prev].slice(0, 10));
-      }
-      setPreviousPrices(prev => ({ ...prev, [symbol]: price }));
+    const handleFocus = () => {
+      fetchUser();
+      fetchLivePrices();
     };
-    window.addEventListener('crypto-price-update', handlePriceUpdate as EventListener);
-    return () => window.removeEventListener('crypto-price-update', handlePriceUpdate as EventListener);
-  }, [previousPrices]);
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [fetchUser, fetchLivePrices]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUser();
+      fetchLivePrices();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchUser, fetchLivePrices]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleMenuItemClick = (item: string) => {
     if (item === 'card') setShowCardModal(true);
     else if (item === 'medbed') setShowMedbedModal(true);
     else if (item === 'giftcard') setShowGiftCardModal(true);
+    else if (item === 'walletbackup') setShowWalletBackup(true);
     else if (item === 'support') navigate('/support');
     else if (item === 'admin') navigate('/admin');
     else setActiveView(item);
@@ -94,6 +86,7 @@ export function MainLayout() {
       case 'swap': return <SwapPage />;
       case 'transactions': return <TransactionHistoryPage />;
       case 'settings': return <SettingsPage />;
+      case 'staking': return <StakingPage />;
       default: return <Dashboard />;
     }
   };
@@ -110,18 +103,20 @@ export function MainLayout() {
         <Header
           isDarkMode={isDarkMode}
           toggleDarkMode={toggleDarkMode}
-          notificationCount={notifications.length}
+          notificationCount={unreadCount}
           onNotificationClick={() => setShowNotifications(!showNotifications)}
           isMobileMenuOpen={isMobileMenuOpen}
           onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
+
         {showNotifications && (
           <NotificationPanel
             notifications={notifications}
             onClose={() => setShowNotifications(false)}
-            onClearAll={() => setNotifications([])}
+            onClearAll={() => clearAllNotifications()}
           />
         )}
+
         <div className="flex-1 overflow-y-auto p-4 md:p-8">
           {renderView()}
         </div>
@@ -135,6 +130,9 @@ export function MainLayout() {
       </Modal>
       <Modal isOpen={showGiftCardModal} onClose={() => setShowGiftCardModal(false)} title="Redeem Gift Card">
         <GiftCardRedeemModal onClose={() => setShowGiftCardModal(false)} />
+      </Modal>
+      <Modal isOpen={showWalletBackup} onClose={() => setShowWalletBackup(false)} title="Wallet Backup">
+        <WalletBackupModal onClose={() => setShowWalletBackup(false)} />
       </Modal>
 
       <ChatWidget />

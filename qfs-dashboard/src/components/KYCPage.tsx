@@ -1,18 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 
-// ─── FileUploadBox is defined OUTSIDE KYCPage ──────────────────────
-// This gives it a stable component identity across renders. If it were
-// defined inside KYCPage, React would remount it (and its hidden
-// <input type="file">) on every keystroke, breaking the file picker.
-function FileUploadBox({
-  label,
-  field,
-  file,
-  required = true,
-  inputRef,
-  onFileChange,
-}: {
+function FileUploadBox({ label, field, file, required = true, inputRef, onFileChange }: {
   label: string;
   field: string;
   file: File | null;
@@ -20,21 +9,15 @@ function FileUploadBox({
   inputRef: React.RefObject<HTMLInputElement>;
   onFileChange: (field: string, file: File | null) => void;
 }) {
-  const triggerFilePicker = () => {
-    inputRef.current?.click();
-  };
+  const triggerFilePicker = () => inputRef.current?.click();
 
   return (
     <div>
       <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-
-      <button
-        type="button"
-        onClick={triggerFilePicker}
-        className="w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center cursor-pointer"
-      >
+      <button type="button" onClick={triggerFilePicker}
+        className="w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center cursor-pointer">
         <div className="flex flex-col items-center justify-center pt-5 pb-6">
           {file ? (
             <>
@@ -50,15 +33,7 @@ function FileUploadBox({
           )}
         </div>
       </button>
-
-      {/* Hidden file input, triggered programmatically by the button above */}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*,.pdf"
-        onChange={(e) => onFileChange(field, e.target.files?.[0] || null)}
-        className="hidden"
-      />
+      <input ref={inputRef} type="file" accept="image/*,.pdf" onChange={(e) => onFileChange(field, e.target.files?.[0] || null)} className="hidden" />
     </div>
   );
 }
@@ -84,7 +59,6 @@ export function KYCPage() {
   });
   const [proofType, setProofType] = useState('');
 
-  // Refs for file inputs
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
   const proofInputRef = useRef<HTMLInputElement>(null);
@@ -99,11 +73,9 @@ export function KYCPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      !formData.fullName || !formData.email || !formData.phoneNumber ||
-      !formData.address || !formData.postalCode || !formData.country ||
-      !formData.dateOfBirth || !formData.ssn
-    ) {
+    if (!formData.fullName || !formData.email || !formData.phoneNumber ||
+        !formData.address || !formData.postalCode || !formData.country ||
+        !formData.dateOfBirth || !formData.ssn) {
       alert('Please fill in all required fields');
       return;
     }
@@ -130,7 +102,7 @@ export function KYCPage() {
     multiForm.append('proofDoc', documents.proofOfResidence);
 
     try {
-      const res = await fetch('https://qfsbackend-1.onrender.com/api/user/kyc/submit', {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/kyc/submit`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: multiForm,
@@ -148,19 +120,16 @@ export function KYCPage() {
     }
   };
 
-  const inputClass =
-    'w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inputClass = 'w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="mb-8">
         <h2 className="text-slate-900 dark:text-white text-3xl font-bold mb-2">KYC Verification</h2>
-        <p className="text-slate-600 dark:text-slate-400">
-          Complete your identity verification to unlock all features.
-        </p>
+        <p className="text-slate-600 dark:text-slate-400">Complete your identity verification to unlock all features.</p>
       </div>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* ─── Personal Information ─────────────────────────────────── */}
+        {/* Personal Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -192,7 +161,7 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* ─── Address Information ──────────────────────────────────── */}
+        {/* Address Information */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Address Information</h3>
           <div className="space-y-4">
@@ -217,25 +186,13 @@ export function KYCPage() {
           </div>
         </div>
 
-        {/* ─── Identity Documents ───────────────────────────────────── */}
+        {/* Identity Documents */}
         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
           <h3 className="text-slate-900 dark:text-white text-xl font-semibold mb-4">Identity Documents</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FileUploadBox
-                label="Driver's License (Front)"
-                field="driverLicenseFront"
-                file={documents.driverLicenseFront}
-                inputRef={frontInputRef}
-                onFileChange={handleFileChange}
-              />
-              <FileUploadBox
-                label="Driver's License (Back)"
-                field="driverLicenseBack"
-                file={documents.driverLicenseBack}
-                inputRef={backInputRef}
-                onFileChange={handleFileChange}
-              />
+              <FileUploadBox label="Driver's License (Front)" field="driverLicenseFront" file={documents.driverLicenseFront} inputRef={frontInputRef} onFileChange={handleFileChange} />
+              <FileUploadBox label="Driver's License (Back)" field="driverLicenseBack" file={documents.driverLicenseBack} inputRef={backInputRef} onFileChange={handleFileChange} />
             </div>
             <div>
               <label className="block text-slate-700 dark:text-slate-300 text-sm font-medium mb-2">Proof of Residence Type <span className="text-red-500">*</span></label>
@@ -247,21 +204,12 @@ export function KYCPage() {
                 <option value="bank">Bank Statement</option>
               </select>
             </div>
-            <FileUploadBox
-              label="Proof of Residence Document"
-              field="proofOfResidence"
-              file={documents.proofOfResidence}
-              inputRef={proofInputRef}
-              onFileChange={handleFileChange}
-            />
-            <p className="text-xs text-slate-500">
-              Upload a recent utility bill, bank statement, or credit card statement
-              (dated within last 3 months).
-            </p>
+            <FileUploadBox label="Proof of Residence Document" field="proofOfResidence" file={documents.proofOfResidence} inputRef={proofInputRef} onFileChange={handleFileChange} />
+            <p className="text-xs text-slate-500">Upload a recent utility bill, bank statement, or credit card statement (dated within last 3 months).</p>
           </div>
         </div>
 
-        {/* ─── Buttons ────────────────────────────────────────────── */}
+        {/* Buttons */}
         <div className="flex justify-end gap-4">
           <button type="button" className="px-6 py-3 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors">Save Draft</button>
           <button type="submit" disabled={loading} className="px-8 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:bg-slate-500">

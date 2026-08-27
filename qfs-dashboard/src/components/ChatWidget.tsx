@@ -4,7 +4,7 @@ import io, { Socket } from 'socket.io-client';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
+const API_URL = import.meta.env.VITE_API_BASE_URL || ' http://localhost:5001';
 
 interface Message {
   _id: string;

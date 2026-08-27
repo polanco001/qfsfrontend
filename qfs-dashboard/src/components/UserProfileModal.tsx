@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, CheckCircle, XCircle, Pencil, Check, Loader2 } from 'lucide-react';
+import { X, CheckCircle, XCircle, Pencil, Check, Loader2, Upload } from 'lucide-react';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -11,20 +11,36 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
   const { user, updateProfile } = useApp();
   const [isEditing, setIsEditing] = useState(false);
   const [nameInput, setNameInput] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen || !user) return null;
 
   const startEditing = () => {
     setNameInput(user.fullName);
     setError('');
+    setAvatarFile(null);
+    setAvatarPreview('');
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
     setError('');
+    setAvatarFile(null);
+    setAvatarPreview('');
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setAvatarFile(e.target.files[0]);
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result as string);
+      reader.readAsDataURL(e.target.files[0]);
+    }
   };
 
   const saveName = async () => {
@@ -33,18 +49,16 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
       setError('Name cannot be empty');
       return;
     }
-    if (trimmed === user.fullName) {
-      setIsEditing(false);
-      return;
-    }
     setSaving(true);
     setError('');
-    const ok = await updateProfile(trimmed);
+    const ok = await updateProfile(trimmed, avatarFile || undefined);
     setSaving(false);
     if (ok) {
       setIsEditing(false);
+      setAvatarFile(null);
+      setAvatarPreview('');
     } else {
-      setError('Failed to update name. Try again.');
+      setError('Failed to update. Try again.');
     }
   };
 
@@ -57,6 +71,20 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
             <X size={20} />
           </button>
         </div>
+
+        {/* Avatar */}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+            {avatarPreview || (user.avatar ? <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" /> : user.fullName[0])}
+          </div>
+          {isEditing && (
+            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-lg text-sm">
+              <Upload size={14} className="inline mr-1" /> Upload
+            </button>
+          )}
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+        </div>
+
         <div className="space-y-4">
           <div>
             <p className="text-sm text-slate-500">Full Name</p>
@@ -72,18 +100,10 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
                     disabled={saving}
                     className="flex-1 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1 text-sm bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
-                  <button
-                    onClick={saveName}
-                    disabled={saving}
-                    className="p-1.5 rounded-full bg-green-500 text-white hover:bg-green-600 disabled:opacity-50"
-                  >
+                  <button onClick={saveName} disabled={saving} className="p-1.5 rounded-full bg-green-500 text-white hover:bg-green-600 disabled:opacity-50">
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                   </button>
-                  <button
-                    onClick={cancelEditing}
-                    disabled={saving}
-                    className="p-1.5 rounded-full bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 disabled:opacity-50"
-                  >
+                  <button onClick={cancelEditing} disabled={saving} className="p-1.5 rounded-full bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 disabled:opacity-50">
                     <X size={14} />
                   </button>
                 </div>

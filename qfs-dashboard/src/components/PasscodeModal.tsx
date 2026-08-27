@@ -3,7 +3,7 @@ import { X, Delete, Check } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 interface PasscodeModalProps {
-  mode: 'create' | 'verify';
+  mode: 'create' | 'verify' | 'change';
   onSuccess: () => void;
   onCancel?: () => void;
 }
@@ -11,30 +11,31 @@ interface PasscodeModalProps {
 export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps) {
   const [passcode, setPasscode] = useState('');
   const [confirmPasscode, setConfirmPasscode] = useState('');
+  const [oldPasscode, setOldPasscode] = useState('');
   const [error, setError] = useState('');
   const [step, setStep] = useState<'entry' | 'confirm'>('entry');
   const [enteredCode, setEnteredCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setPasscode: setUserPasscode, verifyPasscode } = useApp();
+  const { setPasscode: setUserPasscode, verifyPasscode, changePasscode } = useApp();
 
   const handleDigit = (digit: string) => {
-    if (mode === 'create') {
+    if (mode === 'verify') {
+      if (enteredCode.length < 6) setEnteredCode(prev => prev + digit);
+    } else if (mode === 'create' || mode === 'change') {
       if (step === 'entry') {
         if (passcode.length < 6) setPasscode(prev => prev + digit);
       } else {
         if (confirmPasscode.length < 6) setConfirmPasscode(prev => prev + digit);
       }
-    } else {
-      if (enteredCode.length < 6) setEnteredCode(prev => prev + digit);
     }
   };
 
   const handleDelete = () => {
-    if (mode === 'create') {
+    if (mode === 'verify') {
+      setEnteredCode(prev => prev.slice(0, -1));
+    } else if (mode === 'create' || mode === 'change') {
       if (step === 'entry') setPasscode(prev => prev.slice(0, -1));
       else setConfirmPasscode(prev => prev.slice(0, -1));
-    } else {
-      setEnteredCode(prev => prev.slice(0, -1));
     }
   };
 
@@ -63,9 +64,8 @@ export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps)
             setError('Enter 6 digits');
           }
         }
-      } else {
+      } else if (mode === 'verify') {
         if (enteredCode.length === 6) {
-          // ✅ await verifyPasscode — it's async
           const verified = await verifyPasscode(enteredCode);
           if (verified) {
             onSuccess();
@@ -75,6 +75,27 @@ export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps)
           }
         } else {
           setError('Enter 6 digits');
+        }
+      } else if (mode === 'change') {
+        if (step === 'entry') {
+          if (passcode.length === 6) {
+            setStep('confirm');
+          } else {
+            setError('Enter 6 digits');
+          }
+        } else {
+          if (confirmPasscode.length === 6) {
+            if (passcode === confirmPasscode) {
+              const success = await changePasscode(oldPasscode, passcode);
+              if (success) onSuccess();
+              else setError('Failed to change passcode. Check current passcode.');
+            } else {
+              setError('New passcodes do not match');
+              setConfirmPasscode('');
+            }
+          } else {
+            setError('Enter 6 digits');
+          }
         }
       }
     } catch (err) {
@@ -87,26 +108,24 @@ export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps)
   // Auto-submit when 6 digits entered
   useEffect(() => {
     setError('');
-    const currentCode = mode === 'create'
-      ? (step === 'entry' ? passcode : confirmPasscode)
-      : enteredCode;
+    const currentCode = mode === 'verify'
+      ? enteredCode
+      : (step === 'entry' ? passcode : confirmPasscode);
     if (currentCode.length === 6) {
       handleSubmit();
     }
   }, [passcode, confirmPasscode, enteredCode]);
 
-  const displayCode = mode === 'create'
-    ? (step === 'entry' ? passcode : confirmPasscode)
-    : enteredCode;
+  const displayCode = mode === 'verify'
+    ? enteredCode
+    : (step === 'entry' ? passcode : confirmPasscode);
 
   return (
     <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm">
         <div className="flex justify-between items-center mb-2">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            {mode === 'create'
-              ? (step === 'entry' ? 'Create Passcode' : 'Confirm Passcode')
-              : 'Enter Passcode'}
+            {mode === 'create' ? 'Create Passcode' : mode === 'change' ? 'Change Passcode' : 'Enter Passcode'}
           </h2>
           {onCancel && (
             <button onClick={onCancel} className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700">
@@ -115,10 +134,21 @@ export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps)
           )}
         </div>
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-          {mode === 'create'
-            ? (step === 'entry' ? 'Set a 6-digit passcode for extra security' : 'Confirm your passcode')
-            : 'Enter your 6-digit passcode to continue'}
+          {mode === 'create' ? 'Set a 6-digit passcode for extra security' : mode === 'change' ? 'Enter current passcode, then new passcode' : 'Enter your 6-digit passcode to continue'}
         </p>
+
+        {mode === 'change' && step === 'entry' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Current Passcode</label>
+            <input
+              type="password"
+              value={oldPasscode}
+              onChange={(e) => setOldPasscode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="Enter current passcode"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-center font-mono text-2xl tracking-widest"
+            />
+          </div>
+        )}
 
         {/* Dots */}
         <div className="flex justify-center gap-4 mb-6">
@@ -140,7 +170,7 @@ export function PasscodeModal({ mode, onSuccess, onCancel }: PasscodeModalProps)
               {d}
             </button>
           ))}
-          <div /> {/* empty space */}
+          <div />
           <button onClick={() => handleDigit('0')}
             className="py-3 text-2xl font-semibold bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 transition">
             0

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Sun, Moon, Bell, User, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { UserProfileModal } from './UserProfileModal';
+import { VerifiedBadge } from './VerifiedBadge';
 
 interface HeaderProps {
   isDarkMode: boolean;
@@ -19,7 +20,6 @@ export function Header({
   const { user, notifications, fetchNotifications } = useApp();
   const [balanceVisible, setBalanceVisible] = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -28,11 +28,6 @@ export function Header({
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
-
-  const handleNotificationClick = () => {
-    onNotificationClick();
-    setShowNotificationsPanel(!showNotificationsPanel);
-  };
 
   const getNotificationStyle = (message: string) => {
     if (message.includes('KYC')) return { icon: '🛡️', color: 'text-purple-500' };
@@ -60,15 +55,27 @@ export function Header({
                   : 'bg-white border border-slate-200 shadow-sm'
               }`}
             >
+              {/* Avatar */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.fullName?.[0] || 'U'
+                )}
+              </div>
+
               <div>
                 {/* User's name shown prominently above the balance */}
-                <p
-                  className={`text-xs font-semibold mb-0.5 ${
+                <div
+                  className={`flex items-center gap-1.5 text-xs font-semibold mb-0.5 ${
                     isDarkMode ? 'text-slate-300' : 'text-slate-600'
                   }`}
                 >
-                  👤 {user?.fullName || 'User'}
-                </p>
+                  <span>👤 {user?.fullName || 'User'}</span>
+                  {user?.kycCompleted && (
+                    <VerifiedBadge size={14} showText={false} className="text-blue-400" />
+                  )}
+                </div>
 
                 <p
                   className={`text-[10px] uppercase tracking-wider font-medium mb-1 ${
@@ -120,8 +127,9 @@ export function Header({
               {isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
             </button>
 
+            {/* Notification Bell */}
             <button
-              onClick={handleNotificationClick}
+              onClick={onNotificationClick}
               className={`relative p-2.5 rounded-lg border transition-all ${
                 isDarkMode
                   ? 'bg-slate-800/60 border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-600'
@@ -149,68 +157,6 @@ export function Header({
           </div>
         </div>
       </div>
-
-      {showNotificationsPanel && (
-        <div
-          className={`absolute right-4 top-16 w-80 rounded-xl shadow-2xl max-h-96 overflow-y-auto z-50 backdrop-blur-xl border ${
-            isDarkMode
-              ? 'bg-[#0B1120] border-slate-700/50 text-white'
-              : 'bg-white border-slate-200 text-slate-900'
-          }`}
-        >
-          <div className={`p-4 border-b ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
-            <h3 className="font-semibold">Notifications</h3>
-          </div>
-
-          {notifications.length === 0 ? (
-            <div className={`p-6 text-center text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              No new notifications
-            </div>
-          ) : (
-            <div className="p-2 space-y-1">
-              {notifications.map((n) => {
-                const style = getNotificationStyle(n.message);
-                return (
-                  <div
-                    key={n._id}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      !n.read
-                        ? isDarkMode
-                          ? 'bg-blue-900/20 border-l-2 border-blue-500'
-                          : 'bg-blue-50 border-l-2 border-blue-500'
-                        : isDarkMode
-                        ? 'bg-slate-800/60 hover:bg-slate-700/60'
-                        : 'bg-slate-50 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${style.color}`}>
-                      {style.icon}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm leading-snug ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                        {n.message}
-                      </p>
-                      <span className={`text-xs ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                        {new Date(n.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <button
-            onClick={fetchNotifications}
-            className={`w-full p-3 text-sm font-medium transition-colors ${
-              isDarkMode ? 'text-blue-400 hover:bg-slate-800/50' : 'text-blue-600 hover:bg-slate-50'
-            }`}
-          >
-            Refresh
-          </button>
-        </div>
-      )}
 
       <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
     </>
