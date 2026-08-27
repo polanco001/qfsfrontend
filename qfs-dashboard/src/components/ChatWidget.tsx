@@ -4,7 +4,9 @@ import io, { Socket } from 'socket.io-client';
 import { useApp } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || '  https://qfsbackend-1.onrender.com';
+// ✅ Production fallback (no localhost)
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com/api';
+const SOCKET_URL = API_URL.replace('/api', '');
 
 interface Message {
   _id: string;
@@ -29,14 +31,14 @@ export function ChatWidget() {
   useEffect(() => {
     if (!user || !token) return;
 
-    fetch(`${API_URL}/api/user/messages`, {
+    fetch(`${API_URL}/user/messages`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(data => setMessages(Array.isArray(data) ? data : []))
       .catch(() => setMessages([]));
 
-    const newSocket = io(API_URL, { auth: { token } });
+    const newSocket = io(SOCKET_URL, { auth: { token } });
     setSocket(newSocket);
 
     newSocket.on('newMessage', (msg: Message) => {
