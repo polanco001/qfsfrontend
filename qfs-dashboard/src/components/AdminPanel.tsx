@@ -9,7 +9,7 @@ import {
   TrendingUp, AlertCircle, Clock, ArrowUpRight, Menu
 } from 'lucide-react';
 
-const BASE_URL = ' http://localhost:5001';
+const BASE_URL = ' http://https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
 const imgUrl = (path: string) =>

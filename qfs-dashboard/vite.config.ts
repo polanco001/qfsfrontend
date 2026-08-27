@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://https://qfsbackend-1.onrender.com',
         changeOrigin: true,
       },
     },

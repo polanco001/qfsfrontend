@@ -49,7 +49,7 @@ export function SettingsPage() {
     setIsLoading(true);
     try {
       await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'}/auth/change-password`,
+        `${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/auth/change-password`,
         { oldPassword, newPassword },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -82,7 +82,7 @@ export function SettingsPage() {
     setEmailNotifs(newVal);
     try {
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api'}/user/notifications/settings`,
+        `${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/user/notifications/settings`,
         { emailEnabled: newVal },
         { headers: { Authorization: `Bearer ${token}` } }
       );
