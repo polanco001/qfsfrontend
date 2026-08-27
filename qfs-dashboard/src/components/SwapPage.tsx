@@ -39,7 +39,7 @@ export function SwapPage() {
   const fetchLivePrices = async () => {
     setPricesLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/user/prices`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ' https://qfsbackend-1.onrender.com/api'}/user/prices`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {

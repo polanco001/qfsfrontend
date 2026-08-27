@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import { Send } from 'lucide-react';
 import io, { Socket } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || ' http://https://qfsbackend-1.onrender.com';
+const API_URL = import.meta.env.VITE_API_BASE_URL || '  https://qfsbackend-1.onrender.com';
 
 export function AdminChatPanel() {
   const { user, token } = useApp();

@@ -288,7 +288,7 @@ export function GiftCardRedeemModal({ onClose }: GiftCardRedeemModalProps) {
     if (inputMethod === 'image' && image) formData.append('image', image);
 
     try {
-      const res = await fetch(' http://https://qfsbackend-1.onrender.com/api/user/giftcard/submit', {
+      const res = await fetch('  https://qfsbackend-1.onrender.com/api/user/giftcard/submit', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,

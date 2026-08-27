@@ -34,7 +34,7 @@ export function StakingPage() {
 
   const fetchStakes = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/user/staking`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ' https://qfsbackend-1.onrender.com/api'}/user/staking`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
       if (res.ok) {
@@ -65,7 +65,7 @@ export function StakingPage() {
     setStaking(true);
     setError('');
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/user/stake`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ' https://qfsbackend-1.onrender.com/api'}/user/stake`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export function StakingPage() {
     if (!confirm('Are you sure you want to unstake? You will receive your asset plus any earned interest.')) return;
     setUnstakingId(stakeId);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://https://qfsbackend-1.onrender.com/api'}/user/unstake/${stakeId}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL || ' https://qfsbackend-1.onrender.com/api'}/user/unstake/${stakeId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
