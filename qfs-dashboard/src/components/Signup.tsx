@@ -189,7 +189,7 @@ export default function Signup() {
               <div className="mb-4 text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-center">{resendMsg}</div>
             )}
 
-            <div className="flex gap-2 justify-center mb-6" onPaste={handlePaste}>
+            <div className="flex gap-2 justify-center mb-2" onPaste={handlePaste}>
               {code.map((digit, i) => (
                 <input
                   key={i}
@@ -204,6 +204,9 @@ export default function Signup() {
                 />
               ))}
             </div>
+
+            {/* 📩 SPAM / JUNK REMINDER */}
+            <p className="text-xs text-white/40 text-center mb-6">📩 Didn't receive the code? Check your <span className="text-white/60 font-medium">spam</span> or <span className="text-white/60 font-medium">junk</span> folder.</p>
 
             <button
               onClick={handleAutoVerify}

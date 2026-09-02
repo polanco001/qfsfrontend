@@ -45,7 +45,7 @@ export default function Login() {
     setForgotLoading(true);
     try {
       await axios.post(`${API_URL}/auth/forgot-password`, { email: forgotEmail });
-      setForgotMsg('If that email exists, a reset link has been sent. Check your inbox.');
+      setForgotMsg('✅ If that email exists, a reset link has been sent. Check your inbox (and spam/junk folder).');
     } catch {
       setForgotError('Something went wrong. Try again.');
     } finally {
@@ -76,6 +76,9 @@ export default function Login() {
             {forgotMsg && (
               <div className="mb-4 text-xs text-green-400 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
                 {forgotMsg}
+                <p className="text-white/40 mt-1 text-[11px]">
+                  📩 Didn't see it? Check your <span className="text-white/60">spam</span> or <span className="text-white/60">junk</span> folder.
+                </p>
               </div>
             )}
             {forgotError && (
@@ -156,7 +159,6 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-[11px] font-medium text-white/45 uppercase">Password</label>
-                {/* ✅ Forgot password link */}
                 <button
                   type="button"
                   onClick={() => { setShowForgot(true); setForgotEmail(email); }}
