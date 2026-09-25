@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Check, Upload, Copy } from 'lucide-react';
 
 interface PaymentMethodModalProps {
@@ -15,22 +15,37 @@ interface PaymentMethod {
   icon: string;
 }
 
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
+
+const METHOD_META = [
+  { id: 'btc',  name: 'Bitcoin',  symbol: 'BTC',  icon: '₿' },
+  { id: 'eth',  name: 'Ethereum', symbol: 'ETH',  icon: 'Ξ' },
+  { id: 'xrp',  name: 'Ripple',   symbol: 'XRP',  icon: '✕' },
+  { id: 'xlm',  name: 'Stellar',  symbol: 'XLM',  icon: 'X' },
+  { id: 'sol',  name: 'Solana',   symbol: 'SOL',  icon: '◎' },
+  { id: 'rave', name: 'Rave',     symbol: 'RAVE', icon: 'R' },
+];
+
 export function PaymentMethodModal({ amount, onClose, onComplete }: PaymentMethodModalProps) {
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
+  const [wallets, setWallets] = useState<Record<string, string>>({});
 
-  const paymentMethods: PaymentMethod[] = [
-    { id: 'btc', name: 'Bitcoin', symbol: 'BTC', address: 'bc1qq8h0yqzt3r7543wnjr63va77pd3lyfqdmt9zmz', icon: '₿' },
-    { id: 'eth', name: 'Ethereum', symbol: 'ETH', address: '0x79152da483747c96f9c7c375117abe3461368800', icon: 'Ξ' },
-    { id: 'xrp', name: 'Ripple', symbol: 'XRP', address: 'rQHrmfjM96NkenhQ9YeL24hUBZznCMZ356', icon: '✕' },
-    { id: 'xlm', name: 'XLM', symbol: 'XLM', address: 'GDKRX4HQPP7TNYMKZM3KDPTWQF6UZQADGUCUBNYIANRFWRAVYES62T42', icon: 'X' },
-    { id: 'sol', name: 'Solana', symbol: 'SOL', address: 'Er7AH3YPnncoTY3DrD793hRGNZHeEr2BGHQtL4erPqah', icon: '◎' },
-    { id: 'rave', name: 'rave', symbol: 'RAVE', address: '0x79152da483747c96f9c7c375117abe3461368800', icon: 'R' },
-  ];
+  useEffect(() => {
+    fetch(`${API_URL}/api/settings`)
+      .then(r => r.json())
+      .then(d => setWallets(d.wallets || {}))
+      .catch(() => {});
+  }, []);
+
+  const paymentMethods: PaymentMethod[] = METHOD_META.map(m => ({
+    ...m,
+    address: wallets[m.symbol] || '',
+  }));
 
   const handleCopyAddress = () => {
-    if (selectedMethod) {
+    if (selectedMethod?.address) {
       navigator.clipboard.writeText(selectedMethod.address);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -59,7 +74,7 @@ export function PaymentMethodModal({ amount, onClose, onComplete }: PaymentMetho
     formData.append('amount', amount?.toString() || '0');
 
     try {
-      const res = await fetch('  https://qfsbackend-1.onrender.com/api/user/payment/submit', {
+      const res = await fetch(`${API_URL}/api/user/payment/submit`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData,
@@ -88,7 +103,8 @@ export function PaymentMethodModal({ amount, onClose, onComplete }: PaymentMetho
               <button
                 key={method.id}
                 onClick={() => setSelectedMethod(method)}
-                className="p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all bg-white dark:bg-slate-900"
+                disabled={!method.address}
+                className="p-4 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all bg-white dark:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="text-3xl mb-2">{method.icon}</div>
                 <p className="text-slate-900 dark:text-white font-semibold">{method.symbol}</p>
