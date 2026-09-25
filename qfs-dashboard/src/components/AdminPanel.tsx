@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminChatPanel from './AdminChatPanel';
+import { AdminSettings } from './AdminSettings';
 import { useApp } from '../context/AppContext';
 import {
   ShieldCheck, XCircle, Image as ImageIcon,
   CreditCard, FileText, CheckCircle, Users, Bell,
   DollarSign, Wallet, X, MessageCircle, ChevronRight,
-  TrendingUp, AlertCircle, Clock, ArrowUpRight, Menu
+  TrendingUp, AlertCircle, Clock, ArrowUpRight, Menu,
+  Settings as SettingsIcon
 } from 'lucide-react';
 
-const BASE_URL = '  https://qfsbackend-1.onrender.com';
+const BASE_URL = 'https://qfsbackend-1.onrender.com';
 const ADMIN_EMAIL = 'qfsvaultledger01@gmail.com';
 
 const imgUrl = (path: string) =>
   path?.startsWith('http') ? path : `${BASE_URL}${path}`;
 
-type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat';
+type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat' | 'settings';
 
 // ─── Notification Banner ───────────────────────────────────────────────
 function NotifBanner({ items, onDismiss, onDismissAll }) {
@@ -140,7 +142,7 @@ const TD = ({ children, right, mono }) => (
 export function AdminPanel() {
   const { user, token } = useApp();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dashData, setDashData] = useState({ payments: [], giftCards: [], kycDocs: [], walletConnections: [] });
   const [users, setUsers] = useState([]);
@@ -372,6 +374,7 @@ export function AdminPanel() {
     { id: 'kyc',        label: 'KYC',        icon: <ShieldCheck size={16} />, badge: pendingKYC },
     { id: 'wallets',    label: 'Wallets',    icon: <Wallet size={16} /> },
     { id: 'chat',       label: 'Chat',       icon: <MessageCircle size={16} />, badge: unreadChatCount },
+    { id: 'settings',   label: 'Settings',   icon: <SettingsIcon size={16} /> },
   ];
 
   const inputCls = "w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500";
@@ -406,7 +409,7 @@ export function AdminPanel() {
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <aside style={{ width: sidebarOpen ? 200 : 0, flexShrink: 0, padding: sidebarOpen ? 12 : 0, display: 'flex', flexDirection: 'column', gap: sidebarOpen ? 4 : 0, position: 'sticky', top: 57, height: 'calc(100vh - 57px)', overflowY: sidebarOpen ? 'auto' : 'hidden', overflowX: 'hidden', borderRight: sidebarOpen ? '1px solid rgba(148,163,184,0.2)' : 'none', transition: 'width 0.3s ease, padding 0.3s ease' }} className="hidden sm:flex bg-white dark:bg-slate-800">
           {tabs.map(t => (
-            <button key={t.id} onClick={() => { setActiveTab(t.id); if (t.id === 'chat') markChatAsRead(); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left', position: 'relative', whiteSpace: 'nowrap' }} className={activeTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}>
+            <button key={t.id} onClick={() => { setActiveTab(t.id as Tab); if (t.id === 'chat') markChatAsRead(); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, textAlign: 'left', position: 'relative', whiteSpace: 'nowrap' }} className={activeTab === t.id ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}>
               {t.icon}
               <span style={{ flex: 1 }}>{t.label}</span>
               {(t.badge ?? 0) > 0 && (
@@ -677,6 +680,13 @@ export function AdminPanel() {
               <div style={{ borderRadius: 20, border: '1px solid rgba(148,163,184,0.2)', overflow: 'hidden', height: 'calc(100vh - 160px)', minHeight: 400, display: 'flex', flexDirection: 'column' }} className="bg-white dark:bg-slate-800">
                 <AdminChatPanel />
               </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div>
+              <SectionHeader title="Settings" sub="Support contact & wallet addresses" />
+              <AdminSettings />
             </div>
           )}
         </main>
