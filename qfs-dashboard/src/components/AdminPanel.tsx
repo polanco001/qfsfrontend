@@ -9,7 +9,7 @@ import {
   DollarSign, Wallet, X, MessageCircle, ChevronRight,
   TrendingUp, AlertCircle, Clock, ArrowUpRight,
   Settings as SettingsIcon, Home, MoreHorizontal,
-  RefreshCw, KeyRound, Sparkles, Search, Inbox,
+  RefreshCw, KeyRound, LogOut,
 } from 'lucide-react';
 
 const BASE_URL = 'https://qfsbackend-1.onrender.com';
@@ -21,39 +21,75 @@ const imgUrl = (path: string) =>
 type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat' | 'settings';
 
 /* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+const C = {
+  bg:      '#FAFAF7',
+  teal:    '#0C513F',
+  deep:    '#07241C',
+  white:   '#FFFFFF',
+  border:  '#E5E5E0',
+  text:    '#0F1A17',
+  muted:   '#6B7280',
+  light:   '#9CA3AF',
+  green:   '#22C55E',
+  amber:   '#F59E0B',
+  red:     '#DC2626',
+  blue:    '#3B82F6',
+};
+
+/* ============================================================
    SHARED UI
    ============================================================ */
 
 const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm ${className}`}>
+  <div
+    className={`rounded-2xl bg-white ${className}`}
+    style={{ border: `1px solid ${C.border}` }}
+  >
     {children}
   </div>
 );
 
-const SectionTitle = ({ title, sub, icon: Icon }: { title: string; sub?: string; icon?: any }) => (
-  <div className="flex items-start gap-3 mb-5">
-    {Icon && (
-      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center shrink-0">
-        <Icon size={16} className="text-indigo-400" />
-      </div>
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p
+    className="text-[10px] font-extrabold uppercase mb-3"
+    style={{ letterSpacing: '1.6px', color: C.muted }}
+  >
+    {children}
+  </p>
+);
+
+const SectionTitle = ({ title, sub }: { title: string; sub?: string }) => (
+  <div className="mb-6">
+    <h2
+      className="text-2xl sm:text-3xl font-extrabold"
+      style={{ color: C.text, letterSpacing: '-1px' }}
+    >
+      {title}
+    </h2>
+    {sub && (
+      <p className="text-xs sm:text-sm mt-1" style={{ color: C.muted }}>
+        {sub}
+      </p>
     )}
-    <div className="min-w-0">
-      <h2 className="text-lg font-semibold text-white tracking-tight">{title}</h2>
-      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
-    </div>
   </div>
 );
 
 const StatusPill = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
-    completed: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    approved:  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    failed:    'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    rejected:  'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    pending:   'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    completed: C.green,
+    approved:  C.green,
+    failed:    C.red,
+    rejected:  C.red,
+    pending:   C.amber,
   };
+  const color = map[status] ?? C.amber;
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wide border ${map[status] ?? map.pending}`}>
+    <span
+      className="inline-flex items-center px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase"
+      style={{ backgroundColor: color + '18', color, letterSpacing: '0.6px' }}
+    >
       {status}
     </span>
   );
@@ -61,11 +97,14 @@ const StatusPill = ({ status }: { status: string }) => {
 
 const EmptyState = ({ icon: Icon, title, sub }: { icon: any; title: string; sub?: string }) => (
   <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-    <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-3">
-      <Icon size={22} className="text-slate-500" />
+    <div
+      className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
+      style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
+    >
+      <Icon size={20} style={{ color: C.light }} />
     </div>
-    <p className="text-sm font-medium text-slate-300">{title}</p>
-    {sub && <p className="text-xs text-slate-500 mt-1 max-w-xs">{sub}</p>}
+    <p className="text-sm font-bold" style={{ color: C.text }}>{title}</p>
+    {sub && <p className="text-xs mt-1 max-w-xs" style={{ color: C.muted }}>{sub}</p>}
   </div>
 );
 
@@ -76,30 +115,48 @@ const EmptyState = ({ icon: Icon, title, sub }: { icon: any; title: string; sub?
 function NotifBanner({ items, onDismiss, onDismissAll }: any) {
   if (items.length === 0) return null;
   return (
-    <div className="mb-4 rounded-2xl border border-amber-500/20 bg-amber-500/[0.06] overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-amber-500/15">
+    <div
+      className="mb-5 rounded-2xl overflow-hidden"
+      style={{ backgroundColor: C.amber + '0D', border: `1px solid ${C.amber}30` }}
+    >
+      <div
+        className="flex items-center justify-between px-4 py-3"
+        style={{ borderBottom: `1px solid ${C.amber}25` }}
+      >
         <div className="flex items-center gap-2">
-          <AlertCircle size={14} className="text-amber-400" />
-          <span className="text-xs font-semibold text-amber-300">
-            {items.length} pending submission{items.length > 1 ? 's' : ''}
+          <AlertCircle size={13} style={{ color: C.amber }} />
+          <span className="text-xs font-extrabold" style={{ color: C.amber, letterSpacing: '0.2px' }}>
+            {items.length} PENDING SUBMISSION{items.length > 1 ? 'S' : ''}
           </span>
         </div>
-        <button onClick={onDismissAll} className="text-[11px] text-amber-400 hover:text-amber-300 font-medium transition">
+        <button
+          onClick={onDismissAll}
+          className="text-[11px] font-bold transition"
+          style={{ color: C.amber }}
+        >
           Dismiss all
         </button>
       </div>
-      <div className="divide-y divide-amber-500/10">
+      <div>
         {items.map((n: any) => (
-          <div key={n.id} className="flex items-start gap-3 px-4 py-3">
+          <div
+            key={n.id}
+            className="flex items-start gap-3 px-4 py-3"
+            style={{ borderTop: `1px solid ${C.amber}15` }}
+          >
             <div className="shrink-0 mt-0.5">{n.icon}</div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-amber-100 leading-snug">{n.message}</p>
-              <p className="text-[10px] text-amber-400/70 mt-1 flex items-center gap-1">
+              <p className="text-xs leading-snug" style={{ color: C.text }}>{n.message}</p>
+              <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: C.amber }}>
                 <Clock size={9} /> {n.time}
               </p>
             </div>
-            <button onClick={() => onDismiss(n.id)} className="shrink-0 p-1 rounded-full hover:bg-amber-500/20 transition">
-              <X size={11} className="text-amber-400" />
+            <button
+              onClick={() => onDismiss(n.id)}
+              className="shrink-0 p-1 rounded-full transition"
+              style={{ color: C.amber }}
+            >
+              <X size={11} />
             </button>
           </div>
         ))}
@@ -220,10 +277,10 @@ export function AdminPanel() {
   const buildNotifs = (type: string) => {
     const dismissed = dismissedIds[type] ?? new Set();
     const iconMap: any = {
-      payments: <CreditCard size={13} className="text-amber-400" />,
-      giftCards: <FileText size={13} className="text-blue-400" />,
-      kycDocs: <ShieldCheck size={13} className="text-violet-400" />,
-      wallets: <Wallet size={13} className="text-emerald-400" />,
+      payments: <CreditCard size={13} style={{ color: C.amber }} />,
+      giftCards: <FileText size={13} style={{ color: C.blue }} />,
+      kycDocs: <ShieldCheck size={13} style={{ color: C.teal }} />,
+      wallets: <Wallet size={13} style={{ color: C.green }} />,
     };
     if (type === 'payments')
       return dashData.payments.filter((p: any) => p.status === 'pending' && !dismissed.has(p._id)).map((p: any) => ({
@@ -320,6 +377,11 @@ export function AdminPanel() {
     } catch { alert('Network error.'); }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   const goTo = (tab: Tab) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
@@ -328,22 +390,31 @@ export function AdminPanel() {
 
   if (user === null || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0d16' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.bg }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-2 border-indigo-500/30 border-t-indigo-500 animate-spin" />
-          <p className="text-xs text-slate-400">Loading admin panel…</p>
+          <div
+            className="w-10 h-10 rounded-full border-2 animate-spin"
+            style={{ borderColor: C.teal + '30', borderTopColor: C.teal }}
+          />
+          <p className="text-xs font-semibold" style={{ color: C.muted }}>Loading admin panel…</p>
         </div>
       </div>
     );
   }
   if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) {
-    return <div className="min-h-screen flex items-center justify-center text-rose-400 text-sm" style={{ background: '#0a0d16' }}>Access denied.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center text-sm font-semibold" style={{ backgroundColor: C.bg, color: C.red }}>
+        Access denied.
+      </div>
+    );
   }
 
   const pendingPayments  = dashData.payments.filter((p: any) => p.status === 'pending').length;
   const pendingGiftCards = dashData.giftCards.filter((g: any) => g.status === 'pending').length;
   const pendingKYC       = dashData.kycDocs.filter((k: any) => k.status === 'pending').length;
   const totalPending     = pendingPayments + pendingGiftCards + pendingKYC;
+
+  const firstName = (user.fullName || user.email || 'Admin').split(' ')[0].split('@')[0];
 
   const primaryTabs = [
     { id: 'overview' as Tab,  label: 'Home',      icon: Home },
@@ -353,10 +424,10 @@ export function AdminPanel() {
   ];
 
   const moreTabs = [
-    { id: 'giftcards' as Tab, label: 'Gift Cards', icon: FileText,     badge: pendingGiftCards },
-    { id: 'wallets' as Tab,   label: 'Wallets',    icon: Wallet,       badge: 0 },
+    { id: 'giftcards' as Tab, label: 'Gift Cards',  icon: FileText,      badge: pendingGiftCards },
+    { id: 'wallets' as Tab,   label: 'Wallets',     icon: Wallet,        badge: 0 },
     { id: 'chat' as Tab,      label: 'Support Chat', icon: MessageCircle, badge: unreadChatCount },
-    { id: 'settings' as Tab,  label: 'Settings',   icon: SettingsIcon, badge: 0 },
+    { id: 'settings' as Tab,  label: 'Settings',    icon: SettingsIcon,  badge: 0 },
   ];
 
   const allDesktopTabs = [
@@ -372,78 +443,100 @@ export function AdminPanel() {
 
   const selectedUser = users.find((u: any) => u._id === selectedUserId);
 
-  const inputBase = "w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition";
+  const inputCls = "w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition";
+  const inputStyle = {
+    backgroundColor: C.white,
+    border: `1px solid ${C.border}`,
+    color: C.text,
+  };
 
   return (
-    <div
-      className="min-h-screen text-slate-200"
-      style={{
-        background: `
-          radial-gradient(1000px 600px at 10% -10%, rgba(99,102,241,0.15), transparent 60%),
-          radial-gradient(800px 500px at 90% 5%, rgba(139,92,246,0.12), transparent 55%),
-          #0a0d16
-        `,
-      }}
-    >
+    <div className="min-h-screen" style={{ backgroundColor: C.bg, color: C.text }}>
+
       {/* ============ DESKTOP HEADER ============ */}
-      <header className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6 border-b border-white/[0.06] bg-[#0a0d16]/80 backdrop-blur-xl">
+      <header
+        className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6"
+        style={{ backgroundColor: C.white, borderBottom: `1px solid ${C.border}` }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Sparkles size={16} className="text-white" />
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: C.teal }}
+          >
+            <ShieldCheck size={17} color={C.white} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-white leading-tight">Admin Console</p>
-            <p className="text-[11px] text-slate-500 leading-tight">{user.email}</p>
+            <p className="text-sm font-extrabold leading-tight" style={{ color: C.text, letterSpacing: '-0.3px' }}>
+              Admin Console
+            </p>
+            <p className="text-[11px] leading-tight" style={{ color: C.muted }}>{user.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {totalPending > 0 && (
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <AlertCircle size={11} /> {totalPending} pending
+            <span
+              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full"
+              style={{ backgroundColor: C.amber + '15', color: C.amber }}
+            >
+              <AlertCircle size={11} /> {totalPending} PENDING
             </span>
           )}
           <button
             onClick={fetchAll}
-            className="p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.08] transition"
+            className="p-2.5 rounded-xl transition"
+            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }}
             title="Refresh"
           >
-            <RefreshCw size={15} />
+            <RefreshCw size={14} />
+          </button>
+          <button
+            onClick={handleLogout}
+            className="p-2.5 rounded-xl transition"
+            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }}
+            title="Sign out"
+          >
+            <LogOut size={14} />
           </button>
         </div>
       </header>
 
       {/* ============ MOBILE HEADER ============ */}
-      <header className="lg:hidden sticky top-0 z-40 h-14 flex items-center justify-between px-4 border-b border-white/[0.06] bg-[#0a0d16]/90 backdrop-blur-xl">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
-            <Sparkles size={14} className="text-white" />
-          </div>
-          <p className="text-sm font-semibold text-white">Admin</p>
+      <header
+        className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-5 pt-5 pb-4"
+        style={{ backgroundColor: C.bg }}
+      >
+        <div>
+          <p className="text-xs font-bold mb-0.5" style={{ color: C.muted, letterSpacing: '0.2px' }}>
+            Hello, {firstName}
+          </p>
+          <p className="text-2xl font-extrabold" style={{ color: C.text, letterSpacing: '-0.9px' }}>
+            Dashboard
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          {totalPending > 0 && (
-            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <AlertCircle size={9} /> {totalPending}
-            </span>
-          )}
           <button
             onClick={fetchAll}
-            className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-slate-400 active:scale-95 transition"
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}
           >
-            <RefreshCw size={14} />
+            <RefreshCw size={15} />
           </button>
           <button
-            onClick={() => goTo('settings')}
-            className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-slate-400 active:scale-95 transition"
+            onClick={handleLogout}
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}
           >
-            <SettingsIcon size={14} />
+            <LogOut size={15} />
           </button>
         </div>
       </header>
 
       <div className="flex">
         {/* ============ DESKTOP SIDEBAR ============ */}
-        <aside className="hidden lg:flex sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 flex-col gap-1 p-4 border-r border-white/[0.06]">
+        <aside
+          className="hidden lg:flex sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 flex-col gap-1 p-4"
+          style={{ borderRight: `1px solid ${C.border}` }}
+        >
           {allDesktopTabs.map(t => {
             const Icon = t.icon;
             const active = activeTab === t.id;
@@ -451,18 +544,22 @@ export function AdminPanel() {
               <button
                 key={t.id}
                 onClick={() => goTo(t.id)}
-                className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition ${
-                  active
-                    ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-white border border-indigo-500/25'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
-                }`}
+                className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold transition"
+                style={{
+                  backgroundColor: active ? C.teal : 'transparent',
+                  color: active ? C.white : C.muted,
+                }}
               >
-                <Icon size={16} className={active ? 'text-indigo-400' : ''} />
+                <Icon size={16} />
                 <span className="flex-1 text-left">{t.label}</span>
                 {t.badge && t.badge > 0 ? (
-                  <span className={`min-w-[18px] h-[18px] px-1.5 text-[10px] font-bold rounded-full flex items-center justify-center ${
-                    active ? 'bg-indigo-500 text-white' : 'bg-rose-500/90 text-white'
-                  }`}>
+                  <span
+                    className="min-w-[18px] h-[18px] px-1.5 text-[10px] font-extrabold rounded-full flex items-center justify-center"
+                    style={{
+                      backgroundColor: active ? 'rgba(255,255,255,0.25)' : C.red,
+                      color: C.white,
+                    }}
+                  >
                     {t.badge > 99 ? '99+' : t.badge}
                   </span>
                 ) : null}
@@ -472,76 +569,130 @@ export function AdminPanel() {
         </aside>
 
         {/* ============ MAIN ============ */}
-        <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-5 lg:py-7 pb-28 lg:pb-10">
+        <main className="flex-1 min-w-0 px-5 sm:px-6 lg:px-10 py-4 lg:py-8 pb-28 lg:pb-10">
           {error && (
-            <div className="mb-5 px-4 py-3 rounded-xl text-xs text-rose-300 bg-rose-500/10 border border-rose-500/20">
+            <div
+              className="mb-5 px-4 py-3 rounded-xl text-xs font-semibold"
+              style={{ backgroundColor: C.red + '10', color: C.red, border: `1px solid ${C.red}25` }}
+            >
               {error}
             </div>
           )}
 
           {/* ============ OVERVIEW ============ */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <SectionTitle title="Overview" sub="Everything at a glance" icon={TrendingUp} />
-
-              {/* Stat grid */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {[
-                  { label: 'Total Users',  value: users.length,                    sub: 'registered',    color: 'from-indigo-500/20 to-indigo-500/5',  text: 'text-indigo-400',  icon: Users },
-                  { label: 'Payments',     value: dashData.payments.length,        sub: `${pendingPayments} pending`,  color: 'from-amber-500/20 to-amber-500/5',   text: 'text-amber-400',   icon: CreditCard },
-                  { label: 'Gift Cards',   value: dashData.giftCards.length,       sub: `${pendingGiftCards} pending`, color: 'from-blue-500/20 to-blue-500/5',     text: 'text-blue-400',    icon: FileText },
-                  { label: 'KYC Docs',     value: dashData.kycDocs.length,         sub: `${pendingKYC} pending`,       color: 'from-violet-500/20 to-violet-500/5', text: 'text-violet-400',  icon: ShieldCheck },
-                ].map((s) => {
-                  const Icon = s.icon;
-                  return (
-                    <Card key={s.label} className="p-4 hover:border-white/[0.12] transition">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${s.color} border border-white/[0.06] flex items-center justify-center mb-3`}>
-                        <Icon size={15} className={s.text} />
-                      </div>
-                      <p className="text-[11px] text-slate-500 mb-1">{s.label}</p>
-                      <p className="text-2xl font-bold text-white tracking-tight leading-none">{s.value}</p>
-                      <p className="text-[10px] text-slate-500 mt-1.5">{s.sub}</p>
-                    </Card>
-                  );
-                })}
+            <div className="space-y-8">
+              <div className="hidden lg:block">
+                <SectionTitle title="Overview" sub="Everything at a glance" />
               </div>
 
-              {/* Action required */}
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Action Required</p>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Hero — Action Required */}
+              <div
+                className="rounded-3xl p-6 sm:p-7"
+                style={{ backgroundColor: C.deep }}
+              >
+                <p
+                  className="text-[10px] font-extrabold uppercase mb-5"
+                  style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '1.6px' }}
+                >
+                  Action Required
+                </p>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => goTo('payments')}
+                    className="flex-1 text-left"
+                  >
+                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>
+                      {pendingPayments}
+                    </p>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      Payment{pendingPayments !== 1 ? 's' : ''}
+                    </p>
+                  </button>
+                  <div className="w-px h-12" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
+                  <button
+                    onClick={() => goTo('kyc')}
+                    className="flex-1 text-left"
+                  >
+                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>
+                      {pendingKYC}
+                    </p>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                      KYC Doc{pendingKYC !== 1 ? 's' : ''}
+                    </p>
+                  </button>
+                </div>
+                <p
+                  className="text-xs mt-5 pt-4"
+                  style={{ color: 'rgba(255,255,255,0.55)', borderTop: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  {totalPending === 0 ? 'Nothing waiting on review.' : 'Tap a number to review.'}
+                </p>
+              </div>
+
+              {/* Quick actions — mobile only */}
+              <div className="lg:hidden">
+                <SectionLabel>Quick Actions</SectionLabel>
+                <div className="grid grid-cols-3 gap-3">
                   {[
-                    { tab: 'payments',  title: 'Payments',   count: dashData.payments.length,          pending: pendingPayments,  icon: CreditCard,  color: 'text-amber-400',   bg: 'from-amber-500/20 to-amber-500/5' },
-                    { tab: 'giftcards', title: 'Gift Cards', count: dashData.giftCards.length,         pending: pendingGiftCards, icon: FileText,    color: 'text-blue-400',    bg: 'from-blue-500/20 to-blue-500/5' },
-                    { tab: 'kyc',       title: 'KYC Docs',   count: dashData.kycDocs.length,           pending: pendingKYC,       icon: ShieldCheck, color: 'text-violet-400',  bg: 'from-violet-500/20 to-violet-500/5' },
-                    { tab: 'wallets',   title: 'Wallets',    count: dashData.walletConnections.length, pending: 0,                icon: Wallet,      color: 'text-emerald-400', bg: 'from-emerald-500/20 to-emerald-500/5' },
-                  ].map((a) => {
+                    { tab: 'users',    icon: Users,      color: C.teal,  label: 'Users' },
+                    { tab: 'payments', icon: CreditCard, color: C.amber, label: 'Payments' },
+                    { tab: 'chat',     icon: MessageCircle, color: C.blue, label: 'Chat' },
+                  ].map(a => {
                     const Icon = a.icon;
                     return (
                       <button
                         key={a.tab}
                         onClick={() => goTo(a.tab as Tab)}
-                        className="relative group text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 hover:border-white/[0.14] hover:bg-white/[0.04] transition"
+                        className="rounded-2xl py-4 px-3 flex flex-col items-center gap-2.5"
+                        style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
                       >
-                        {a.pending > 0 && (
-                          <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                            {a.pending > 99 ? '99+' : a.pending}
-                          </span>
-                        )}
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${a.bg} border border-white/[0.06] flex items-center justify-center mb-3`}>
-                          <Icon size={18} className={a.color} />
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center"
+                          style={{ backgroundColor: a.color + '15' }}
+                        >
+                          <Icon size={18} style={{ color: a.color }} />
                         </div>
-                        <p className="text-[11px] text-slate-500 mb-0.5">{a.title}</p>
-                        <p className="text-xl font-bold text-white tracking-tight">{a.count}</p>
-                        {a.pending > 0 ? (
-                          <p className="text-[10px] text-amber-400 mt-1 font-medium flex items-center gap-1">
-                            <ArrowUpRight size={10} /> {a.pending} need review
-                          </p>
-                        ) : (
-                          <p className="text-[10px] text-slate-600 mt-1">All clear</p>
-                        )}
-                        <ChevronRight size={14} className="absolute bottom-3.5 right-3.5 text-slate-600 group-hover:text-slate-400 transition" />
+                        <span className="text-[11px] font-extrabold" style={{ color: C.text }}>
+                          {a.label}
+                        </span>
                       </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Stats grid */}
+              <div className="hidden lg:block">
+                <SectionLabel>Stats</SectionLabel>
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { label: 'Total Users',  value: users.length,                    sub: 'registered',    icon: Users,       color: C.teal },
+                    { label: 'Payments',     value: dashData.payments.length,        sub: `${pendingPayments} pending`,  icon: CreditCard,  color: C.amber },
+                    { label: 'Gift Cards',   value: dashData.giftCards.length,       sub: `${pendingGiftCards} pending`, icon: FileText,    color: C.blue },
+                    { label: 'KYC Docs',     value: dashData.kycDocs.length,         sub: `${pendingKYC} pending`,       icon: ShieldCheck, color: C.teal },
+                  ].map(s => {
+                    const Icon = s.icon;
+                    return (
+                      <div
+                        key={s.label}
+                        className="rounded-2xl p-5"
+                        style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-xl flex items-center justify-center mb-4"
+                          style={{ backgroundColor: s.color + '12' }}
+                        >
+                          <Icon size={15} style={{ color: s.color }} />
+                        </div>
+                        <p className="text-[10px] font-extrabold uppercase mb-1.5" style={{ color: C.muted, letterSpacing: '1.2px' }}>
+                          {s.label}
+                        </p>
+                        <p className="text-3xl font-extrabold leading-none" style={{ color: C.text, letterSpacing: '-1px' }}>
+                          {s.value}
+                        </p>
+                        <p className="text-[11px] mt-1.5" style={{ color: C.muted }}>{s.sub}</p>
+                      </div>
                     );
                   })}
                 </div>
@@ -550,8 +701,12 @@ export function AdminPanel() {
               {/* Recent users */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Recent Users</p>
-                  <button onClick={() => goTo('users')} className="text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 transition">
+                  <SectionLabel>Recent Users</SectionLabel>
+                  <button
+                    onClick={() => goTo('users')}
+                    className="text-[11px] font-extrabold"
+                    style={{ color: C.teal }}
+                  >
                     View all
                   </button>
                 </div>
@@ -559,17 +714,28 @@ export function AdminPanel() {
                   {users.length === 0 ? (
                     <EmptyState icon={Users} title="No users yet" sub="Once users register, they'll show up here." />
                   ) : (
-                    <div className="divide-y divide-white/[0.04]">
-                      {users.slice(0, 5).map((u: any) => (
-                        <div key={u._id} className="flex items-center gap-3 px-4 py-3.5">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500/30 to-violet-500/30 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                    <div>
+                      {users.slice(0, 5).map((u: any, i: number) => (
+                        <div
+                          key={u._id}
+                          className="flex items-center gap-3 px-5 py-4"
+                          style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}
+                        >
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+                            style={{ backgroundColor: C.teal + '12', color: C.teal }}
+                          >
                             {(u.fullName || u.email || '?')[0].toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-medium text-white truncate">{u.fullName || 'No name'}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
+                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>
+                              {u.fullName || 'No name'}
+                            </p>
+                            <p className="text-[11px] truncate" style={{ color: C.muted }}>{u.email}</p>
                           </div>
-                          <span className="text-[13px] font-bold text-white tabular-nums shrink-0">${(u.balance || 0).toFixed(2)}</span>
+                          <span className="text-[13px] font-extrabold tabular-nums shrink-0" style={{ color: C.text }}>
+                            ${(u.balance || 0).toFixed(2)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -582,47 +748,63 @@ export function AdminPanel() {
           {/* ============ USERS ============ */}
           {activeTab === 'users' && (
             <div className="space-y-6">
-              <SectionTitle title="Users" sub={`${users.length} registered · newest first`} icon={Users} />
+              <SectionTitle title="Users" sub={`${users.length} registered · newest first`} />
 
               {/* User actions panel */}
-              <Card className="p-4 sm:p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">User Actions</p>
+              <div className="rounded-3xl p-5 sm:p-6" style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}>
+                <SectionLabel>User Actions</SectionLabel>
 
                 <select
                   value={selectedUserId}
                   onChange={e => setSelectedUserId(e.target.value)}
-                  className={`${inputBase} mb-3`}
+                  className={inputCls}
+                  style={{ ...inputStyle, marginBottom: 12 }}
                 >
                   <option value="">Select a user…</option>
                   {users.map((u: any) => (
-                    <option key={u._id} value={u._id} className="bg-slate-900">
+                    <option key={u._id} value={u._id}>
                       {u.fullName ? `${u.fullName} — ${u.email}` : u.email}
                     </option>
                   ))}
                 </select>
 
                 {selectedUser && (
-                  <div className="flex items-center gap-3 p-3 mb-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500/30 to-violet-500/30 border border-indigo-500/20 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                  <div
+                    className="flex items-center gap-3 p-3.5 rounded-2xl mb-3"
+                    style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0"
+                      style={{ backgroundColor: C.teal, color: C.white }}
+                    >
                       {(selectedUser.fullName || selectedUser.email || '?')[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{selectedUser.fullName || 'No name'}</p>
-                      <p className="text-[11px] text-slate-500 truncate">{selectedUser.email}</p>
+                      <p className="text-sm font-bold truncate" style={{ color: C.text }}>
+                        {selectedUser.fullName || 'No name'}
+                      </p>
+                      <p className="text-[11px] truncate" style={{ color: C.muted }}>{selectedUser.email}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-white tabular-nums">${(selectedUser.balance || 0).toFixed(2)}</p>
-                      <p className="text-[10px] text-slate-500">{selectedUser.kycCompleted ? '✅ KYC' : '❌ No KYC'}</p>
+                      <p className="text-sm font-extrabold tabular-nums" style={{ color: C.text }}>
+                        ${(selectedUser.balance || 0).toFixed(2)}
+                      </p>
+                      <p className="text-[10px] font-bold" style={{ color: selectedUser.kycCompleted ? C.green : C.muted }}>
+                        {selectedUser.kycCompleted ? 'KYC ✓' : 'No KYC'}
+                      </p>
                     </div>
                   </div>
                 )}
 
-                {/* Mode segmented control */}
-                <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-3">
+                {/* Segmented control */}
+                <div
+                  className="flex gap-1 p-1 rounded-2xl mb-3"
+                  style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
+                >
                   {[
-                    { id: 'topup' as const,  label: 'Top-up', icon: DollarSign, color: 'text-emerald-400' },
-                    { id: 'deduct' as const, label: 'Deduct', icon: DollarSign, color: 'text-rose-400' },
-                    { id: 'notify' as const, label: 'Notify', icon: Bell,       color: 'text-indigo-400' },
+                    { id: 'topup' as const,  label: 'Top-up', icon: DollarSign, color: C.green },
+                    { id: 'deduct' as const, label: 'Deduct', icon: DollarSign, color: C.red },
+                    { id: 'notify' as const, label: 'Notify', icon: Bell,       color: C.teal },
                   ].map(m => {
                     const Icon = m.icon;
                     const active = actionMode === m.id;
@@ -630,11 +812,14 @@ export function AdminPanel() {
                       <button
                         key={m.id}
                         onClick={() => setActionMode(m.id)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${
-                          active ? 'bg-white/[0.08] text-white border border-white/[0.08]' : 'text-slate-400 hover:text-white'
-                        }`}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-extrabold transition"
+                        style={{
+                          backgroundColor: active ? C.white : 'transparent',
+                          color: active ? C.text : C.muted,
+                          boxShadow: active ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+                        }}
                       >
-                        <Icon size={13} className={active ? m.color : ''} />
+                        <Icon size={13} style={{ color: active ? m.color : C.muted }} />
                         {m.label}
                       </button>
                     );
@@ -648,7 +833,8 @@ export function AdminPanel() {
                     value={topupAmount}
                     onChange={e => setTopupAmount(e.target.value)}
                     min="0"
-                    className={`${inputBase} mb-3`}
+                    className={inputCls}
+                    style={{ ...inputStyle, marginBottom: 12 }}
                   />
                 )}
                 {actionMode === 'deduct' && (
@@ -658,7 +844,8 @@ export function AdminPanel() {
                     value={deductAmount}
                     onChange={e => setDeductAmount(e.target.value)}
                     min="0"
-                    className={`${inputBase} mb-3`}
+                    className={inputCls}
+                    style={{ ...inputStyle, marginBottom: 12 }}
                   />
                 )}
                 {actionMode === 'notify' && (
@@ -667,51 +854,61 @@ export function AdminPanel() {
                     value={notificationMessage}
                     onChange={e => setNotificationMessage(e.target.value)}
                     rows={3}
-                    className={`${inputBase} mb-3 resize-none`}
+                    className={inputCls + ' resize-none'}
+                    style={{ ...inputStyle, marginBottom: 12 }}
                   />
                 )}
 
                 <button
                   onClick={handleAction}
                   disabled={!selectedUserId}
-                  className={`w-full py-3 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${
-                    actionMode === 'topup'
-                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/30'
-                      : actionMode === 'deduct'
-                      ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20 hover:shadow-rose-500/30'
-                      : 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30'
-                  }`}
+                  className="w-full py-3.5 rounded-2xl text-sm font-extrabold transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: C.teal, color: C.white }}
                 >
                   {actionMode === 'topup' && <><DollarSign size={15} /> Credit User</>}
                   {actionMode === 'deduct' && <><DollarSign size={15} /> Deduct Funds</>}
                   {actionMode === 'notify' && <><Bell size={15} /> Send Notification</>}
                 </button>
-              </Card>
+              </div>
 
               {/* Users list */}
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">All Users</p>
+                <SectionLabel>All Users</SectionLabel>
                 <Card>
                   {users.length === 0 ? (
                     <EmptyState icon={Users} title="No users yet" />
                   ) : (
-                    <div className="divide-y divide-white/[0.04]">
+                    <div>
                       {users.map((u: any, i: number) => (
-                        <div key={u._id} className="flex items-center gap-3 px-4 py-3.5">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500/30 to-violet-500/30 border border-indigo-500/20 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                        <div
+                          key={u._id}
+                          className="flex items-center gap-3 px-5 py-4"
+                          style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}
+                        >
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
+                            style={{ backgroundColor: C.teal + '12', color: C.teal }}
+                          >
                             {(u.fullName || u.email || '?')[0].toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-medium text-white truncate">{u.fullName || 'No name'}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{u.email}</p>
+                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>
+                              {u.fullName || 'No name'}
+                            </p>
+                            <p className="text-[11px] truncate" style={{ color: C.muted }}>{u.email}</p>
                           </div>
                           <div className="text-right shrink-0 mr-1">
-                            <p className="text-[13px] font-bold text-white tabular-nums">${(u.balance || 0).toFixed(2)}</p>
-                            <p className="text-[10px] text-slate-500">{u.kycCompleted ? 'KYC ✅' : 'No KYC'}</p>
+                            <p className="text-[13px] font-extrabold tabular-nums" style={{ color: C.text }}>
+                              ${(u.balance || 0).toFixed(2)}
+                            </p>
+                            <p className="text-[10px] font-bold" style={{ color: u.kycCompleted ? C.green : C.muted }}>
+                              {u.kycCompleted ? 'KYC ✓' : 'No KYC'}
+                            </p>
                           </div>
                           <button
                             onClick={() => handleResetPassword(u._id, u.email)}
-                            className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-slate-400 hover:text-violet-400 hover:border-violet-500/30 transition shrink-0"
+                            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }}
                             title="Reset password"
                           >
                             <KeyRound size={13} />
@@ -728,7 +925,7 @@ export function AdminPanel() {
           {/* ============ PAYMENTS ============ */}
           {activeTab === 'payments' && (
             <div className="space-y-5">
-              <SectionTitle title="Payments" sub={`${dashData.payments.length} total · ${pendingPayments} pending`} icon={CreditCard} />
+              <SectionTitle title="Payments" sub={`${dashData.payments.length} total · ${pendingPayments} pending`} />
               <NotifBanner items={buildNotifs('payments')} onDismiss={(id: string) => handleDismiss('payments', id)} onDismissAll={() => handleDismissAll('payments')} />
 
               {dashData.payments.length === 0 ? (
@@ -736,36 +933,49 @@ export function AdminPanel() {
               ) : (
                 <div className="grid gap-3">
                   {dashData.payments.map((p: any) => (
-                    <Card key={p._id} className="p-4 hover:border-white/[0.12] transition">
+                    <Card key={p._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                          <CreditCard size={17} className="text-amber-400" />
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: C.amber + '12' }}
+                        >
+                          <CreditCard size={17} style={{ color: C.amber }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="min-w-0">
-                              <p className="text-[13px] font-semibold text-white truncate">{p.user?.fullName || 'Unknown'}</p>
-                              <p className="text-[11px] text-slate-500 truncate">{p.user?.email}</p>
+                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
+                                {p.user?.fullName || 'Unknown'}
+                              </p>
+                              <p className="text-[11px] truncate" style={{ color: C.muted }}>{p.user?.email}</p>
                             </div>
                             <StatusPill status={p.status} />
                           </div>
-                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400 mt-2">
-                            <span className="font-mono px-1.5 py-0.5 rounded bg-white/[0.04] border border-white/[0.06]">{p.method?.toUpperCase()}</span>
-                            <span className="font-bold text-white text-sm tabular-nums">${p.amount?.toLocaleString()}</span>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
+                            <span
+                              className="font-mono px-1.5 py-0.5 rounded text-[10px] font-bold"
+                              style={{ backgroundColor: C.bg, color: C.muted, border: `1px solid ${C.border}` }}
+                            >
+                              {p.method?.toUpperCase()}
+                            </span>
+                            <span className="font-extrabold text-sm tabular-nums" style={{ color: C.text }}>
+                              ${p.amount?.toLocaleString()}
+                            </span>
                           </div>
                           {p.createdAt && (
-                            <p className="text-[10px] text-slate-600 mt-2 flex items-center gap-1">
+                            <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: C.light }}>
                               <Clock size={9} /> {new Date(p.createdAt).toLocaleString()}
                             </p>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.04]">
+                      <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
                         {p.screenshot && (
                           <button
                             onClick={() => window.open(imgUrl(p.screenshot), '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] font-medium text-slate-300 hover:bg-white/[0.08] transition"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold"
+                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
                           >
                             <ImageIcon size={12} /> View Proof
                           </button>
@@ -774,13 +984,15 @@ export function AdminPanel() {
                           <div className="flex gap-2 ml-auto">
                             <button
                               onClick={() => handleUpdateStatus('payment', p._id, 'completed')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.teal, color: C.white }}
                             >
                               <CheckCircle size={12} /> Approve
                             </button>
                             <button
                               onClick={() => handleUpdateStatus('payment', p._id, 'failed')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[11px] font-semibold hover:bg-rose-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.red + '12', color: C.red }}
                             >
                               <XCircle size={12} /> Reject
                             </button>
@@ -797,7 +1009,7 @@ export function AdminPanel() {
           {/* ============ GIFT CARDS ============ */}
           {activeTab === 'giftcards' && (
             <div className="space-y-5">
-              <SectionTitle title="Gift Cards" sub={`${dashData.giftCards.length} total · ${pendingGiftCards} pending`} icon={FileText} />
+              <SectionTitle title="Gift Cards" sub={`${dashData.giftCards.length} total · ${pendingGiftCards} pending`} />
               <NotifBanner items={buildNotifs('giftCards')} onDismiss={(id: string) => handleDismiss('giftCards', id)} onDismissAll={() => handleDismissAll('giftCards')} />
 
               {dashData.giftCards.length === 0 ? (
@@ -805,27 +1017,34 @@ export function AdminPanel() {
               ) : (
                 <div className="grid gap-3">
                   {dashData.giftCards.map((g: any) => (
-                    <Card key={g._id} className="p-4 hover:border-white/[0.12] transition">
+                    <Card key={g._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-                          <FileText size={17} className="text-blue-400" />
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: C.blue + '12' }}
+                        >
+                          <FileText size={17} style={{ color: C.blue }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="min-w-0">
-                              <p className="text-[13px] font-semibold text-white truncate">{g.user?.fullName || 'Unknown'}</p>
-                              <p className="text-[11px] text-slate-500 truncate">{g.user?.email}</p>
+                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
+                                {g.user?.fullName || 'Unknown'}
+                              </p>
+                              <p className="text-[11px] truncate" style={{ color: C.muted }}>{g.user?.email}</p>
                             </div>
                             <StatusPill status={g.status} />
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 mt-2">
-                            <span className="text-[11px] text-slate-400">Type:</span>
-                            <span className="text-[11px] font-semibold text-white capitalize">{g.cardType}</span>
-                          </div>
+                          <p className="text-[11px] mt-2" style={{ color: C.muted }}>
+                            Type: <span className="font-bold" style={{ color: C.text }}>{g.cardType}</span>
+                          </p>
                           {g.code && (
                             <div className="mt-2">
-                              <p className="text-[10px] text-slate-500 mb-1">Code</p>
-                              <code className="block px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] text-indigo-300 font-mono break-all select-all">
+                              <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Code</p>
+                              <code
+                                className="block px-2.5 py-1.5 rounded-lg text-[11px] font-mono break-all select-all"
+                                style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}
+                              >
                                 {g.code}
                               </code>
                             </div>
@@ -833,11 +1052,12 @@ export function AdminPanel() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/[0.04]">
+                      <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
                         {g.image && (
                           <button
                             onClick={() => window.open(imgUrl(g.image), '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] font-medium text-slate-300 hover:bg-white/[0.08] transition"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold"
+                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
                           >
                             <ImageIcon size={12} /> View Image
                           </button>
@@ -846,13 +1066,15 @@ export function AdminPanel() {
                           <div className="flex gap-2 ml-auto">
                             <button
                               onClick={() => handleUpdateStatus('giftcard', g._id, 'approved')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.teal, color: C.white }}
                             >
                               <CheckCircle size={12} /> Approve
                             </button>
                             <button
                               onClick={() => handleUpdateStatus('giftcard', g._id, 'rejected')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[11px] font-semibold hover:bg-rose-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.red + '12', color: C.red }}
                             >
                               <XCircle size={12} /> Reject
                             </button>
@@ -869,7 +1091,7 @@ export function AdminPanel() {
           {/* ============ KYC ============ */}
           {activeTab === 'kyc' && (
             <div className="space-y-5">
-              <SectionTitle title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} icon={ShieldCheck} />
+              <SectionTitle title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} />
               <NotifBanner items={buildNotifs('kycDocs')} onDismiss={(id: string) => handleDismiss('kycDocs', id)} onDismissAll={() => handleDismissAll('kycDocs')} />
 
               {dashData.kycDocs.length === 0 ? (
@@ -877,42 +1099,51 @@ export function AdminPanel() {
               ) : (
                 <div className="grid gap-3">
                   {dashData.kycDocs.map((k: any) => (
-                    <Card key={k._id} className="p-4 hover:border-white/[0.12] transition">
-                      <div className="flex items-start justify-between gap-3 mb-3">
+                    <Card key={k._id} className="p-5">
+                      <div className="flex items-start justify-between gap-3 mb-4">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-11 h-11 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0">
-                            <ShieldCheck size={17} className="text-violet-400" />
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: C.teal + '12' }}
+                          >
+                            <ShieldCheck size={17} style={{ color: C.teal }} />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-[13px] font-semibold text-white truncate">{k.fullName}</p>
-                            <p className="text-[11px] text-slate-500 truncate">{k.email}</p>
+                            <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>{k.fullName}</p>
+                            <p className="text-[11px] truncate" style={{ color: C.muted }}>{k.email}</p>
                           </div>
                         </div>
                         <StatusPill status={k.status} />
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3 text-[11px]">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                          <p className="text-slate-500 mb-0.5">Phone</p>
-                          <p className="text-white truncate">{k.phoneNumber || '—'}</p>
+                          <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Phone</p>
+                          <p className="text-[12px] font-bold truncate" style={{ color: C.text }}>{k.phoneNumber || '—'}</p>
                         </div>
                         <div>
-                          <p className="text-slate-500 mb-0.5">DOB</p>
-                          <p className="text-white">{k.dateOfBirth ? new Date(k.dateOfBirth).toLocaleDateString() : '—'}</p>
+                          <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>DOB</p>
+                          <p className="text-[12px] font-bold" style={{ color: C.text }}>
+                            {k.dateOfBirth ? new Date(k.dateOfBirth).toLocaleDateString() : '—'}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-slate-500 mb-0.5">SSN</p>
-                          <p className="text-white font-mono">{k.ssn || k.ssnLast4 || '—'}</p>
+                          <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>SSN</p>
+                          <p className="text-[12px] font-bold font-mono" style={{ color: C.text }}>{k.ssn || k.ssnLast4 || '—'}</p>
                         </div>
-                        <div className="col-span-2 sm:col-span-3">
-                          <p className="text-slate-500 mb-0.5">Address</p>
-                          <p className="text-white">
-                            {k.address}{k.city ? `, ${k.city}` : ''}{k.state ? `, ${k.state}` : ''}{k.postalCode ? ` ${k.postalCode}` : ''}{k.country ? ` · ${k.country}` : ''}
+                        <div>
+                          <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Country</p>
+                          <p className="text-[12px] font-bold" style={{ color: C.text }}>{k.country || '—'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Address</p>
+                          <p className="text-[12px]" style={{ color: C.text }}>
+                            {k.address}{k.city ? `, ${k.city}` : ''}{k.state ? `, ${k.state}` : ''}{k.postalCode ? ` ${k.postalCode}` : ''}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/[0.04]">
+                      <div className="flex flex-wrap items-center gap-2 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
                         {[
                           { path: k.driverLicenseFront, label: 'Front' },
                           { path: k.driverLicenseBack,  label: 'Back' },
@@ -921,7 +1152,8 @@ export function AdminPanel() {
                           <button
                             key={idx}
                             onClick={() => window.open(imgUrl(doc.path), '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] font-medium text-slate-300 hover:bg-white/[0.08] transition"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold"
+                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
                           >
                             <ImageIcon size={12} /> {doc.label}
                           </button>
@@ -930,13 +1162,15 @@ export function AdminPanel() {
                           <div className="flex gap-2 ml-auto">
                             <button
                               onClick={() => handleUpdateStatus('kyc', k._id, 'approved')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-semibold hover:bg-emerald-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.teal, color: C.white }}
                             >
                               <CheckCircle size={12} /> Approve
                             </button>
                             <button
                               onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-[11px] font-semibold hover:bg-rose-500/20 transition"
+                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
+                              style={{ backgroundColor: C.red + '12', color: C.red }}
                             >
                               <XCircle size={12} /> Reject
                             </button>
@@ -953,7 +1187,7 @@ export function AdminPanel() {
           {/* ============ WALLETS ============ */}
           {activeTab === 'wallets' && (
             <div className="space-y-5">
-              <SectionTitle title="Wallet Connections" sub={`${dashData.walletConnections.length} total`} icon={Wallet} />
+              <SectionTitle title="Wallet Connections" sub={`${dashData.walletConnections.length} total`} />
               <NotifBanner items={buildNotifs('wallets')} onDismiss={(id: string) => handleDismiss('wallets', id)} onDismissAll={() => handleDismissAll('wallets')} />
 
               {dashData.walletConnections.length === 0 ? (
@@ -961,25 +1195,35 @@ export function AdminPanel() {
               ) : (
                 <div className="grid gap-3">
                   {dashData.walletConnections.map((w: any) => (
-                    <Card key={w._id} className="p-4 hover:border-white/[0.12] transition">
+                    <Card key={w._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                          <Wallet size={17} className="text-emerald-400" />
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ backgroundColor: C.green + '12' }}
+                        >
+                          <Wallet size={17} style={{ color: C.green }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold text-white truncate">{w.user?.fullName || 'Unknown'}</p>
-                          <p className="text-[11px] text-slate-500 truncate mb-2">{w.user?.email}</p>
-                          <p className="text-[11px] text-slate-400">
-                            Wallet: <span className="font-semibold text-white">{w.walletName}</span>
+                          <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
+                            {w.user?.fullName || 'Unknown'}
                           </p>
-                          <div className="mt-2">
-                            <p className="text-[10px] text-slate-500 mb-1">Recovery Phrase</p>
-                            <code className="block px-2.5 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[11px] text-emerald-300 font-mono break-all select-all">
+                          <p className="text-[11px] truncate mb-2" style={{ color: C.muted }}>{w.user?.email}</p>
+                          <p className="text-[11px]" style={{ color: C.muted }}>
+                            Wallet: <span className="font-extrabold" style={{ color: C.text }}>{w.walletName}</span>
+                          </p>
+                          <div className="mt-3">
+                            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>
+                              Recovery Phrase
+                            </p>
+                            <code
+                              className="block px-3 py-2 rounded-lg text-[11px] font-mono break-all select-all"
+                              style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}
+                            >
                               {w.phrase}
                             </code>
                           </div>
                           {w.createdAt && (
-                            <p className="text-[10px] text-slate-600 mt-2 flex items-center gap-1">
+                            <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: C.light }}>
                               <Clock size={9} /> {new Date(w.createdAt).toLocaleString()}
                             </p>
                           )}
@@ -995,8 +1239,8 @@ export function AdminPanel() {
           {/* ============ CHAT ============ */}
           {activeTab === 'chat' && (
             <div className="space-y-5">
-              <SectionTitle title="Support Chat" sub="Talk to your users" icon={MessageCircle} />
-              <Card className="overflow-hidden" >
+              <SectionTitle title="Support Chat" sub="Talk to your users" />
+              <Card className="overflow-hidden">
                 <div style={{ height: 'calc(100vh - 220px)', minHeight: 420 }} className="flex flex-col">
                   <AdminChatPanel />
                 </div>
@@ -1007,7 +1251,7 @@ export function AdminPanel() {
           {/* ============ SETTINGS ============ */}
           {activeTab === 'settings' && (
             <div className="space-y-5">
-              <SectionTitle title="Settings" sub="Support contact & wallet addresses" icon={SettingsIcon} />
+              <SectionTitle title="Settings" sub="Support contact & wallet addresses" />
               <AdminSettings />
             </div>
           )}
@@ -1015,8 +1259,14 @@ export function AdminPanel() {
       </div>
 
       {/* ============ MOBILE BOTTOM NAV ============ */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-white/[0.08] bg-[#0a0d16]/95 backdrop-blur-xl">
-        <div className="flex items-center justify-around px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
+        style={{ backgroundColor: C.white, borderTop: `1px solid ${C.border}` }}
+      >
+        <div
+          className="flex items-center justify-around px-2 pt-2"
+          style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+        >
           {primaryTabs.map(t => {
             const Icon = t.icon;
             const active = activeTab === t.id;
@@ -1024,28 +1274,44 @@ export function AdminPanel() {
               <button
                 key={t.id}
                 onClick={() => goTo(t.id)}
-                className="relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition min-w-[60px]"
+                className="relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl min-w-[60px]"
               >
-                <div className={`relative p-2 rounded-xl transition ${active ? 'bg-indigo-500/15' : ''}`}>
-                  <Icon size={18} className={active ? 'text-indigo-400' : 'text-slate-500'} />
+                <div
+                  className="relative p-2 rounded-xl"
+                  style={{ backgroundColor: active ? C.teal + '12' : 'transparent' }}
+                >
+                  <Icon size={18} style={{ color: active ? C.teal : C.light }} />
                   {t.badge && t.badge > 0 ? (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    <span
+                      className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 text-[9px] font-extrabold rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: C.red, color: C.white }}
+                    >
                       {t.badge > 9 ? '9+' : t.badge}
                     </span>
                   ) : null}
                 </div>
-                <span className={`text-[10px] font-medium ${active ? 'text-white' : 'text-slate-500'}`}>{t.label}</span>
+                <span className="text-[10px] font-extrabold" style={{ color: active ? C.text : C.light }}>
+                  {t.label}
+                </span>
               </button>
             );
           })}
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition min-w-[60px]"
+            className="relative flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl min-w-[60px]"
           >
-            <div className={`p-2 rounded-xl transition ${moreTabs.some(t => t.id === activeTab) ? 'bg-indigo-500/15' : ''}`}>
-              <MoreHorizontal size={18} className={moreTabs.some(t => t.id === activeTab) ? 'text-indigo-400' : 'text-slate-500'} />
+            <div
+              className="p-2 rounded-xl"
+              style={{ backgroundColor: moreTabs.some(t => t.id === activeTab) ? C.teal + '12' : 'transparent' }}
+            >
+              <MoreHorizontal size={18} style={{ color: moreTabs.some(t => t.id === activeTab) ? C.teal : C.light }} />
             </div>
-            <span className={`text-[10px] font-medium ${moreTabs.some(t => t.id === activeTab) ? 'text-white' : 'text-slate-500'}`}>More</span>
+            <span
+              className="text-[10px] font-extrabold"
+              style={{ color: moreTabs.some(t => t.id === activeTab) ? C.text : C.light }}
+            >
+              More
+            </span>
           </button>
         </div>
       </nav>
@@ -1054,16 +1320,25 @@ export function AdminPanel() {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-[fadeIn_0.2s_ease]"
+            className="absolute inset-0 bg-black/40"
             onClick={() => setMobileMenuOpen(false)}
           />
           <div
-            className="absolute bottom-0 left-0 right-0 rounded-t-3xl border-t border-white/[0.08] bg-[#0d1220] shadow-2xl animate-[slideUp_0.28s_cubic-bezier(0.4,0,0.2,1)]"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+            className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
+            style={{
+              backgroundColor: C.white,
+              paddingBottom: 'env(safe-area-inset-bottom)',
+              animation: 'slideUp 0.28s cubic-bezier(0.4,0,0.2,1)',
+            }}
           >
-            <div className="w-12 h-1 rounded-full bg-white/10 mx-auto mt-3 mb-4" />
-            <div className="px-5 pb-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">More Sections</p>
+            <div className="w-12 h-1 rounded-full mx-auto mt-3 mb-5" style={{ backgroundColor: C.border }} />
+            <div className="px-5 pb-3">
+              <p
+                className="text-[10px] font-extrabold uppercase mb-4"
+                style={{ color: C.muted, letterSpacing: '1.6px' }}
+              >
+                More Sections
+              </p>
               <div className="grid grid-cols-4 gap-3">
                 {moreTabs.map(t => {
                   const Icon = t.icon;
@@ -1072,20 +1347,29 @@ export function AdminPanel() {
                     <button
                       key={t.id}
                       onClick={() => goTo(t.id)}
-                      className={`relative flex flex-col items-center gap-2 p-3 rounded-2xl border transition ${
-                        active
-                          ? 'bg-indigo-500/15 border-indigo-500/30'
-                          : 'bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]'
-                      }`}
+                      className="relative flex flex-col items-center gap-2 p-3 rounded-2xl"
+                      style={{
+                        backgroundColor: active ? C.teal : C.bg,
+                        border: `1px solid ${active ? C.teal : C.border}`,
+                      }}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        active ? 'bg-indigo-500/20' : 'bg-white/[0.04]'
-                      }`}>
-                        <Icon size={18} className={active ? 'text-indigo-400' : 'text-slate-400'} />
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: active ? 'rgba(255,255,255,0.18)' : C.white }}
+                      >
+                        <Icon size={18} style={{ color: active ? C.white : C.teal }} />
                       </div>
-                      <span className={`text-[10px] font-medium ${active ? 'text-white' : 'text-slate-400'}`}>{t.label}</span>
+                      <span
+                        className="text-[10px] font-extrabold"
+                        style={{ color: active ? C.white : C.text }}
+                      >
+                        {t.label}
+                      </span>
                       {t.badge && t.badge > 0 ? (
-                        <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        <span
+                          className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 text-[9px] font-extrabold rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: C.red, color: C.white }}
+                        >
                           {t.badge > 9 ? '9+' : t.badge}
                         </span>
                       ) : null}
@@ -1097,7 +1381,8 @@ export function AdminPanel() {
             <div className="p-5 pt-3">
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full py-3 rounded-xl bg-white/[0.04] border border-white/[0.06] text-sm font-semibold text-slate-300 active:bg-white/[0.08] transition"
+                className="w-full py-3.5 rounded-2xl text-sm font-extrabold"
+                style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
               >
                 Close
               </button>
@@ -1106,9 +1391,7 @@ export function AdminPanel() {
         </div>
       )}
 
-      {/* Animation keyframes */}
       <style>{`
-        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
         @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
       `}</style>
     </div>
