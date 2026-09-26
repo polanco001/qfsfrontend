@@ -21,10 +21,13 @@ const imgUrl = (path: string) =>
 
 type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat' | 'settings';
 
+/* ============================================================
+   DESIGN TOKENS — BLUE THEME
+   ============================================================ */
 const C = {
   bg:      '#FAFAF7',
-  teal:    '#0C513F',
-  deep:    '#07241C',
+  teal:    '#1E40AF',   // deep blue (primary)
+  deep:    '#0B1B3D',   // very dark navy (hero card)
   white:   '#FFFFFF',
   border:  '#E5E5E0',
   text:    '#0F1A17',
@@ -139,7 +142,6 @@ export function AdminPanel() {
     payments: new Set(), giftCards: new Set(), kycDocs: new Set(), wallets: new Set(),
   });
 
-  /* Lock body scroll while admin panel is mounted */
   useEffect(() => {
     const prevBody = document.body.style.overflow;
     const prevHtml = document.documentElement.style.overflow;
@@ -347,9 +349,6 @@ export function AdminPanel() {
     if (tab === 'chat') markChatAsRead();
   };
 
-  /* ============================================================
-     PORTAL WRAPPER — everything rendered into document.body
-     ============================================================ */
   const renderShell = (content: React.ReactNode) => {
     if (typeof document === 'undefined') return null;
     return createPortal(
@@ -478,10 +477,9 @@ export function AdminPanel() {
         </div>
       </header>
 
-      {/* ============ BODY: SIDEBAR + MAIN ============ */}
+      {/* ============ BODY ============ */}
       <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
 
-        {/* ---------- DESKTOP SIDEBAR ---------- */}
         <aside
           className="hidden lg:flex flex-col gap-1 p-4"
           style={{ width: 240, flexShrink: 0, overflowY: 'auto', borderRight: `1px solid ${C.border}` }}
@@ -511,7 +509,6 @@ export function AdminPanel() {
           })}
         </aside>
 
-        {/* ---------- MAIN SCROLL AREA ---------- */}
         <main
           style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}
           className="px-5 sm:px-6 lg:px-10 py-4 lg:py-8"
