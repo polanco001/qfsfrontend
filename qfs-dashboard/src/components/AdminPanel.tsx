@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import AdminChatPanel from './AdminChatPanel';
 import { AdminSettings } from './AdminSettings';
@@ -20,9 +21,6 @@ const imgUrl = (path: string) =>
 
 type Tab = 'overview' | 'users' | 'payments' | 'giftcards' | 'kyc' | 'wallets' | 'chat' | 'settings';
 
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
 const C = {
   bg:      '#FAFAF7',
   teal:    '#0C513F',
@@ -38,51 +36,30 @@ const C = {
   blue:    '#3B82F6',
 };
 
-/* ============================================================
-   SHARED UI
-   ============================================================ */
-
 const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div
-    className={`rounded-2xl bg-white ${className}`}
-    style={{ border: `1px solid ${C.border}` }}
-  >
+  <div className={`rounded-2xl bg-white ${className}`} style={{ border: `1px solid ${C.border}` }}>
     {children}
   </div>
 );
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <p
-    className="text-[10px] font-extrabold uppercase mb-3"
-    style={{ letterSpacing: '1.6px', color: C.muted }}
-  >
+  <p className="text-[10px] font-extrabold uppercase mb-3" style={{ letterSpacing: '1.6px', color: C.muted }}>
     {children}
   </p>
 );
 
 const SectionTitle = ({ title, sub }: { title: string; sub?: string }) => (
   <div className="mb-6">
-    <h2
-      className="text-2xl sm:text-3xl font-extrabold"
-      style={{ color: C.text, letterSpacing: '-1px' }}
-    >
+    <h2 className="text-2xl sm:text-3xl font-extrabold" style={{ color: C.text, letterSpacing: '-1px' }}>
       {title}
     </h2>
-    {sub && (
-      <p className="text-xs sm:text-sm mt-1" style={{ color: C.muted }}>
-        {sub}
-      </p>
-    )}
+    {sub && <p className="text-xs sm:text-sm mt-1" style={{ color: C.muted }}>{sub}</p>}
   </div>
 );
 
 const StatusPill = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
-    completed: C.green,
-    approved:  C.green,
-    failed:    C.red,
-    rejected:  C.red,
-    pending:   C.amber,
+    completed: C.green, approved: C.green, failed: C.red, rejected: C.red, pending: C.amber,
   };
   const color = map[status] ?? C.amber;
   return (
@@ -108,42 +85,24 @@ const EmptyState = ({ icon: Icon, title, sub }: { icon: any; title: string; sub?
   </div>
 );
 
-/* ============================================================
-   NOTIF BANNER
-   ============================================================ */
-
 function NotifBanner({ items, onDismiss, onDismissAll }: any) {
   if (items.length === 0) return null;
   return (
-    <div
-      className="mb-5 rounded-2xl overflow-hidden"
-      style={{ backgroundColor: C.amber + '0D', border: `1px solid ${C.amber}30` }}
-    >
-      <div
-        className="flex items-center justify-between px-4 py-3"
-        style={{ borderBottom: `1px solid ${C.amber}25` }}
-      >
+    <div className="mb-5 rounded-2xl overflow-hidden" style={{ backgroundColor: C.amber + '0D', border: `1px solid ${C.amber}30` }}>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${C.amber}25` }}>
         <div className="flex items-center gap-2">
           <AlertCircle size={13} style={{ color: C.amber }} />
           <span className="text-xs font-extrabold" style={{ color: C.amber, letterSpacing: '0.2px' }}>
             {items.length} PENDING SUBMISSION{items.length > 1 ? 'S' : ''}
           </span>
         </div>
-        <button
-          onClick={onDismissAll}
-          className="text-[11px] font-bold transition"
-          style={{ color: C.amber }}
-        >
+        <button onClick={onDismissAll} className="text-[11px] font-bold transition" style={{ color: C.amber }}>
           Dismiss all
         </button>
       </div>
       <div>
         {items.map((n: any) => (
-          <div
-            key={n.id}
-            className="flex items-start gap-3 px-4 py-3"
-            style={{ borderTop: `1px solid ${C.amber}15` }}
-          >
+          <div key={n.id} className="flex items-start gap-3 px-4 py-3" style={{ borderTop: `1px solid ${C.amber}15` }}>
             <div className="shrink-0 mt-0.5">{n.icon}</div>
             <div className="flex-1 min-w-0">
               <p className="text-xs leading-snug" style={{ color: C.text }}>{n.message}</p>
@@ -151,11 +110,7 @@ function NotifBanner({ items, onDismiss, onDismissAll }: any) {
                 <Clock size={9} /> {n.time}
               </p>
             </div>
-            <button
-              onClick={() => onDismiss(n.id)}
-              className="shrink-0 p-1 rounded-full transition"
-              style={{ color: C.amber }}
-            >
+            <button onClick={() => onDismiss(n.id)} className="shrink-0 p-1 rounded-full transition" style={{ color: C.amber }}>
               <X size={11} />
             </button>
           </div>
@@ -164,10 +119,6 @@ function NotifBanner({ items, onDismiss, onDismissAll }: any) {
     </div>
   );
 }
-
-/* ============================================================
-   MAIN COMPONENT
-   ============================================================ */
 
 export function AdminPanel() {
   const { user, token } = useApp();
@@ -187,6 +138,18 @@ export function AdminPanel() {
   const [dismissedIds, setDismissedIds] = useState<any>({
     payments: new Set(), giftCards: new Set(), kycDocs: new Set(), wallets: new Set(),
   });
+
+  /* Lock body scroll while admin panel is mounted */
+  useEffect(() => {
+    const prevBody = document.body.style.overflow;
+    const prevHtml = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevBody;
+      document.documentElement.style.overflow = prevHtml;
+    };
+  }, []);
 
   useEffect(() => {
     if (user === null) return;
@@ -253,11 +216,9 @@ export function AdminPanel() {
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) { alert('Failed to update status.'); return; }
-
       const itemUserId = endpoint === 'payment'  ? dashData.payments.find((p: any) => p._id === id)?.user?._id :
                          endpoint === 'giftcard' ? dashData.giftCards.find((g: any) => g._id === id)?.user?._id :
                          endpoint === 'kyc'      ? dashData.kycDocs.find((k: any) => k._id === id)?.user?._id : null;
-
       const msgMap: any = {
         payment: { completed: '✅ Payment approved.', failed: '❌ Payment failed.' },
         giftcard: { approved: '✅ Gift card approved.', rejected: '❌ Gift card rejected.' },
@@ -265,11 +226,9 @@ export function AdminPanel() {
       };
       const msg = msgMap[endpoint]?.[newStatus];
       if (itemUserId && msg) await notifyUser(itemUserId, msg);
-
       const typeMap: any = { payment: 'payments', giftcard: 'giftCards', kyc: 'kycDocs' };
       const t = typeMap[endpoint];
       if (t) setDismissedIds((prev: any) => ({ ...prev, [t]: new Set([...prev[t], id]) }));
-
       fetchAll();
     } catch { alert('Network error.'); }
   };
@@ -388,9 +347,34 @@ export function AdminPanel() {
     if (tab === 'chat') markChatAsRead();
   };
 
+  /* ============================================================
+     PORTAL WRAPPER — everything rendered into document.body
+     ============================================================ */
+  const renderShell = (content: React.ReactNode) => {
+    if (typeof document === 'undefined') return null;
+    return createPortal(
+      <div
+        style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: C.bg,
+          color: C.text,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          overflow: 'hidden',
+          zIndex: 9999,
+        }}
+      >
+        {content}
+      </div>,
+      document.body
+    );
+  };
+
   if (user === null || loading) {
-    return (
-      <div className="flex items-center justify-center" style={{ position: 'fixed', inset: 0, backgroundColor: C.bg }}>
+    return renderShell(
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="flex flex-col items-center gap-3">
           <div
             className="w-10 h-10 rounded-full border-2 animate-spin"
@@ -402,8 +386,8 @@ export function AdminPanel() {
     );
   }
   if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) {
-    return (
-      <div className="flex items-center justify-center text-sm font-semibold" style={{ position: 'fixed', inset: 0, backgroundColor: C.bg, color: C.red }}>
+    return renderShell(
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.red, fontSize: 14, fontWeight: 600 }}>
         Access denied.
       </div>
     );
@@ -413,14 +397,13 @@ export function AdminPanel() {
   const pendingGiftCards = dashData.giftCards.filter((g: any) => g.status === 'pending').length;
   const pendingKYC       = dashData.kycDocs.filter((k: any) => k.status === 'pending').length;
   const totalPending     = pendingPayments + pendingGiftCards + pendingKYC;
-
   const firstName = (user.fullName || user.email || 'Admin').split(' ')[0].split('@')[0];
 
   const primaryTabs = [
-    { id: 'overview' as Tab,  label: 'Home',      icon: Home },
-    { id: 'users' as Tab,     label: 'Users',     icon: Users },
-    { id: 'payments' as Tab,  label: 'Payments',  icon: CreditCard,  badge: pendingPayments },
-    { id: 'kyc' as Tab,       label: 'KYC',       icon: ShieldCheck, badge: pendingKYC },
+    { id: 'overview' as Tab, label: 'Home',     icon: Home },
+    { id: 'users' as Tab,    label: 'Users',    icon: Users },
+    { id: 'payments' as Tab, label: 'Payments', icon: CreditCard, badge: pendingPayments },
+    { id: 'kyc' as Tab,      label: 'KYC',      icon: ShieldCheck, badge: pendingKYC },
   ];
 
   const moreTabs = [
@@ -431,89 +414,46 @@ export function AdminPanel() {
   ];
 
   const allDesktopTabs = [
-    { id: 'overview' as Tab,   label: 'Overview',   icon: TrendingUp },
-    { id: 'users' as Tab,      label: 'Users',      icon: Users },
-    { id: 'payments' as Tab,   label: 'Payments',   icon: CreditCard,   badge: pendingPayments },
-    { id: 'giftcards' as Tab,  label: 'Gift Cards', icon: FileText,     badge: pendingGiftCards },
-    { id: 'kyc' as Tab,        label: 'KYC',        icon: ShieldCheck,  badge: pendingKYC },
-    { id: 'wallets' as Tab,    label: 'Wallets',    icon: Wallet },
-    { id: 'chat' as Tab,       label: 'Chat',       icon: MessageCircle, badge: unreadChatCount },
-    { id: 'settings' as Tab,   label: 'Settings',   icon: SettingsIcon },
+    { id: 'overview' as Tab,  label: 'Overview',   icon: TrendingUp },
+    { id: 'users' as Tab,     label: 'Users',      icon: Users },
+    { id: 'payments' as Tab,  label: 'Payments',   icon: CreditCard,   badge: pendingPayments },
+    { id: 'giftcards' as Tab, label: 'Gift Cards', icon: FileText,     badge: pendingGiftCards },
+    { id: 'kyc' as Tab,       label: 'KYC',        icon: ShieldCheck,  badge: pendingKYC },
+    { id: 'wallets' as Tab,   label: 'Wallets',    icon: Wallet },
+    { id: 'chat' as Tab,      label: 'Chat',       icon: MessageCircle, badge: unreadChatCount },
+    { id: 'settings' as Tab,  label: 'Settings',   icon: SettingsIcon },
   ];
 
   const selectedUser = users.find((u: any) => u._id === selectedUserId);
-
   const inputCls = "w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition";
-  const inputStyle = {
-    backgroundColor: C.white,
-    border: `1px solid ${C.border}`,
-    color: C.text,
-  };
+  const inputStyle = { backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text };
 
-  return (
-    /* ============================================================
-       ROOT — locked to viewport, internal scroll only
-       ============================================================ */
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: C.bg,
-        color: C.text,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      }}
-    >
-
+  return renderShell(
+    <>
       {/* ============ DESKTOP HEADER ============ */}
       <header
         className="hidden lg:flex items-center justify-between px-6"
-        style={{
-          height: 64,
-          flexShrink: 0,
-          backgroundColor: C.white,
-          borderBottom: `1px solid ${C.border}`,
-          zIndex: 10,
-        }}
+        style={{ height: 64, flexShrink: 0, backgroundColor: C.white, borderBottom: `1px solid ${C.border}`, zIndex: 10 }}
       >
         <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: C.teal }}
-          >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: C.teal }}>
             <ShieldCheck size={17} color={C.white} />
           </div>
           <div>
-            <p className="text-sm font-extrabold leading-tight" style={{ color: C.text, letterSpacing: '-0.3px' }}>
-              Admin Console
-            </p>
+            <p className="text-sm font-extrabold leading-tight" style={{ color: C.text, letterSpacing: '-0.3px' }}>Admin Console</p>
             <p className="text-[11px] leading-tight" style={{ color: C.muted }}>{user.email}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {totalPending > 0 && (
-            <span
-              className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full"
-              style={{ backgroundColor: C.amber + '15', color: C.amber }}
-            >
+            <span className="flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full" style={{ backgroundColor: C.amber + '15', color: C.amber }}>
               <AlertCircle size={11} /> {totalPending} PENDING
             </span>
           )}
-          <button
-            onClick={fetchAll}
-            className="p-2.5 rounded-xl transition"
-            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }}
-            title="Refresh"
-          >
+          <button onClick={fetchAll} className="p-2.5 rounded-xl transition" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }} title="Refresh">
             <RefreshCw size={14} />
           </button>
-          <button
-            onClick={handleLogout}
-            className="p-2.5 rounded-xl transition"
-            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }}
-            title="Sign out"
-          >
+          <button onClick={handleLogout} className="p-2.5 rounded-xl transition" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.muted }} title="Sign out">
             <LogOut size={14} />
           </button>
         </div>
@@ -522,35 +462,17 @@ export function AdminPanel() {
       {/* ============ MOBILE HEADER ============ */}
       <header
         className="lg:hidden flex items-center justify-between px-5"
-        style={{
-          flexShrink: 0,
-          paddingTop: 18,
-          paddingBottom: 14,
-          backgroundColor: C.bg,
-          zIndex: 10,
-        }}
+        style={{ flexShrink: 0, paddingTop: 18, paddingBottom: 14, backgroundColor: C.bg, zIndex: 10 }}
       >
         <div>
-          <p className="text-xs font-bold mb-0.5" style={{ color: C.muted, letterSpacing: '0.2px' }}>
-            Hello, {firstName}
-          </p>
-          <p className="text-2xl font-extrabold" style={{ color: C.text, letterSpacing: '-0.9px' }}>
-            Dashboard
-          </p>
+          <p className="text-xs font-bold mb-0.5" style={{ color: C.muted, letterSpacing: '0.2px' }}>Hello, {firstName}</p>
+          <p className="text-2xl font-extrabold" style={{ color: C.text, letterSpacing: '-0.9px' }}>Dashboard</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={fetchAll}
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}
-          >
+          <button onClick={fetchAll} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}>
             <RefreshCw size={15} />
           </button>
-          <button
-            onClick={handleLogout}
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}
-          >
+          <button onClick={handleLogout} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, color: C.text }}>
             <LogOut size={15} />
           </button>
         </div>
@@ -562,12 +484,7 @@ export function AdminPanel() {
         {/* ---------- DESKTOP SIDEBAR ---------- */}
         <aside
           className="hidden lg:flex flex-col gap-1 p-4"
-          style={{
-            width: 240,
-            flexShrink: 0,
-            overflowY: 'auto',
-            borderRight: `1px solid ${C.border}`,
-          }}
+          style={{ width: 240, flexShrink: 0, overflowY: 'auto', borderRight: `1px solid ${C.border}` }}
         >
           {allDesktopTabs.map(t => {
             const Icon = t.icon;
@@ -577,20 +494,14 @@ export function AdminPanel() {
                 key={t.id}
                 onClick={() => goTo(t.id)}
                 className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold transition"
-                style={{
-                  backgroundColor: active ? C.teal : 'transparent',
-                  color: active ? C.white : C.muted,
-                }}
+                style={{ backgroundColor: active ? C.teal : 'transparent', color: active ? C.white : C.muted }}
               >
                 <Icon size={16} />
                 <span className="flex-1 text-left">{t.label}</span>
                 {t.badge && t.badge > 0 ? (
                   <span
                     className="min-w-[18px] h-[18px] px-1.5 text-[10px] font-extrabold rounded-full flex items-center justify-center"
-                    style={{
-                      backgroundColor: active ? 'rgba(255,255,255,0.25)' : C.red,
-                      color: C.white,
-                    }}
+                    style={{ backgroundColor: active ? 'rgba(255,255,255,0.25)' : C.red, color: C.white }}
                   >
                     {t.badge > 99 ? '99+' : t.badge}
                   </span>
@@ -602,70 +513,37 @@ export function AdminPanel() {
 
         {/* ---------- MAIN SCROLL AREA ---------- */}
         <main
-          style={{
-            flex: 1,
-            minWidth: 0,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            WebkitOverflowScrolling: 'touch',
-          }}
+          style={{ flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}
           className="px-5 sm:px-6 lg:px-10 py-4 lg:py-8"
         >
           {error && (
-            <div
-              className="mb-5 px-4 py-3 rounded-xl text-xs font-semibold"
-              style={{ backgroundColor: C.red + '10', color: C.red, border: `1px solid ${C.red}25` }}
-            >
+            <div className="mb-5 px-4 py-3 rounded-xl text-xs font-semibold" style={{ backgroundColor: C.red + '10', color: C.red, border: `1px solid ${C.red}25` }}>
               {error}
             </div>
           )}
 
-          {/* ============ OVERVIEW ============ */}
           {activeTab === 'overview' && (
             <div className="space-y-8">
               <div className="hidden lg:block">
                 <SectionTitle title="Overview" sub="Everything at a glance" />
               </div>
 
-              <div
-                className="rounded-3xl p-6 sm:p-7"
-                style={{ backgroundColor: C.deep }}
-              >
-                <p
-                  className="text-[10px] font-extrabold uppercase mb-5"
-                  style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '1.6px' }}
-                >
+              <div className="rounded-3xl p-6 sm:p-7" style={{ backgroundColor: C.deep }}>
+                <p className="text-[10px] font-extrabold uppercase mb-5" style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '1.6px' }}>
                   Action Required
                 </p>
                 <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => goTo('payments')}
-                    className="flex-1 text-left"
-                  >
-                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>
-                      {pendingPayments}
-                    </p>
-                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                      Payment{pendingPayments !== 1 ? 's' : ''}
-                    </p>
+                  <button onClick={() => goTo('payments')} className="flex-1 text-left">
+                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>{pendingPayments}</p>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>Payment{pendingPayments !== 1 ? 's' : ''}</p>
                   </button>
                   <div className="w-px h-12" style={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
-                  <button
-                    onClick={() => goTo('kyc')}
-                    className="flex-1 text-left"
-                  >
-                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>
-                      {pendingKYC}
-                    </p>
-                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                      KYC Doc{pendingKYC !== 1 ? 's' : ''}
-                    </p>
+                  <button onClick={() => goTo('kyc')} className="flex-1 text-left">
+                    <p className="text-5xl font-extrabold leading-none" style={{ color: C.white, letterSpacing: '-2px' }}>{pendingKYC}</p>
+                    <p className="text-xs mt-1.5" style={{ color: 'rgba(255,255,255,0.55)' }}>KYC Doc{pendingKYC !== 1 ? 's' : ''}</p>
                   </button>
                 </div>
-                <p
-                  className="text-xs mt-5 pt-4"
-                  style={{ color: 'rgba(255,255,255,0.55)', borderTop: '1px solid rgba(255,255,255,0.08)' }}
-                >
+                <p className="text-xs mt-5 pt-4" style={{ color: 'rgba(255,255,255,0.55)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                   {totalPending === 0 ? 'Nothing waiting on review.' : 'Tap a number to review.'}
                 </p>
               </div>
@@ -680,21 +558,11 @@ export function AdminPanel() {
                   ].map(a => {
                     const Icon = a.icon;
                     return (
-                      <button
-                        key={a.tab}
-                        onClick={() => goTo(a.tab as Tab)}
-                        className="rounded-2xl py-4 px-3 flex flex-col items-center gap-2.5"
-                        style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
-                      >
-                        <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center"
-                          style={{ backgroundColor: a.color + '15' }}
-                        >
+                      <button key={a.tab} onClick={() => goTo(a.tab as Tab)} className="rounded-2xl py-4 px-3 flex flex-col items-center gap-2.5" style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}>
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: a.color + '15' }}>
                           <Icon size={18} style={{ color: a.color }} />
                         </div>
-                        <span className="text-[11px] font-extrabold" style={{ color: C.text }}>
-                          {a.label}
-                        </span>
+                        <span className="text-[11px] font-extrabold" style={{ color: C.text }}>{a.label}</span>
                       </button>
                     );
                   })}
@@ -705,30 +573,19 @@ export function AdminPanel() {
                 <SectionLabel>Stats</SectionLabel>
                 <div className="grid grid-cols-4 gap-3">
                   {[
-                    { label: 'Total Users',  value: users.length,              sub: 'registered',    icon: Users,       color: C.teal },
-                    { label: 'Payments',     value: dashData.payments.length,  sub: `${pendingPayments} pending`,  icon: CreditCard,  color: C.amber },
-                    { label: 'Gift Cards',   value: dashData.giftCards.length, sub: `${pendingGiftCards} pending`, icon: FileText,    color: C.blue },
-                    { label: 'KYC Docs',     value: dashData.kycDocs.length,   sub: `${pendingKYC} pending`,       icon: ShieldCheck, color: C.teal },
+                    { label: 'Total Users', value: users.length,              sub: 'registered',    icon: Users,       color: C.teal },
+                    { label: 'Payments',    value: dashData.payments.length,  sub: `${pendingPayments} pending`,  icon: CreditCard,  color: C.amber },
+                    { label: 'Gift Cards',  value: dashData.giftCards.length, sub: `${pendingGiftCards} pending`, icon: FileText,    color: C.blue },
+                    { label: 'KYC Docs',    value: dashData.kycDocs.length,   sub: `${pendingKYC} pending`,       icon: ShieldCheck, color: C.teal },
                   ].map(s => {
                     const Icon = s.icon;
                     return (
-                      <div
-                        key={s.label}
-                        className="rounded-2xl p-5"
-                        style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
-                      >
-                        <div
-                          className="w-9 h-9 rounded-xl flex items-center justify-center mb-4"
-                          style={{ backgroundColor: s.color + '12' }}
-                        >
+                      <div key={s.label} className="rounded-2xl p-5" style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}>
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: s.color + '12' }}>
                           <Icon size={15} style={{ color: s.color }} />
                         </div>
-                        <p className="text-[10px] font-extrabold uppercase mb-1.5" style={{ color: C.muted, letterSpacing: '1.2px' }}>
-                          {s.label}
-                        </p>
-                        <p className="text-3xl font-extrabold leading-none" style={{ color: C.text, letterSpacing: '-1px' }}>
-                          {s.value}
-                        </p>
+                        <p className="text-[10px] font-extrabold uppercase mb-1.5" style={{ color: C.muted, letterSpacing: '1.2px' }}>{s.label}</p>
+                        <p className="text-3xl font-extrabold leading-none" style={{ color: C.text, letterSpacing: '-1px' }}>{s.value}</p>
                         <p className="text-[11px] mt-1.5" style={{ color: C.muted }}>{s.sub}</p>
                       </div>
                     );
@@ -739,13 +596,7 @@ export function AdminPanel() {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <SectionLabel>Recent Users</SectionLabel>
-                  <button
-                    onClick={() => goTo('users')}
-                    className="text-[11px] font-extrabold"
-                    style={{ color: C.teal }}
-                  >
-                    View all
-                  </button>
+                  <button onClick={() => goTo('users')} className="text-[11px] font-extrabold" style={{ color: C.teal }}>View all</button>
                 </div>
                 <Card>
                   {users.length === 0 ? (
@@ -753,26 +604,15 @@ export function AdminPanel() {
                   ) : (
                     <div>
                       {users.slice(0, 5).map((u: any, i: number) => (
-                        <div
-                          key={u._id}
-                          className="flex items-center gap-3 px-5 py-4"
-                          style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}
-                        >
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
-                            style={{ backgroundColor: C.teal + '12', color: C.teal }}
-                          >
+                        <div key={u._id} className="flex items-center gap-3 px-5 py-4" style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}>
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0" style={{ backgroundColor: C.teal + '12', color: C.teal }}>
                             {(u.fullName || u.email || '?')[0].toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>
-                              {u.fullName || 'No name'}
-                            </p>
+                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>{u.fullName || 'No name'}</p>
                             <p className="text-[11px] truncate" style={{ color: C.muted }}>{u.email}</p>
                           </div>
-                          <span className="text-[13px] font-extrabold tabular-nums shrink-0" style={{ color: C.text }}>
-                            ${(u.balance || 0).toFixed(2)}
-                          </span>
+                          <span className="text-[13px] font-extrabold tabular-nums shrink-0" style={{ color: C.text }}>${(u.balance || 0).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
@@ -780,12 +620,10 @@ export function AdminPanel() {
                 </Card>
               </div>
 
-              {/* bottom spacer for scroll comfort */}
               <div style={{ height: 32 }} />
             </div>
           )}
 
-          {/* ============ USERS ============ */}
           {activeTab === 'users' && (
             <div className="space-y-6">
               <SectionTitle title="Users" sub={`${users.length} registered · newest first`} />
@@ -808,26 +646,16 @@ export function AdminPanel() {
                 </select>
 
                 {selectedUser && (
-                  <div
-                    className="flex items-center gap-3 p-3.5 rounded-2xl mb-3"
-                    style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
-                  >
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0"
-                      style={{ backgroundColor: C.teal, color: C.white }}
-                    >
+                  <div className="flex items-center gap-3 p-3.5 rounded-2xl mb-3" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0" style={{ backgroundColor: C.teal, color: C.white }}>
                       {(selectedUser.fullName || selectedUser.email || '?')[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold truncate" style={{ color: C.text }}>
-                        {selectedUser.fullName || 'No name'}
-                      </p>
+                      <p className="text-sm font-bold truncate" style={{ color: C.text }}>{selectedUser.fullName || 'No name'}</p>
                       <p className="text-[11px] truncate" style={{ color: C.muted }}>{selectedUser.email}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-extrabold tabular-nums" style={{ color: C.text }}>
-                        ${(selectedUser.balance || 0).toFixed(2)}
-                      </p>
+                      <p className="text-sm font-extrabold tabular-nums" style={{ color: C.text }}>${(selectedUser.balance || 0).toFixed(2)}</p>
                       <p className="text-[10px] font-bold" style={{ color: selectedUser.kycCompleted ? C.green : C.muted }}>
                         {selectedUser.kycCompleted ? 'KYC ✓' : 'No KYC'}
                       </p>
@@ -835,10 +663,7 @@ export function AdminPanel() {
                   </div>
                 )}
 
-                <div
-                  className="flex gap-1 p-1 rounded-2xl mb-3"
-                  style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
-                >
+                <div className="flex gap-1 p-1 rounded-2xl mb-3" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}>
                   {[
                     { id: 'topup' as const,  label: 'Top-up', icon: DollarSign, color: C.green },
                     { id: 'deduct' as const, label: 'Deduct', icon: DollarSign, color: C.red },
@@ -865,36 +690,13 @@ export function AdminPanel() {
                 </div>
 
                 {actionMode === 'topup' && (
-                  <input
-                    type="number"
-                    placeholder="Amount in USD"
-                    value={topupAmount}
-                    onChange={e => setTopupAmount(e.target.value)}
-                    min="0"
-                    className={inputCls}
-                    style={{ ...inputStyle, marginBottom: 12 }}
-                  />
+                  <input type="number" placeholder="Amount in USD" value={topupAmount} onChange={e => setTopupAmount(e.target.value)} min="0" className={inputCls} style={{ ...inputStyle, marginBottom: 12 }} />
                 )}
                 {actionMode === 'deduct' && (
-                  <input
-                    type="number"
-                    placeholder="Amount in USD"
-                    value={deductAmount}
-                    onChange={e => setDeductAmount(e.target.value)}
-                    min="0"
-                    className={inputCls}
-                    style={{ ...inputStyle, marginBottom: 12 }}
-                  />
+                  <input type="number" placeholder="Amount in USD" value={deductAmount} onChange={e => setDeductAmount(e.target.value)} min="0" className={inputCls} style={{ ...inputStyle, marginBottom: 12 }} />
                 )}
                 {actionMode === 'notify' && (
-                  <textarea
-                    placeholder="Message to send…"
-                    value={notificationMessage}
-                    onChange={e => setNotificationMessage(e.target.value)}
-                    rows={3}
-                    className={inputCls + ' resize-none'}
-                    style={{ ...inputStyle, marginBottom: 12 }}
-                  />
+                  <textarea placeholder="Message to send…" value={notificationMessage} onChange={e => setNotificationMessage(e.target.value)} rows={3} className={inputCls + ' resize-none'} style={{ ...inputStyle, marginBottom: 12 }} />
                 )}
 
                 <button
@@ -917,30 +719,17 @@ export function AdminPanel() {
                   ) : (
                     <div>
                       {users.map((u: any, i: number) => (
-                        <div
-                          key={u._id}
-                          className="flex items-center gap-3 px-5 py-4"
-                          style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}
-                        >
-                          <div
-                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0"
-                            style={{ backgroundColor: C.teal + '12', color: C.teal }}
-                          >
+                        <div key={u._id} className="flex items-center gap-3 px-5 py-4" style={{ borderTop: i > 0 ? `1px solid ${C.border}` : undefined }}>
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-extrabold shrink-0" style={{ backgroundColor: C.teal + '12', color: C.teal }}>
                             {(u.fullName || u.email || '?')[0].toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>
-                              {u.fullName || 'No name'}
-                            </p>
+                            <p className="text-[13px] font-bold truncate" style={{ color: C.text }}>{u.fullName || 'No name'}</p>
                             <p className="text-[11px] truncate" style={{ color: C.muted }}>{u.email}</p>
                           </div>
                           <div className="text-right shrink-0 mr-1">
-                            <p className="text-[13px] font-extrabold tabular-nums" style={{ color: C.text }}>
-                              ${(u.balance || 0).toFixed(2)}
-                            </p>
-                            <p className="text-[10px] font-bold" style={{ color: u.kycCompleted ? C.green : C.muted }}>
-                              {u.kycCompleted ? 'KYC ✓' : 'No KYC'}
-                            </p>
+                            <p className="text-[13px] font-extrabold tabular-nums" style={{ color: C.text }}>${(u.balance || 0).toFixed(2)}</p>
+                            <p className="text-[10px] font-bold" style={{ color: u.kycCompleted ? C.green : C.muted }}>{u.kycCompleted ? 'KYC ✓' : 'No KYC'}</p>
                           </div>
                           <button
                             onClick={() => handleResetPassword(u._id, u.email)}
@@ -961,7 +750,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ PAYMENTS ============ */}
           {activeTab === 'payments' && (
             <div className="space-y-5">
               <SectionTitle title="Payments" sub={`${dashData.payments.length} total · ${pendingPayments} pending`} />
@@ -974,32 +762,22 @@ export function AdminPanel() {
                   {dashData.payments.map((p: any) => (
                     <Card key={p._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: C.amber + '12' }}
-                        >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: C.amber + '12' }}>
                           <CreditCard size={17} style={{ color: C.amber }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="min-w-0">
-                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
-                                {p.user?.fullName || 'Unknown'}
-                              </p>
+                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>{p.user?.fullName || 'Unknown'}</p>
                               <p className="text-[11px] truncate" style={{ color: C.muted }}>{p.user?.email}</p>
                             </div>
                             <StatusPill status={p.status} />
                           </div>
                           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
-                            <span
-                              className="font-mono px-1.5 py-0.5 rounded text-[10px] font-bold"
-                              style={{ backgroundColor: C.bg, color: C.muted, border: `1px solid ${C.border}` }}
-                            >
+                            <span className="font-mono px-1.5 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: C.bg, color: C.muted, border: `1px solid ${C.border}` }}>
                               {p.method?.toUpperCase()}
                             </span>
-                            <span className="font-extrabold text-sm tabular-nums" style={{ color: C.text }}>
-                              ${p.amount?.toLocaleString()}
-                            </span>
+                            <span className="font-extrabold text-sm tabular-nums" style={{ color: C.text }}>${p.amount?.toLocaleString()}</span>
                           </div>
                           {p.createdAt && (
                             <p className="text-[10px] mt-2 flex items-center gap-1" style={{ color: C.light }}>
@@ -1021,18 +799,10 @@ export function AdminPanel() {
                         )}
                         {p.status === 'pending' && (
                           <div className="flex gap-2 ml-auto">
-                            <button
-                              onClick={() => handleUpdateStatus('payment', p._id, 'completed')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.teal, color: C.white }}
-                            >
+                            <button onClick={() => handleUpdateStatus('payment', p._id, 'completed')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.teal, color: C.white }}>
                               <CheckCircle size={12} /> Approve
                             </button>
-                            <button
-                              onClick={() => handleUpdateStatus('payment', p._id, 'failed')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.red + '12', color: C.red }}
-                            >
+                            <button onClick={() => handleUpdateStatus('payment', p._id, 'failed')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.red + '12', color: C.red }}>
                               <XCircle size={12} /> Reject
                             </button>
                           </div>
@@ -1047,7 +817,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ GIFT CARDS ============ */}
           {activeTab === 'giftcards' && (
             <div className="space-y-5">
               <SectionTitle title="Gift Cards" sub={`${dashData.giftCards.length} total · ${pendingGiftCards} pending`} />
@@ -1060,18 +829,13 @@ export function AdminPanel() {
                   {dashData.giftCards.map((g: any) => (
                     <Card key={g._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: C.blue + '12' }}
-                        >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: C.blue + '12' }}>
                           <FileText size={17} style={{ color: C.blue }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
                             <div className="min-w-0">
-                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
-                                {g.user?.fullName || 'Unknown'}
-                              </p>
+                              <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>{g.user?.fullName || 'Unknown'}</p>
                               <p className="text-[11px] truncate" style={{ color: C.muted }}>{g.user?.email}</p>
                             </div>
                             <StatusPill status={g.status} />
@@ -1082,10 +846,7 @@ export function AdminPanel() {
                           {g.code && (
                             <div className="mt-2">
                               <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Code</p>
-                              <code
-                                className="block px-2.5 py-1.5 rounded-lg text-[11px] font-mono break-all select-all"
-                                style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}
-                              >
+                              <code className="block px-2.5 py-1.5 rounded-lg text-[11px] font-mono break-all select-all" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}>
                                 {g.code}
                               </code>
                             </div>
@@ -1095,28 +856,16 @@ export function AdminPanel() {
 
                       <div className="flex items-center gap-2 mt-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
                         {g.image && (
-                          <button
-                            onClick={() => window.open(imgUrl(g.image), '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold"
-                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
-                          >
+                          <button onClick={() => window.open(imgUrl(g.image), '_blank')} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
                             <ImageIcon size={12} /> View Image
                           </button>
                         )}
                         {g.status === 'pending' && (
                           <div className="flex gap-2 ml-auto">
-                            <button
-                              onClick={() => handleUpdateStatus('giftcard', g._id, 'approved')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.teal, color: C.white }}
-                            >
+                            <button onClick={() => handleUpdateStatus('giftcard', g._id, 'approved')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.teal, color: C.white }}>
                               <CheckCircle size={12} /> Approve
                             </button>
-                            <button
-                              onClick={() => handleUpdateStatus('giftcard', g._id, 'rejected')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.red + '12', color: C.red }}
-                            >
+                            <button onClick={() => handleUpdateStatus('giftcard', g._id, 'rejected')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.red + '12', color: C.red }}>
                               <XCircle size={12} /> Reject
                             </button>
                           </div>
@@ -1131,7 +880,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ KYC ============ */}
           {activeTab === 'kyc' && (
             <div className="space-y-5">
               <SectionTitle title="KYC Documents" sub={`${dashData.kycDocs.length} total · ${pendingKYC} pending`} />
@@ -1145,10 +893,7 @@ export function AdminPanel() {
                     <Card key={k._id} className="p-5">
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ backgroundColor: C.teal + '12' }}
-                          >
+                          <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: C.teal + '12' }}>
                             <ShieldCheck size={17} style={{ color: C.teal }} />
                           </div>
                           <div className="min-w-0">
@@ -1192,29 +937,16 @@ export function AdminPanel() {
                           { path: k.driverLicenseBack,  label: 'Back' },
                           { path: k.proofOfResidence,   label: 'Res.' },
                         ].map((doc, idx) => doc.path && (
-                          <button
-                            key={idx}
-                            onClick={() => window.open(imgUrl(doc.path), '_blank')}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold"
-                            style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
-                          >
+                          <button key={idx} onClick={() => window.open(imgUrl(doc.path), '_blank')} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-bold" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
                             <ImageIcon size={12} /> {doc.label}
                           </button>
                         ))}
                         {k.status === 'pending' && (
                           <div className="flex gap-2 ml-auto">
-                            <button
-                              onClick={() => handleUpdateStatus('kyc', k._id, 'approved')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.teal, color: C.white }}
-                            >
+                            <button onClick={() => handleUpdateStatus('kyc', k._id, 'approved')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.teal, color: C.white }}>
                               <CheckCircle size={12} /> Approve
                             </button>
-                            <button
-                              onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')}
-                              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold"
-                              style={{ backgroundColor: C.red + '12', color: C.red }}
-                            >
+                            <button onClick={() => handleUpdateStatus('kyc', k._id, 'rejected')} className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-extrabold" style={{ backgroundColor: C.red + '12', color: C.red }}>
                               <XCircle size={12} /> Reject
                             </button>
                           </div>
@@ -1229,7 +961,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ WALLETS ============ */}
           {activeTab === 'wallets' && (
             <div className="space-y-5">
               <SectionTitle title="Wallet Connections" sub={`${dashData.walletConnections.length} total`} />
@@ -1242,28 +973,18 @@ export function AdminPanel() {
                   {dashData.walletConnections.map((w: any) => (
                     <Card key={w._id} className="p-5">
                       <div className="flex items-start gap-3">
-                        <div
-                          className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ backgroundColor: C.green + '12' }}
-                        >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: C.green + '12' }}>
                           <Wallet size={17} style={{ color: C.green }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>
-                            {w.user?.fullName || 'Unknown'}
-                          </p>
+                          <p className="text-[13px] font-extrabold truncate" style={{ color: C.text }}>{w.user?.fullName || 'Unknown'}</p>
                           <p className="text-[11px] truncate mb-2" style={{ color: C.muted }}>{w.user?.email}</p>
                           <p className="text-[11px]" style={{ color: C.muted }}>
                             Wallet: <span className="font-extrabold" style={{ color: C.text }}>{w.walletName}</span>
                           </p>
                           <div className="mt-3">
-                            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>
-                              Recovery Phrase
-                            </p>
-                            <code
-                              className="block px-3 py-2 rounded-lg text-[11px] font-mono break-all select-all"
-                              style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}
-                            >
+                            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: C.light, letterSpacing: '0.8px' }}>Recovery Phrase</p>
+                            <code className="block px-3 py-2 rounded-lg text-[11px] font-mono break-all select-all" style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.teal }}>
                               {w.phrase}
                             </code>
                           </div>
@@ -1283,7 +1004,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ CHAT ============ */}
           {activeTab === 'chat' && (
             <div className="space-y-5">
               <SectionTitle title="Support Chat" sub="Talk to your users" />
@@ -1296,7 +1016,6 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* ============ SETTINGS ============ */}
           {activeTab === 'settings' && (
             <div className="space-y-5">
               <SectionTitle title="Settings" sub="Support contact & wallet addresses" />
@@ -1307,7 +1026,7 @@ export function AdminPanel() {
         </main>
       </div>
 
-      {/* ============ MOBILE BOTTOM NAV (flex child — cannot move) ============ */}
+      {/* ============ MOBILE BOTTOM NAV ============ */}
       <nav
         className="lg:hidden"
         style={{
@@ -1360,10 +1079,7 @@ export function AdminPanel() {
             >
               <MoreHorizontal size={18} style={{ color: moreTabs.some(t => t.id === activeTab) ? C.teal : C.light }} />
             </div>
-            <span
-              className="text-[10px] font-extrabold"
-              style={{ color: moreTabs.some(t => t.id === activeTab) ? C.text : C.light }}
-            >
+            <span className="text-[10px] font-extrabold" style={{ color: moreTabs.some(t => t.id === activeTab) ? C.text : C.light }}>
               More
             </span>
           </button>
@@ -1373,16 +1089,11 @@ export function AdminPanel() {
       {/* ============ MOBILE MORE SHEET ============ */}
       {mobileMenuOpen && (
         <div className="lg:hidden" style={{ position: 'absolute', inset: 0, zIndex: 50 }}>
-          <div
-            style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' }}
-            onClick={() => setMobileMenuOpen(false)}
-          />
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' }} onClick={() => setMobileMenuOpen(false)} />
           <div
             style={{
               position: 'absolute',
-              left: 0,
-              right: 0,
-              bottom: 0,
+              left: 0, right: 0, bottom: 0,
               backgroundColor: C.white,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
@@ -1392,10 +1103,7 @@ export function AdminPanel() {
           >
             <div className="w-12 h-1 rounded-full mx-auto mt-3 mb-5" style={{ backgroundColor: C.border }} />
             <div className="px-5 pb-3">
-              <p
-                className="text-[10px] font-extrabold uppercase mb-4"
-                style={{ color: C.muted, letterSpacing: '1.6px' }}
-              >
+              <p className="text-[10px] font-extrabold uppercase mb-4" style={{ color: C.muted, letterSpacing: '1.6px' }}>
                 More Sections
               </p>
               <div className="grid grid-cols-4 gap-3">
@@ -1418,10 +1126,7 @@ export function AdminPanel() {
                       >
                         <Icon size={18} style={{ color: active ? C.white : C.teal }} />
                       </div>
-                      <span
-                        className="text-[10px] font-extrabold"
-                        style={{ color: active ? C.white : C.text }}
-                      >
+                      <span className="text-[10px] font-extrabold" style={{ color: active ? C.white : C.text }}>
                         {t.label}
                       </span>
                       {t.badge && t.badge > 0 ? (
@@ -1453,6 +1158,6 @@ export function AdminPanel() {
       <style>{`
         @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
       `}</style>
-    </div>
+    </>
   );
 }
