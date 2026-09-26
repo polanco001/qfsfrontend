@@ -4,9 +4,6 @@ import { useApp } from '../context/AppContext';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://qfsbackend-1.onrender.com';
 
-/* ============================================================
-   DESIGN TOKENS (matches AdminPanel)
-   ============================================================ */
 const C = {
   bg:     '#FAFAF7',
   teal:   '#0C513F',
@@ -168,6 +165,51 @@ export function AdminSettings() {
   return (
     <div className="max-w-4xl">
 
+      {/* ============ TOP SAVE BAR (always visible) ============ */}
+      <div
+        className="rounded-2xl mb-5 p-3 flex items-center justify-between gap-3 sticky top-0 z-30"
+        style={{ backgroundColor: C.white, border: `1px solid ${C.border}`, boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          {isDirty ? (
+            <>
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: C.teal }} />
+              <p className="text-xs font-extrabold truncate" style={{ color: C.text }}>
+                Unsaved changes
+              </p>
+            </>
+          ) : (
+            <>
+              <Check size={14} style={{ color: C.green }} className="shrink-0" />
+              <p className="text-xs font-extrabold truncate" style={{ color: C.muted }}>
+                All changes saved
+              </p>
+            </>
+          )}
+        </div>
+        <div className="flex gap-2 shrink-0">
+          {isDirty && (
+            <button
+              onClick={discard}
+              className="px-3 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition"
+              style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
+            >
+              <RotateCcw size={12} /> Discard
+            </button>
+          )}
+          <button
+            onClick={save}
+            disabled={saving || !isDirty}
+            className="px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ backgroundColor: C.teal, color: C.white }}
+          >
+            {saving
+              ? <><Loader2 size={12} className="animate-spin" /> Saving…</>
+              : <><Save size={12} /> Save</>}
+          </button>
+        </div>
+      </div>
+
       {/* ============ SUPPORT CARD ============ */}
       <div
         className="rounded-3xl mb-5"
@@ -194,7 +236,6 @@ export function AdminSettings() {
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Support Link */}
           <div>
             <label
               className="text-[10px] font-extrabold uppercase mb-2 block"
@@ -229,7 +270,6 @@ export function AdminSettings() {
             )}
           </div>
 
-          {/* Support Phone */}
           <div>
             <label
               className="text-[10px] font-extrabold uppercase mb-2 block"
@@ -343,9 +383,41 @@ export function AdminSettings() {
         </div>
       </div>
 
+      {/* ============ BOTTOM SAVE BAR (desktop convenience) ============ */}
+      {isDirty && (
+        <div
+          className="rounded-3xl mb-6 p-4 flex items-center justify-between gap-3"
+          style={{ backgroundColor: C.white, border: `1px solid ${C.teal}40` }}
+        >
+          <p className="text-xs font-extrabold hidden sm:flex items-center gap-2" style={{ color: C.text }}>
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: C.teal }} />
+            Don't forget to save
+          </p>
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={discard}
+              className="px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition"
+              style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
+            >
+              <RotateCcw size={13} /> Discard
+            </button>
+            <button
+              onClick={save}
+              disabled={saving}
+              className="px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 disabled:opacity-60 transition"
+              style={{ backgroundColor: C.teal, color: C.white }}
+            >
+              {saving
+                ? <><Loader2 size={13} className="animate-spin" /> Saving…</>
+                : <><Save size={13} /> Save Changes</>}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ============ LIVE PREVIEW ============ */}
       <div
-        className="rounded-3xl mb-24"
+        className="rounded-3xl mb-6"
         style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}
       >
         <div className="px-5 py-4" style={{ borderBottom: `1px solid ${C.border}` }}>
@@ -361,10 +433,7 @@ export function AdminSettings() {
             className="rounded-2xl p-4"
             style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
           >
-            <p
-              className="text-[9px] font-extrabold uppercase mb-1.5"
-              style={{ color: C.light, letterSpacing: '1px' }}
-            >
+            <p className="text-[9px] font-extrabold uppercase mb-1.5" style={{ color: C.light, letterSpacing: '1px' }}>
               Support Link
             </p>
             <p className="text-[12px] font-bold truncate" style={{ color: current.supportLink ? C.text : C.light }}>
@@ -375,10 +444,7 @@ export function AdminSettings() {
             className="rounded-2xl p-4"
             style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
           >
-            <p
-              className="text-[9px] font-extrabold uppercase mb-1.5"
-              style={{ color: C.light, letterSpacing: '1px' }}
-            >
+            <p className="text-[9px] font-extrabold uppercase mb-1.5" style={{ color: C.light, letterSpacing: '1px' }}>
               Support Phone
             </p>
             <p className="text-[12px] font-bold truncate" style={{ color: current.supportPhone ? C.text : C.light }}>
@@ -389,10 +455,7 @@ export function AdminSettings() {
             className="rounded-2xl p-4"
             style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
           >
-            <p
-              className="text-[9px] font-extrabold uppercase mb-1.5"
-              style={{ color: C.light, letterSpacing: '1px' }}
-            >
+            <p className="text-[9px] font-extrabold uppercase mb-1.5" style={{ color: C.light, letterSpacing: '1px' }}>
               Wallets Set
             </p>
             <p className="text-[12px] font-bold" style={{ color: C.text }}>
@@ -401,43 +464,6 @@ export function AdminSettings() {
           </div>
         </div>
       </div>
-
-      {/* ============ STICKY SAVE BAR ============ */}
-      {isDirty && (
-        <div
-          className="fixed left-0 right-0 bottom-0 z-40 px-4 py-3"
-          style={{
-            backgroundColor: C.white,
-            borderTop: `1px solid ${C.border}`,
-          }}
-        >
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-            <p className="text-xs font-bold flex items-center gap-2 hidden sm:flex" style={{ color: C.muted }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: C.teal }} />
-              You have unsaved changes
-            </p>
-            <div className="flex gap-2 ml-auto">
-              <button
-                onClick={discard}
-                className="px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition"
-                style={{ backgroundColor: C.bg, border: `1px solid ${C.border}`, color: C.text }}
-              >
-                <RotateCcw size={13} /> Discard
-              </button>
-              <button
-                onClick={save}
-                disabled={saving}
-                className="px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 disabled:opacity-60 transition"
-                style={{ backgroundColor: C.teal, color: C.white }}
-              >
-                {saving
-                  ? <><Loader2 size={13} className="animate-spin" /> Saving…</>
-                  : <><Save size={13} /> Save Changes</>}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ============ TOAST ============ */}
       {toast && (
