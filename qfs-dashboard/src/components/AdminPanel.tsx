@@ -390,7 +390,7 @@ export function AdminPanel() {
 
   if (user === null || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: C.bg }}>
+      <div className="flex items-center justify-center" style={{ position: 'fixed', inset: 0, backgroundColor: C.bg }}>
         <div className="flex flex-col items-center gap-3">
           <div
             className="w-10 h-10 rounded-full border-2 animate-spin"
@@ -403,7 +403,7 @@ export function AdminPanel() {
   }
   if (user.role !== 'admin' || user.email !== ADMIN_EMAIL) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-sm font-semibold" style={{ backgroundColor: C.bg, color: C.red }}>
+      <div className="flex items-center justify-center text-sm font-semibold" style={{ position: 'fixed', inset: 0, backgroundColor: C.bg, color: C.red }}>
         Access denied.
       </div>
     );
@@ -451,12 +451,31 @@ export function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: C.bg, color: C.text }}>
+    /* ============================================================
+       ROOT — locked to viewport, internal scroll only
+       ============================================================ */
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: C.bg,
+        color: C.text,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      }}
+    >
 
       {/* ============ DESKTOP HEADER ============ */}
       <header
-        className="hidden lg:flex sticky top-0 z-40 h-16 items-center justify-between px-6"
-        style={{ backgroundColor: C.white, borderBottom: `1px solid ${C.border}` }}
+        className="hidden lg:flex items-center justify-between px-6"
+        style={{
+          height: 64,
+          flexShrink: 0,
+          backgroundColor: C.white,
+          borderBottom: `1px solid ${C.border}`,
+          zIndex: 10,
+        }}
       >
         <div className="flex items-center gap-3">
           <div
@@ -502,8 +521,14 @@ export function AdminPanel() {
 
       {/* ============ MOBILE HEADER ============ */}
       <header
-        className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-5 pt-5 pb-4"
-        style={{ backgroundColor: C.bg }}
+        className="lg:hidden flex items-center justify-between px-5"
+        style={{
+          flexShrink: 0,
+          paddingTop: 18,
+          paddingBottom: 14,
+          backgroundColor: C.bg,
+          zIndex: 10,
+        }}
       >
         <div>
           <p className="text-xs font-bold mb-0.5" style={{ color: C.muted, letterSpacing: '0.2px' }}>
@@ -531,11 +556,18 @@ export function AdminPanel() {
         </div>
       </header>
 
-      <div className="flex">
-        {/* ============ DESKTOP SIDEBAR ============ */}
+      {/* ============ BODY: SIDEBAR + MAIN ============ */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+
+        {/* ---------- DESKTOP SIDEBAR ---------- */}
         <aside
-          className="hidden lg:flex sticky top-16 h-[calc(100vh-4rem)] w-60 shrink-0 flex-col gap-1 p-4"
-          style={{ borderRight: `1px solid ${C.border}` }}
+          className="hidden lg:flex flex-col gap-1 p-4"
+          style={{
+            width: 240,
+            flexShrink: 0,
+            overflowY: 'auto',
+            borderRight: `1px solid ${C.border}`,
+          }}
         >
           {allDesktopTabs.map(t => {
             const Icon = t.icon;
@@ -568,8 +600,17 @@ export function AdminPanel() {
           })}
         </aside>
 
-        {/* ============ MAIN ============ */}
-        <main className="flex-1 min-w-0 px-5 sm:px-6 lg:px-10 py-4 lg:py-8 pb-28 lg:pb-10">
+        {/* ---------- MAIN SCROLL AREA ---------- */}
+        <main
+          style={{
+            flex: 1,
+            minWidth: 0,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
+          }}
+          className="px-5 sm:px-6 lg:px-10 py-4 lg:py-8"
+        >
           {error && (
             <div
               className="mb-5 px-4 py-3 rounded-xl text-xs font-semibold"
@@ -586,7 +627,6 @@ export function AdminPanel() {
                 <SectionTitle title="Overview" sub="Everything at a glance" />
               </div>
 
-              {/* Hero — Action Required */}
               <div
                 className="rounded-3xl p-6 sm:p-7"
                 style={{ backgroundColor: C.deep }}
@@ -630,14 +670,13 @@ export function AdminPanel() {
                 </p>
               </div>
 
-              {/* Quick actions — mobile only */}
               <div className="lg:hidden">
                 <SectionLabel>Quick Actions</SectionLabel>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { tab: 'users',    icon: Users,      color: C.teal,  label: 'Users' },
-                    { tab: 'payments', icon: CreditCard, color: C.amber, label: 'Payments' },
-                    { tab: 'chat',     icon: MessageCircle, color: C.blue, label: 'Chat' },
+                    { tab: 'users',    icon: Users,         color: C.teal,  label: 'Users' },
+                    { tab: 'payments', icon: CreditCard,    color: C.amber, label: 'Payments' },
+                    { tab: 'chat',     icon: MessageCircle, color: C.blue,  label: 'Chat' },
                   ].map(a => {
                     const Icon = a.icon;
                     return (
@@ -662,15 +701,14 @@ export function AdminPanel() {
                 </div>
               </div>
 
-              {/* Stats grid */}
               <div className="hidden lg:block">
                 <SectionLabel>Stats</SectionLabel>
                 <div className="grid grid-cols-4 gap-3">
                   {[
-                    { label: 'Total Users',  value: users.length,                    sub: 'registered',    icon: Users,       color: C.teal },
-                    { label: 'Payments',     value: dashData.payments.length,        sub: `${pendingPayments} pending`,  icon: CreditCard,  color: C.amber },
-                    { label: 'Gift Cards',   value: dashData.giftCards.length,       sub: `${pendingGiftCards} pending`, icon: FileText,    color: C.blue },
-                    { label: 'KYC Docs',     value: dashData.kycDocs.length,         sub: `${pendingKYC} pending`,       icon: ShieldCheck, color: C.teal },
+                    { label: 'Total Users',  value: users.length,              sub: 'registered',    icon: Users,       color: C.teal },
+                    { label: 'Payments',     value: dashData.payments.length,  sub: `${pendingPayments} pending`,  icon: CreditCard,  color: C.amber },
+                    { label: 'Gift Cards',   value: dashData.giftCards.length, sub: `${pendingGiftCards} pending`, icon: FileText,    color: C.blue },
+                    { label: 'KYC Docs',     value: dashData.kycDocs.length,   sub: `${pendingKYC} pending`,       icon: ShieldCheck, color: C.teal },
                   ].map(s => {
                     const Icon = s.icon;
                     return (
@@ -698,7 +736,6 @@ export function AdminPanel() {
                 </div>
               </div>
 
-              {/* Recent users */}
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <SectionLabel>Recent Users</SectionLabel>
@@ -742,6 +779,9 @@ export function AdminPanel() {
                   )}
                 </Card>
               </div>
+
+              {/* bottom spacer for scroll comfort */}
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -750,7 +790,6 @@ export function AdminPanel() {
             <div className="space-y-6">
               <SectionTitle title="Users" sub={`${users.length} registered · newest first`} />
 
-              {/* User actions panel */}
               <div className="rounded-3xl p-5 sm:p-6" style={{ backgroundColor: C.white, border: `1px solid ${C.border}` }}>
                 <SectionLabel>User Actions</SectionLabel>
 
@@ -796,7 +835,6 @@ export function AdminPanel() {
                   </div>
                 )}
 
-                {/* Segmented control */}
                 <div
                   className="flex gap-1 p-1 rounded-2xl mb-3"
                   style={{ backgroundColor: C.bg, border: `1px solid ${C.border}` }}
@@ -871,7 +909,6 @@ export function AdminPanel() {
                 </button>
               </div>
 
-              {/* Users list */}
               <div>
                 <SectionLabel>All Users</SectionLabel>
                 <Card>
@@ -919,6 +956,8 @@ export function AdminPanel() {
                   )}
                 </Card>
               </div>
+
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1003,6 +1042,8 @@ export function AdminPanel() {
                   ))}
                 </div>
               )}
+
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1085,6 +1126,8 @@ export function AdminPanel() {
                   ))}
                 </div>
               )}
+
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1181,6 +1224,8 @@ export function AdminPanel() {
                   ))}
                 </div>
               )}
+
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1233,6 +1278,8 @@ export function AdminPanel() {
                   ))}
                 </div>
               )}
+
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1241,10 +1288,11 @@ export function AdminPanel() {
             <div className="space-y-5">
               <SectionTitle title="Support Chat" sub="Talk to your users" />
               <Card className="overflow-hidden">
-                <div style={{ height: 'calc(100vh - 220px)', minHeight: 420 }} className="flex flex-col">
+                <div style={{ height: 'calc(100vh - 260px)', minHeight: 400 }} className="flex flex-col">
                   <AdminChatPanel />
                 </div>
               </Card>
+              <div style={{ height: 32 }} />
             </div>
           )}
 
@@ -1253,15 +1301,21 @@ export function AdminPanel() {
             <div className="space-y-5">
               <SectionTitle title="Settings" sub="Support contact & wallet addresses" />
               <AdminSettings />
+              <div style={{ height: 32 }} />
             </div>
           )}
         </main>
       </div>
 
-      {/* ============ MOBILE BOTTOM NAV ============ */}
+      {/* ============ MOBILE BOTTOM NAV (flex child — cannot move) ============ */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
-        style={{ backgroundColor: C.white, borderTop: `1px solid ${C.border}` }}
+        className="lg:hidden"
+        style={{
+          flexShrink: 0,
+          backgroundColor: C.white,
+          borderTop: `1px solid ${C.border}`,
+          zIndex: 20,
+        }}
       >
         <div
           className="flex items-center justify-around px-2 pt-2"
@@ -1318,15 +1372,20 @@ export function AdminPanel() {
 
       {/* ============ MOBILE MORE SHEET ============ */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
+        <div className="lg:hidden" style={{ position: 'absolute', inset: 0, zIndex: 50 }}>
           <div
-            className="absolute inset-0 bg-black/40"
+            style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' }}
             onClick={() => setMobileMenuOpen(false)}
           />
           <div
-            className="absolute bottom-0 left-0 right-0 rounded-t-3xl"
             style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
               backgroundColor: C.white,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
               paddingBottom: 'env(safe-area-inset-bottom)',
               animation: 'slideUp 0.28s cubic-bezier(0.4,0,0.2,1)',
             }}
